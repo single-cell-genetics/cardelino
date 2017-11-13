@@ -1,0 +1,11 @@
+Package: cardelino
+Type: Package
+Title: What the Package Does Using Title Case
+Version: 1.0
+Date: 2017-11-13
+Author: Davis McCarthy
+Maintainer: Davis McCarthy <davis@ebi.ac.uk>
+Description: More details about what the package does. See
+            <http://cran.r-project.org/doc/manuals/r-release/R-exts.html#The-DESCRIPTION-file> for details
+            on how to write this part.
+License: GPL (>= 2)
