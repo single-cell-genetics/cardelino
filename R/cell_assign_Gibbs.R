@@ -109,8 +109,8 @@ cell_assign_Gibbs <- function(A, D, C, Psi, prior0 = c(1, 1), prior1 = c(1, 1),
       ss3 <- ss3+S3[j,assign_all[t-1,j]]
       ss4 <- ss4+S4[j,assign_all[t-1,j]]
     }
-    theta_all[t,1] <- rbeta(1, prior0[1]+ss1, prior0[1]+ss2, ncp=0)
-    theta_all[t,2] <- rbeta(1, prior1[1]+ss3, prior1[1]+ss4, ncp=0)
+    theta_all[t, 1] <- rbeta(1, prior0[1] + ss1, prior0[2]+ss2, ncp = 0)
+    theta_all[t, 2] <- rbeta(1, prior1[1] + ss3, prior1[2] + ss4, ncp = 0)
     
     #sample assignment
     lik_mat <- (theta_all[t,1]**S1 * (1-theta_all[t,1])**S2 * 
