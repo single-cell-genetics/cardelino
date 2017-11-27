@@ -12,6 +12,10 @@
 #' @param C A matrix of binary values. The clone-variant configuration, whcih 
 #' encodes the phylogenetic tree structure. This is the output Z of Canopy
 #' @param Psi A vector of float. The fractions of each clone, output P of Canopy
+#' @param prior0 numeric(2), alpha and beta parameters for the Beta prior 
+#' distribution on the inferred false positive rate.
+#' @param prior1 numeric(2), alpha and beta parameters for the Beta prior 
+#' distribution on the inferred (1 - false negative) rate.
 #' @param model A string. The model to use: Bernoulli or binomial
 #' @param threshold A value of integer or float. the threshold on count or 
 #' fraction of alteration reads when using Bernoulli model
@@ -33,10 +37,10 @@
 #' @export
 #' 
 #' @examples
-cell_assign_Gibbs <- function(A, D, C, Psi, prior0=c(1,1), prior1=c(1,1),
-                              model="Bernoulli", threshold=1, 
-                              threshold_type="count", min_iter=1000, 
-                              max_iter=50000){
+cell_assign_Gibbs <- function(A, D, C, Psi, prior0 = c(1, 1), prior1 = c(1, 1),
+                              model = "Bernoulli", threshold = 1, 
+                              threshold_type = "count", min_iter = 1000, 
+                              max_iter = 50000) {
   if (dim(A)[1] != dim(D)[1] || dim(A)[2] != dim(D)[2] || 
       dim(A)[1] != dim(C)[1] || dim(C)[2] != length(Psi)) {
     stop(paste("A and D must have the same size;\n ",
@@ -119,7 +123,7 @@ cell_assign_Gibbs <- function(A, D, C, Psi, prior0=c(1,1), prior1=c(1,1),
     }
     
     #check convergence
-    if (t>=min_iter && t%%100 == 0){
+    if (t >= min_iter && t%%100 == 0){
       if (Geweke_Z(theta_all[1:t,1]) <= 2 && Geweke_Z(theta_all[1:t,2]) <= 2){
         break
       }
