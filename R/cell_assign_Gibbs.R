@@ -143,7 +143,7 @@ cell_assign_Gibbs <- function(A, D, C, Psi, prior0 = c(1, 1), prior1 = c(1, 1),
 #' @param last A float between 0 and 1. The final region of MCMC chain.
 #' 
 #' @return an absolute value of the Z score.
-Geweke_Z <-function(X, first=0.1, last=0.5){
+Geweke_Z <- function(X, first=0.1, last=0.5){
   N = length(X)
   A = X[1:floor(first*N)]
   B = X[ceiling(last*N):N]

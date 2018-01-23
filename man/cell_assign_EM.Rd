@@ -2,7 +2,7 @@
 % Please edit documentation in R/cell_assign_EM.R
 \name{cell_assign_EM}
 \alias{cell_assign_EM}
-\title{EM algorithm for assigning cells to cloens and estimating parameters in 
+\title{EM algorithm for assigning cells to clones and estimating parameters in 
 mixture model.
 The two Bernoulli components correspond to false positive and false negative.
 The two binomial components correspond to reads distribution without and with
@@ -45,7 +45,7 @@ posterior probabilities of each cell belonging to each clone with fitted
 parameters, and \code{logLik}, the log likelihood of the final parameters.
 }
 \description{
-EM algorithm for assigning cells to cloens and estimating parameters in 
+EM algorithm for assigning cells to clones and estimating parameters in 
 mixture model.
 The two Bernoulli components correspond to false positive and false negative.
 The two binomial components correspond to reads distribution without and with
