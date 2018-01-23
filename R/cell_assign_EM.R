@@ -1,7 +1,7 @@
 ## Single cell assignment to phylogenetic clones with EM algorithm for 
 ## Bernoulli mixtue model and binomial mixture model
 
-#' EM algorithm for assigning cells to cloens and estimating parameters in 
+#' EM algorithm for assigning cells to clones and estimating parameters in 
 #' mixture model.
 #' The two Bernoulli components correspond to false positive and false negative.
 #' The two binomial components correspond to reads distribution without and with

@@ -3,5 +3,8 @@
 export(cell_assign_EM)
 export(cell_assign_Gibbs)
 export(mixBinom)
+export(plot_tree)
 export(predMixBinom)
+import(ggplot2)
+import(ggtree)
 import(stats)
