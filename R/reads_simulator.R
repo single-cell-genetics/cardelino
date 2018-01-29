@@ -17,6 +17,8 @@
 #' paramerized by the technical error rate.
 #' 6) Given the missing rate, NA value will be given to mask the read counts
 #' 
+#' @export
+#' 
 #' @param D A vector of integers. Sequencing depth for variants
 #' @param C A matrix of binary values. The clone-variant configuration, whcih 
 #' encodes the phylogenetic tree structure. This is the output Z of Canopy
