@@ -3,6 +3,8 @@
 #' Get the probability gap between the highest and the second highest assignmnet
 #' probabilities.
 #' 
+#' @export
+#' 
 #' @param prob_assign A matrix of floats. Clonal assignment probability of N 
 #' cells to K clones.
 get_prob_gap <- function(prob_assign){
@@ -19,6 +21,8 @@ get_prob_gap <- function(prob_assign){
 #' Note, when multiple clones have the same assignment probability, only the 
 #' earliest clone will be return. Usually, these cells should be filtered for 
 #' analysis.
+#' 
+#' @export
 #' 
 #' @param prob_assign A matrix of floats. Clonal assignment probability of N 
 #' cells to K clones.

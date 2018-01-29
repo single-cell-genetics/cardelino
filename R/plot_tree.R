@@ -80,6 +80,7 @@ mut.label <- function(tree){
   SNA.label
 }
 
+#' @export
 heatmap.theme <- function(legend.position="bottom") {
     ggplot2::theme_gray() + ggplot2::theme(
         axis.title.x = ggplot2::element_blank(),
@@ -92,6 +93,7 @@ heatmap.theme <- function(legend.position="bottom") {
         legend.position=legend.position)
 }
 
+#' @export
 pub.theme <- function(size = 12){
     ggplot2::theme(axis.text = ggplot2::element_text(size = size),
                    axis.title = ggplot2::element_text(
