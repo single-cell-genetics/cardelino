@@ -80,7 +80,7 @@ mut.label <- function(tree){
   SNA.label
 }
 
-heatmap.theme <- function() {
+heatmap.theme <- function(legend.position="bottom") {
     ggplot2::theme_gray() + ggplot2::theme(
         axis.title.x = ggplot2::element_blank(),
         axis.ticks.x = ggplot2::element_blank(),
@@ -89,9 +89,7 @@ heatmap.theme <- function() {
         panel.grid.major = ggplot2::element_blank(),
         panel.border = ggplot2::element_blank(),
         panel.background = ggplot2::element_blank(),
-        legend.justification = c(1, 0),
-        legend.position = c(0.65, 0.7),
-        legend.direction = "horizontal")
+        legend.position=legend.position)
 }
 
 pub.theme <- function(size = 12){
