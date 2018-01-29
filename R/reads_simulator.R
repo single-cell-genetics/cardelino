@@ -22,7 +22,7 @@
 #' encodes the phylogenetic tree structure. This is the output Z of Canopy
 #' @param Psi A vector of float. The fractions of each clone, output P of Canopy
 sim_read_count <- function(C, D, Psi=NULL, means=c(0.03, 0.45), 
-                           vars=c(1.0, 0.3), missing_rate=0.9, cell_num=300){
+                           vars=c(0.1, 0.1), missing_rate=NULL, cell_num=300){
   M <- cell_num   #number of cells
   K <- dim(C)[2]  #number of clones
   N <- dim(C)[1]  #number of variants
@@ -46,9 +46,17 @@ sim_read_count <- function(C, D, Psi=NULL, means=c(0.03, 0.45),
     p_sim[i,1] <- rbeta(1, shape1s[1], shape2s[1])
     p_sim[i,2] <- rbeta(1, shape1s[2], shape2s[2])
     for(j in seq_len(M)){
-      is_mising <- rbinom(1, 1, missing_rate)
-      if (!is_mising){
-        D_sim[i,j] = sample(D_non_0, 1, replace = TRUE)
+      if(is.null(missing_rate)){
+        D_sim[i,j] = sample(D[i,], 1, replace = TRUE)
+      } else{
+        is_mising <- rbinom(1, 1, missing_rate)
+        if (!is_mising){
+          # D_sim[i,j] = sample(D_non_0, 1, replace = TRUE) 
+          # variant specific expression
+          D_sim[i,j] = sample(D[i,which(D[i,]>0)], 1, replace = TRUE) 
+        }
+      }
+      if(!is.na(D_sim[i,j])){
         A_sim[i,j] = rbinom(1, D_sim[i,j], p_sim[i,H_sim[i,j]+1])
       }
     }
@@ -59,53 +67,3 @@ sim_read_count <- function(C, D, Psi=NULL, means=c(0.03, 0.45),
 }
 
 
-assign_score <- function(true_assign, prob_assign, min_prob_gap=0.25){
-  M <- dim(true_assign)[1]
-  K <- dim(true_assign)[2]
-  
-  able_assigns <- rep(FALSE, M)
-  corr_assigns <- rep(FALSE, M)
-  for (j in seq_len(M)){
-    prob_sorted <- sort(prob_assign[j,], decreasing = TRUE)
-    if ((prob_sorted[1] - prob_sorted[2]) >= min_prob_gap){
-      able_assigns[j] = TRUE
-    }
-    # idx <- which(prob_sorted[1] == prob_assign[j,])
-    # if (sum(true_assign[j,idx]) > 0){
-    #   corr_assigns[j] = TRUE
-    # }
-    if(which.max(true_assign[j,]) == which.max(prob_assign[j,])){
-      corr_assigns[j] = TRUE
-    }
-  }
-  #mean(corr_assigns), mean(able_assigns), mean(corr_assigns[able_assigns])
-  return_list <- list("able_assigns"=able_assigns, "corr_assigns"=corr_assigns)
-  return_list
-}
-
-
-get_error_rate <- function(H_sim, A_sim, threshold=1){
-  N <- dim(A_sim)[1]
-  M <- dim(A_sim)[1]
-  error_rate <- matrix(NA, N, 2)
-  for (i in seq_len(N)){
-    idx1 <- as.logical((!is.na(A_sim[i,])) * (H_sim[i,]==0))
-    idx2 <- as.logical((!is.na(A_sim[i,])) * (H_sim[i,]==1))
-    if (sum(idx1) > 0){
-      error_rate[i,1] <- mean(A_sim[i,idx1] >= threshold)
-    }
-    if (sum(idx2) > 0){
-      error_rate[i,2] <- mean(A_sim[i,idx2] < threshold)
-    }
-  }
-  
-  error_rate_mean <- rep(NA, 2)
-  idx1 <- as.logical((!is.na(A_sim)) * (H_sim==0))
-  idx2 <- as.logical((!is.na(A_sim)) * (H_sim==1))
-  error_rate_mean[1] <- mean(A_sim[idx1] >= threshold)
-  error_rate_mean[2] <- mean(A_sim[idx2] >= threshold)
-  
-  return_list <- list("error_rate"=error_rate, 
-                      "error_rate_mean"=error_rate_mean)
-  return_list
-}
