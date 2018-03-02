@@ -38,7 +38,7 @@
 #' expected false positive rate, and \code{theta2}, a matrix of expected true 
 #' positive rate.
 #' 
-sim_read_count <- function(C, D, Psi=NULL, means=c(0.03, 0.55), vars=c(0.1,10), 
+sim_read_count <- function(C, D, Psi=NULL, means=c(0.03, 0.55), vars=c(1.0, 10), 
                            cell_num=300, permute_D=FALSE){
   M <- cell_num   #number of cells
   K <- dim(C)[2]  #number of clones
@@ -61,15 +61,17 @@ sim_read_count <- function(C, D, Psi=NULL, means=c(0.03, 0.55), vars=c(0.1,10),
   # generate p, D and A
   p_sim <- matrix(0, 2)      # p1 and p2 for False positive and True positive
   A_sim <- matrix(NA, N, M)  # Alteration counts matrxi
-  D_sim <- matrix(NA, N, M)  # Total counts matrix
+  D_sim <- D[, sample(ncol(D), M, replace=T)]
+  colnames(D_sim) <- NULL
   theta1_sim <- matrix(NA, N, M)  # Total counts matrix
   theta2_sim <- matrix(NA, N, M)  # Total counts matrix
   for (i in seq_len(N)){
     for(j in seq_len(M)){
       p_sim[1] <- rbeta(1, shape1s[1], shape2s[1])
       p_sim[2] <- rbeta(1, shape1s[2], shape2s[2])
-      D_sim[i,j] = sample(D[i,], 1, replace = TRUE)
       if(!is.na(D_sim[i,j])){
+        D_no_na <- D[i, (!is.na(D[i,]))]
+        D_sim[i,j] = sample(D_no_na, 1, replace = TRUE)
         if (H_sim[i,j] == 0){
           A_sim[i,j] = rbinom(1, D_sim[i,j], p_sim[1])
           theta1_sim[i,j] = 1 - dbinom(0, size=D_sim[i,j], prob=p_sim[1])
