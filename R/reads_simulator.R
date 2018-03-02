@@ -34,10 +34,11 @@
 #' 
 #' @return a list containing \code{A_sim}, a matrix for alteration reads, 
 #' \code{A_sim}, a matrix for total reads, \code{I_sim}, a matrix for clonal 
-#' label, \code{H_sim}, a matrix for genotype, and \code{H_sim}, a matrix for 
-#' theta_1 and theta_2 in each varaint.
+#' label, \code{H_sim}, a matrix for genotype, \code{theta1}, a matrix of 
+#' expected false positive rate, and \code{theta2}, a matrix of expected true 
+#' positive rate.
 #' 
-sim_read_count <- function(C, D, Psi=NULL, means=c(0.03, 0.45), vars=c(0.1,0.1), 
+sim_read_count <- function(C, D, Psi=NULL, means=c(0.03, 0.55), vars=c(0.1,10), 
                            cell_num=300, permute_D=FALSE){
   M <- cell_num   #number of cells
   K <- dim(C)[2]  #number of clones
@@ -58,22 +59,46 @@ sim_read_count <- function(C, D, Psi=NULL, means=c(0.03, 0.45), vars=c(0.1,0.1),
   H_sim <- C %*% I_sim               # Genotype for each cell
   
   # generate p, D and A
-  p_sim <- matrix(0, N, 2)   # Theta_1 and theta_2 for each variants
+  p_sim <- matrix(0, 2)      # p1 and p2 for False positive and True positive
   A_sim <- matrix(NA, N, M)  # Alteration counts matrxi
   D_sim <- matrix(NA, N, M)  # Total counts matrix
+  theta1_sim <- matrix(NA, N, M)  # Total counts matrix
+  theta2_sim <- matrix(NA, N, M)  # Total counts matrix
   for (i in seq_len(N)){
-    p_sim[i,1] <- rbeta(1, shape1s[1], shape2s[1])
-    p_sim[i,2] <- rbeta(1, shape1s[2], shape2s[2])
     for(j in seq_len(M)){
+      p_sim[1] <- rbeta(1, shape1s[1], shape2s[1])
+      p_sim[2] <- rbeta(1, shape1s[2], shape2s[2])
       D_sim[i,j] = sample(D[i,], 1, replace = TRUE)
       if(!is.na(D_sim[i,j])){
-        A_sim[i,j] = rbinom(1, D_sim[i,j], p_sim[i,H_sim[i,j]+1])
+        if (H_sim[i,j] == 0){
+          A_sim[i,j] = rbinom(1, D_sim[i,j], p_sim[1])
+          theta1_sim[i,j] = 1 - dbinom(0, size=D_sim[i,j], prob=p_sim[1])
+        }else{
+          A_sim[i,j] = rbinom(1, D_sim[i,j], p_sim[2])
+          theta2_sim[i,j] = 1 - dbinom(0, size=D_sim[i,j], prob=p_sim[2])
+        }
       }
     }
   }
   return_list <- list("A_sim"=A_sim, "D_sim"=D_sim, "I_sim"=t(I_sim), 
-                      "H_sim"=H_sim, "p_sim"=p_sim)
+                      "H_sim"=H_sim, "theta1"=theta1_sim, "theta2"=theta2_sim)
   return_list
 }
 
-
+#' Update matrix D with manully selected missing rate
+#' 
+#' @export
+#' 
+missing_update <- function(D, missing_rate=NULL){
+  D_tmp <- D
+  if(is.null(missing_rate)){
+    missing_rate = mean(is.na(D))
+  }
+  for (i in seq_len(dim(D)[1])){
+    D_no_na <- D[i, which(D[i,]>0)]
+    missing_num <- round(missing_rate * dim(D)[2])
+    samp_pool <- c(rep(NA, missing_num), sample(D_no_na, dim(D)[2]-missing_num, replace = TRUE))
+    D_tmp[i, ] = sample(samp_pool, dim(D)[2], replace = TRUE)
+  }
+  D_tmp
+}

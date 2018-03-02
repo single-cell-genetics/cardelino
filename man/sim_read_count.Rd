@@ -4,8 +4,8 @@
 \alias{sim_read_count}
 \title{Sythetic reads generator for genetic variants}
 \usage{
-sim_read_count(C, D, Psi = NULL, means = c(0.03, 0.45), vars = c(0.1,
-  0.1), cell_num = 300, permute_D = FALSE)
+sim_read_count(C, D, Psi = NULL, means = c(0.03, 0.55), vars = c(0.1, 10),
+  cell_num = 300, permute_D = FALSE)
 }
 \arguments{
 \item{C}{A matrix of binary values. The clone-variant configuration, whcih 
@@ -29,8 +29,9 @@ and the mean theta_2 (true positive rate).}
 \value{
 a list containing \code{A_sim}, a matrix for alteration reads, 
 \code{A_sim}, a matrix for total reads, \code{I_sim}, a matrix for clonal 
-label, \code{H_sim}, a matrix for genotype, and \code{H_sim}, a matrix for 
-theta_1 and theta_2 in each varaint.
+label, \code{H_sim}, a matrix for genotype, \code{theta1}, a matrix of 
+expected false positive rate, and \code{theta2}, a matrix of expected true 
+positive rate.
 }
 \description{
 There are following steps to generate the simulated reads counts for variants
