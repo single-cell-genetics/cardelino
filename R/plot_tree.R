@@ -34,6 +34,9 @@ plot_tree <- function(tree, orient="h") {
   # node_size <- c(rep(20, node_shown), rep(0, node_hidden))
   
   mut_ids <- 0
+  mut_id_all <- tree$Z %*% (2**seq(ncol(tree$Z),1))
+  mut_id_all <- seq(length(unique(mut_id_all)),1)[as.factor(mut_id_all)]
+  
   branch_ids <- NULL
   for (i in seq_len(node_total)) {
     if (i <= node_shown) {
@@ -45,8 +48,11 @@ plot_tree <- function(tree, orient="h") {
       branch_ids = c(branch_ids, "") #NA
     }
     else {
+      vaf <- mean(tree$VAF[tree$sna[,3] == i])
       mut_ids <- mut_ids + 1
-      branch_ids = c(branch_ids, paste0("Mut", mut_ids, ": ", mut_num))
+      mut_ids <- mean(mut_id_all[tree$sna[,3] == i])
+      branch_ids = c(branch_ids, paste0("Mut", mut_ids, ": ", mut_num, 
+                                        sprintf("; %.2f", vaf)))
     }
   }
   pt <- ggtree::ggtree(tree)
@@ -80,18 +86,6 @@ mut.label <- function(tree){
   SNA.label
 }
 
-#' @export
-heatmap.theme <- function(legend.position="bottom") {
-    ggplot2::theme_gray() + ggplot2::theme(
-        axis.title.x = ggplot2::element_blank(),
-        axis.ticks.x = ggplot2::element_blank(),
-        axis.ticks.y = ggplot2::element_blank(),
-        axis.text.y = ggplot2::element_blank(),
-        panel.grid.major = ggplot2::element_blank(),
-        panel.border = ggplot2::element_blank(),
-        panel.background = ggplot2::element_blank(),
-        legend.position=legend.position)
-}
 
 #' @export
 pub.theme <- function(size = 12){
