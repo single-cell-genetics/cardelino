@@ -4,8 +4,8 @@
 \alias{sim_read_count}
 \title{Sythetic reads generator for genetic variants}
 \usage{
-sim_read_count(C, D, Psi = NULL, means = c(0.03, 0.55), vars = c(1, 10),
-  cell_num = 300, permute_D = FALSE)
+sim_read_count(C, D, Psi = NULL, means = c(0.01, 0.5), vars = c(18.99,
+  1.63), cell_num = 300, permute_D = FALSE)
 }
 \arguments{
 \item{C}{A matrix of binary values. The clone-variant configuration, whcih 
