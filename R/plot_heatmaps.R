@@ -105,14 +105,9 @@ confusion_heatmap <- function(prob_mat, sim_mat, prob_gap_min=0.0,
   print(paste("accuracy:", mean((assign_0 == assign_1)[idx])))
   print(paste("overall acc:", mean(assign_0 == assign_1)))
   
-  if(confident_only){
-    acc = mean((assign_0 == assign_1)[idx])
-    confusion_matrix <- as.data.frame(table(assign_0[idx], assign_1[idx]))
-  }else{
-    acc = mean((assign_0 == assign_1))
-    confusion_matrix <- as.data.frame(table(assign_0, assign_1))
-    colnames(confusion_matrix) <- c("Var1", "Var2", "Freq")
-  }
+  acc = mean((assign_0 == assign_1)[idx])
+  confusion_matrix <- as.data.frame(table(assign_0[idx], assign_1[idx]))
+  colnames(confusion_matrix) <- c("Var1", "Var2", "Freq")
   
   confusion.plot <- ggplot(data=confusion_matrix, mapping=aes(x=Var1, y=Var2)) +
     geom_tile(aes(fill = Freq), colour = "grey") + 
