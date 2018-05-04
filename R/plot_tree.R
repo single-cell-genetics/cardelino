@@ -45,7 +45,8 @@ plot_tree <- function(tree, orient="h") {
     }
     mut_num = sum(tree$sna[,3] == i)
     if (mut_num == 0) {
-      branch_ids = c(branch_ids, "") #NA
+      if(i == node_shown+1){branch_ids = c(branch_ids, "Root")}
+      else{branch_ids = c(branch_ids, "")} #NA
     }
     else {
       vaf <- mean(tree$VAF[tree$sna[,3] == i])
