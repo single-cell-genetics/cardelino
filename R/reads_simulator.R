@@ -102,6 +102,14 @@ sim_read_count <- function(C, D, Psi=NULL, means=c(0.01, 0.50),
 
 #' Update matrix D with manully selected missing rate
 #' 
+#' Given missing rate, the NA will be generated first. For none NA element, 
+#' sequencing depth with uniformly sampled from D, row wisely. Namely, the depth
+#' is variant specific.
+#' 
+#' @param D A matrix (N variants x M cells), the orignal sequencing coverage, 
+#' NA means missing
+#' @param missing_rate A float value, if NULL, use the same missing rate as D
+#' 
 #' @export
 #' 
 missing_update <- function(D, missing_rate=NULL){
@@ -117,4 +125,26 @@ missing_update <- function(D, missing_rate=NULL){
     D_tmp[i, ] = sample(samp_pool, dim(D)[2], replace = TRUE)
   }
   D_tmp
+}
+
+
+#' Assess performance with simulated data
+#' 
+#' Return fraction of assignable cells, accuracy with assignable cells, and
+#' overall accuracy
+#' 
+#' @param prob_mat A matrix (M cells x K clones), estiamted probability of cell 
+#' to clone
+#' @param simulate_mat A matrix (M cells x K clones), tru cell-clone assignment
+#' @param prob_gap_min A float value, the threshold for assignable cells
+#' @export
+#' 
+assign_score <- function(prob_mat, simulate_mat, prob_gap_min=0.2){
+  assign_0 <- cardelino::get_prob_label(simulate_mat)
+  assign_1 <- cardelino::get_prob_label(prob_mat)
+  prob_gap <- cardelino::get_prob_gap(prob_mat)
+  idx <- prob_gap >= prob_gap_min
+  
+  #return: assignable cells, accuracy with assignable cells, overall accuracy
+  c(mean(idx), mean((assign_0 == assign_1)[idx]), mean(assign_0 == assign_1))
 }
