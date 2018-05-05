@@ -6,6 +6,14 @@
 \usage{
 missing_update(D, missing_rate = NULL)
 }
+\arguments{
+\item{D}{A matrix (N variants x M cells), the orignal sequencing coverage, 
+NA means missing}
+
+\item{missing_rate}{A float value, if NULL, use the same missing rate as D}
+}
 \description{
-Update matrix D with manully selected missing rate
+Given missing rate, the NA will be generated first. For none NA element, 
+sequencing depth with uniformly sampled from D, row wisely. Namely, the depth
+is variant specific.
 }
