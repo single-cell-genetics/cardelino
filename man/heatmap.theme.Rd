@@ -4,7 +4,7 @@
 \alias{heatmap.theme}
 \title{The theme of heatmaps for prob_heatmap and sites_heatmap}
 \usage{
-heatmap.theme(legend.position = "bottom")
+heatmap.theme(legend.position = "bottom", size = 12)
 }
 \description{
 The theme of heatmaps for prob_heatmap and sites_heatmap

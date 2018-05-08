@@ -10,10 +10,11 @@
 #' the probabilty of each clone
 #' 
 #' @export
-prob_heatmap <- function(prob_mat, prob_gap_min=0.2, cell_idx=NULL){
+prob_heatmap <- function(prob_mat, prob_gap_min=0.01, cell_idx=NULL){
   cell_label <- cardelino::get_prob_label(prob_mat)
   prob_gap <- cardelino::get_prob_gap(prob_mat)
   # add clone id
+  colnames(prob_mat) <- paste0("C", seq_len(ncol(prob_mat)))
   for (i in seq_len(ncol(prob_mat))){
     conf_frac <- mean(cell_label[prob_gap>=prob_gap_min] == i)        
     colnames(prob_mat)[i] <- paste0("C", i, ": ", 
@@ -101,9 +102,9 @@ confusion_heatmap <- function(prob_mat, sim_mat, prob_gap_min=0.0,
   prob_gap <- cardelino::get_prob_gap(prob_mat)
   idx <- prob_gap >= prob_gap_min
   
-  print(paste("assignable:", mean(idx)))
-  print(paste("accuracy:", mean((assign_0 == assign_1)[idx])))
-  print(paste("overall acc:", mean(assign_0 == assign_1)))
+  # print(paste("assignable:", mean(idx)))
+  # print(paste("accuracy:", mean((assign_0 == assign_1)[idx])))
+  # print(paste("overall acc:", mean(assign_0 == assign_1)))
   
   acc = mean((assign_0 == assign_1)[idx])
   confusion_matrix <- as.data.frame(table(assign_0[idx], assign_1[idx]))
@@ -129,16 +130,21 @@ confusion_heatmap <- function(prob_mat, sim_mat, prob_gap_min=0.0,
 #' The theme of heatmaps for prob_heatmap and sites_heatmap
 #' 
 #' @export
-heatmap.theme <- function(legend.position="bottom") {
-  ggplot2::theme_gray() + ggplot2::theme(
+heatmap.theme <- function(legend.position="bottom", size=12) {
+  ggplot2::theme_gray(base_size = size) + ggplot2::theme(
+    axis.text = ggplot2::element_text(size = size),
+    axis.title = ggplot2::element_text(face = "bold", size = size),
     axis.title.x = ggplot2::element_blank(),
     axis.ticks.x = ggplot2::element_blank(),
     axis.ticks.y = ggplot2::element_blank(),
     axis.text.y = ggplot2::element_blank(),
+    plot.title = ggplot2::element_text(face = "bold", size = size*1.3, 
+                                       hjust = 0.5),
     panel.grid.major = ggplot2::element_blank(),
     panel.border = ggplot2::element_blank(),
     panel.background = ggplot2::element_blank(),
-    legend.position=legend.position)
+    legend.position=legend.position,
+    legend.title=ggplot2::element_text(size=size*1.1))
 }
 
 
