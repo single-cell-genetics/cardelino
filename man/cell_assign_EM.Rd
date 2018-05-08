@@ -8,8 +8,9 @@ The two Bernoulli components correspond to false positive and false negative.
 The two binomial components correspond to reads distribution without and with
 variant.}
 \usage{
-cell_assign_EM(A, D, C, Psi, model = "Bernoulli", threshold = 1,
-  threshold_type = "count", max_iter = 1000)
+cell_assign_EM(A, D, C, Psi = NULL, model = "Bernoulli", threshold = 1,
+  threshold_type = "count", max_iter = 1000, min_iter = 10,
+  logLik_threshold = 1e-05)
 }
 \arguments{
 \item{A}{A matrix of integers. Number of alteration reads in variant i cell j}
@@ -30,6 +31,11 @@ fraction of alteration reads when using Bernoulli model}
 
 \item{max_iter}{A integer. The maximum number of iterations in EM algorithm. 
 The real iteration may finish earlier.}
+
+\item{min_iter}{A integer. The minimum number of iterations in EM algorithm.}
+
+\item{logLik_threshold}{A float. The threshold of logLikelihood increase for
+detecting convergence.}
 }
 \value{
 a list containing \code{alpha}, a float denoting the estimated false 

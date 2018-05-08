@@ -18,6 +18,9 @@
 #' @param threshold_type A string. The type of threshold: count or fraction
 #' @param max_iter A integer. The maximum number of iterations in EM algorithm. 
 #' The real iteration may finish earlier.
+#' @param min_iter A integer. The minimum number of iterations in EM algorithm.
+#' @param logLik_threshold A float. The threshold of logLikelihood increase for
+#' detecting convergence.
 #' 
 #' @return a list containing \code{alpha}, a float denoting the estimated false 
 #' positive rate, \code{beta}, a float denoting the estimated false negative 
@@ -36,8 +39,10 @@
 #' @export
 #' 
 #' @examples
-cell_assign_EM <- function(A, D, C, Psi, model="Bernoulli", threshold=1, 
-                           threshold_type="count", max_iter=1000){
+cell_assign_EM <- function(A, D, C, Psi=NULL, model="Bernoulli", threshold=1, 
+                           threshold_type="count", max_iter=1000, min_iter=10, 
+                           logLik_threshold=1e-5){
+  if(is.null(Psi)){Psi <- rep(1/ncol(C), ncol(C))}
   if (dim(A)[1] != dim(D)[1] || dim(A)[2] != dim(D)[2] || 
       dim(A)[1] != dim(C)[1] || dim(C)[2] != length(Psi)) {
     stop(paste("A and D must have the same size;\n ",
@@ -49,6 +54,8 @@ cell_assign_EM <- function(A, D, C, Psi, model="Bernoulli", threshold=1,
   N <- dim(A)[1] # number of variants 
   M <- dim(A)[2] # number of cells
   K <- dim(C)[2] # number of clones
+  A[which(D==0)] <- NA
+  D[which(D==0)] <- NA
   
   C1 <- C
   C0 <- 1-C
@@ -77,34 +84,28 @@ cell_assign_EM <- function(A, D, C, Psi, model="Bernoulli", threshold=1,
   W1 <- t(W_log) %*% C1 #log product of Binomial cofficient for C=1
   
   ## random initialization for EM
-  theta <- c(stats::runif(1, 0.001, 0.25),stats::runif(1, 0.3, 0.6))
-  theta_new <- c(stats::runif(1, 0.001, 0.25),stats::runif(1, 0.3, 0.6))
-
-  lik_mat <- (theta[1]**S1 * (1-theta[1])**S2 * theta[2]**S3 * 
-                (1-theta[2])**S4) * Psi
-  prob_mat <- lik_mat / rowSums(lik_mat)
+  theta <- c(stats::runif(1, 0.001, 0.25), stats::runif(1, 0.3, 0.6))
+  logLik <- 0
+  logLik_new <- logLik + logLik_threshold*2
   
   ## EM iterations
   for(t in seq_len(max_iter)){
-    #TODO: check convergence by the fold change on logLik
-    if (theta_new[1] == theta[1] && theta_new[2] == theta[2]){
-      print(paste("Total iterations: ", t))
-      break
-    } else{
-      theta <- theta_new
-    }
+    # Check convergence
+    if((t > min_iter) & ((logLik_new - logLik) < logLik_threshold)){break}
+    logLik <- logLik_new
     
     #E-step
-    lik_mat <- (theta[1]**S1 * (1-theta[1])**S2 * theta[2]**S3 * 
-                  (1-theta[2])**S4) * Psi
-    prob_mat <- lik_mat / rowSums(lik_mat)
+    logLik_mat <- (S1*log(theta[1]) + S2*log(1-theta[1]) + 
+                   S3*log(theta[2]) + S4*log(1-theta[2]))
+    logLik_mat <- t(t(logLik_mat) + log(Psi))# + W0 + W1
+    logLik_new <- sum(log(rowSums(exp(logLik_mat), na.rm=T)), na.rm=T)
+    prob_mat <- exp(logLik_mat) / rowSums(exp(logLik_mat))
     
     #M-step
-    theta_new[1] <- sum(prob_mat * S1) / sum(prob_mat * (S1+S2))
-    theta_new[2] <- sum(prob_mat * S3) / sum(prob_mat * (S3+S4))
+    theta[1] <- sum(prob_mat * S1) / sum(prob_mat * (S1+S2))
+    theta[2] <- sum(prob_mat * S3) / sum(prob_mat * (S3+S4))
   }
-  
-  logLik <- sum(log(rowSums(lik_mat*exp(W0+W1))))
+  print(paste("Total iterations:", t))
   
   ## return values
   return_list <- list("theta"=theta, "prob"=prob_mat, "logLik"=logLik)
