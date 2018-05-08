@@ -4,7 +4,7 @@
 \alias{prob_heatmap}
 \title{Plot a heatmap for probability of clone assignment}
 \usage{
-prob_heatmap(prob_mat, prob_gap_min = 0.2, cell_idx = NULL)
+prob_heatmap(prob_mat, prob_gap_min = 0.01, cell_idx = NULL)
 }
 \arguments{
 \item{prob_mat}{A matrix (M x K), the probability of cell j to clone k}
