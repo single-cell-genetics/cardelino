@@ -90,9 +90,13 @@ mut.label <- function(tree){
 
 #' @export
 pub.theme <- function(size = 12){
+  theme_classic(base_size = size) + 
     ggplot2::theme(axis.text = ggplot2::element_text(size = size),
-                   axis.title = ggplot2::element_text(
-                       face = "bold", size = size),
-                   plot.title = ggplot2::element_text(
-                       face = "bold", size = size * 1.3, hjust = 0.5))
+                   axis.title = ggplot2::element_text(face = "bold", size = size),
+                   plot.title = ggplot2::element_text(face = "bold", size = size*1.3, 
+                                                      hjust = 0.5),
+                   legend.title=ggplot2::element_text(size=size*1.1), 
+                   legend.text=ggplot2::element_text(size=size),
+                   panel.grid.major = ggplot2::element_line(size=0.1, 
+                                                            colour="#d3d3d3"))
 }
