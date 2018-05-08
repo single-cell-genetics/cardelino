@@ -4,12 +4,12 @@
 \alias{sim_read_count}
 \title{Sythetic reads generator for genetic variants}
 \usage{
-sim_read_count(C, D, Psi = NULL, means = c(0.01, 0.5), vars = c(18.99,
-  1.63), cell_num = 300, permute_D = FALSE)
+sim_read_count(Config, D, Psi = NULL, means = c(0.01, 0.5),
+  vars = c(18.99, 1.63), cell_num = 300, permute_D = FALSE)
 }
 \arguments{
-\item{C}{A matrix of binary values. The clone-variant configuration, whcih 
-encodes the phylogenetic tree structure, and the genotype of each clone.}
+\item{Config}{A matrix of binary values. The clone-variant configuration, 
+whcih encodes the phylogenetic tree structure, and the genotype of each clone}
 
 \item{D}{A matrix of integers. Sequencing depth for N variants across x 
 cells (ideally >100 cells). NA means 0 here.}

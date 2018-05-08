@@ -20,8 +20,8 @@
 #' 
 #' @export
 #' 
-#' @param C A matrix of binary values. The clone-variant configuration, whcih 
-#' encodes the phylogenetic tree structure, and the genotype of each clone.
+#' @param Config A matrix of binary values. The clone-variant configuration, 
+#' whcih encodes the phylogenetic tree structure, and the genotype of each clone
 #' @param D A matrix of integers. Sequencing depth for N variants across x 
 #' cells (ideally >100 cells). NA means 0 here.
 #' @param Psi A vector of float. The fractions of each clone. If NULL, set a 
@@ -38,11 +38,11 @@
 #' expected false positive rate, and \code{theta2}, a matrix of expected true 
 #' positive rate.
 #' 
-sim_read_count <- function(C, D, Psi=NULL, means=c(0.01, 0.50), 
+sim_read_count <- function(Config, D, Psi=NULL, means=c(0.01, 0.50), 
                            vars=c(18.99, 1.63), cell_num=300, permute_D=FALSE){
-  M <- cell_num   #number of cells
-  K <- dim(C)[2]  #number of clones
-  N <- dim(C)[1]  #number of variants
+  M <- cell_num      #number of cells
+  K <- ncol(Config)  #number of clones
+  N <- nrow(Config)  #number of variants
   
   shape1s <- means / vars
   shape2s <- 1.0 / vars - shape1s
@@ -56,7 +56,7 @@ sim_read_count <- function(C, D, Psi=NULL, means=c(0.01, 0.50),
     Psi <- rep(1/K, K)
   }
   I_sim <- rmultinom(M, 1, prob=Psi) # Clonal label for each cell
-  H_sim <- C %*% I_sim               # Genotype for each cell
+  H_sim <- Config %*% I_sim               # Genotype for each cell
   
   # generate p, D and A
   p_sim <- matrix(0, 2)      # p1 and p2 for False positive and True positive
@@ -74,8 +74,9 @@ sim_read_count <- function(C, D, Psi=NULL, means=c(0.01, 0.50),
       p_sim[1] <- rbeta(1, shape1s[1], shape2s[1])
       p_sim[2] <- rbeta(1, shape1s[2], shape2s[2])
       if(!is.na(D_sim[i,j])){
-        D_no_na <- D[i, (!is.na(D[i,]))]
-        D_sim[i,j] <- sample(D_no_na, 1, replace = TRUE)
+        # D_no_na <- D[i, (!is.na(D[i,]))]
+        # D_no_na <- D[i, (!is.na(D[i,]) & D[i,]>0)]
+        # D_sim[i,j] <- sample(D_no_na, 1, replace = TRUE)
         D_germ_sim[i,j] <- D_sim[i,j]
         A_germ_sim[i,j] <- rbinom(1, D_germ_sim[i,j], p_sim[2])
         
@@ -91,7 +92,16 @@ sim_read_count <- function(C, D, Psi=NULL, means=c(0.01, 0.50),
       }
     }
   }
-  return_list <- list("H_sim"=H_sim, "I_sim"=t(I_sim),
+  I_sim <- t(I_sim)
+  colnames(I_sim) <- colnames(Config)
+  row.names(A_sim) <- row.names(D_sim) <- row.names(Config)
+  row.names(A_germ_sim) <- row.names(D_germ_sim) <- row.names(Config)
+  
+  cell_names <- paste0("cell", seq_len(ncol(A_sim)))
+  row.names(I_sim) <- colnames(A_sim) <- colnames(D_sim) <- cell_names
+  colnames(A_germ_sim) <- colnames(D_germ_sim) <- cell_names
+  
+  return_list <- list("H_sim"=H_sim, "I_sim"=I_sim,
                       "A_sim"=A_sim, "D_sim"=D_sim,
                       "A_germ_sim"=A_germ_sim, "D_germ_sim"=D_germ_sim,
                       "theta1"=theta1_Bern_sim, "theta2"=theta2_Bern_sim,
@@ -108,43 +118,62 @@ sim_read_count <- function(C, D, Psi=NULL, means=c(0.01, 0.50),
 #' 
 #' @param D A matrix (N variants x M cells), the orignal sequencing coverage, 
 #' NA means missing
+#' @param n_cells A integer, the number of the cells to generate
+#' @param n_sites A integer, the number of variants to generate
 #' @param missing_rate A float value, if NULL, use the same missing rate as D
 #' 
 #' @export
 #' 
-missing_update <- function(D, missing_rate=NULL){
-  D_tmp <- D
-  if(is.null(missing_rate)){
-    missing_rate = mean(is.na(D))
+sample_seq_depth <- function(D, n_cells=NULL, n_sites=NULL, missing_rate=NULL){
+  if(is.null(n_cells)){
+    n_cells <- ncol(D)
   }
-  for (i in seq_len(dim(D)[1])){
-    D_no_na <- D[i, which(D[i,]>0)]
-    missing_num <- round(missing_rate * dim(D)[2])
-    samp_pool <- c(rep(NA, missing_num), sample(D_no_na, dim(D)[2]-missing_num, 
-                                                replace = TRUE))
-    D_tmp[i, ] = sample(samp_pool, dim(D)[2], replace = TRUE)
+  if(is.null(n_sites)){
+    n_sites <- nrow(D)
+    D_input <- D
+  }else{
+    idx <- sample(nrow(D), size=n_sites, replace=T)
+    D_input <- D[idx, ]
   }
-  D_tmp
+  missing_vector <- rowMeans((D_input == 0) | is.na(D_input))
+  if(!is.null(missing_rate)){
+    missing_vector <- missing_vector * (missing_rate / mean(missing_vector))
+  }
+
+  D_output <- matrix(NA, nrow=n_sites, ncol=n_cells)
+  for (i in seq_len(nrow(D_input))){
+    D_no_na <- D_input[i, which(!is.na(D_input[i,]) & D_input[i,]>0)]
+    D_output[i, ] <- sample(D_no_na, n_cells, replace = TRUE)
+    
+    missing_idx <- sample(n_cells, round(missing_vector[i] * n_cells))
+    D_output[i, missing_idx] <- NA
+  }
+  D_output
 }
 
 
-#' Assess performance with simulated data
+#' Down sample number of SNVs in the tree
 #' 
-#' Return fraction of assignable cells, accuracy with assignable cells, and
-#' overall accuracy
-#' 
-#' @param prob_mat A matrix (M cells x K clones), estiamted probability of cell 
-#' to clone
-#' @param simulate_mat A matrix (M cells x K clones), tru cell-clone assignment
-#' @param prob_gap_min A float value, the threshold for assignable cells
+#' @param tree A tree object from Canopy
+#' @param n_SNV A integer, the number of SNVs to keep in the output tree
 #' @export
 #' 
-assign_score <- function(prob_mat, simulate_mat, prob_gap_min=0.2){
-  assign_0 <- cardelino::get_prob_label(simulate_mat)
-  assign_1 <- cardelino::get_prob_label(prob_mat)
-  prob_gap <- cardelino::get_prob_gap(prob_mat)
-  idx <- prob_gap >= prob_gap_min
+sample_tree_SNV <- function(tree, n_SNV=NULL){
+  total_SNV <- nrow(tree$Z)
+  if(is.null(n_SNV)){
+    n_SNV <- total_SNV
+  }
+  if(total_SNV < n_SNV){
+    stop("Only support down sample SNVs")
+  }
+  idx <- sample(total_SNV, size=n_SNV)
+
+  out.tree <- tree
+  out.tree$Z <- out.tree$Z[idx,]
+  out.tree$CCF <- out.tree$CCF[idx,,drop=FALSE]
+  out.tree$VAF <- out.tree$VAF[idx,,drop=FALSE]
+  out.tree$sna <- out.tree$sna[idx,,drop=FALSE]
   
-  #return: assignable cells, accuracy with assignable cells, overall accuracy
-  c(mean(idx), mean((assign_0 == assign_1)[idx]), mean(assign_0 == assign_1))
+  out.tree
 }
+
