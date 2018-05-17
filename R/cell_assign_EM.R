@@ -89,23 +89,23 @@ cell_assign_EM <- function(A, D, C, Psi=NULL, model="Bernoulli", threshold=1,
   logLik_new <- logLik + logLik_threshold*2
   
   ## EM iterations
-  for(t in seq_len(max_iter)){
+  for(it in seq_len(max_iter)){
     # Check convergence
-    if((t > min_iter) & ((logLik_new - logLik) < logLik_threshold)){break}
+    if((it > min_iter) & ((logLik_new - logLik) < logLik_threshold)){break}
     logLik <- logLik_new
     
     #E-step
-    logLik_mat <- (S1*log(theta[1]) + S2*log(1-theta[1]) + 
-                   S3*log(theta[2]) + S4*log(1-theta[2]))
+    logLik_mat <- (S1 * log(theta[1]) + S2 * log(1 - theta[1]) + 
+                   S3 * log(theta[2]) + S4*log(1 - theta[2]))
     logLik_mat <- t(t(logLik_mat) + log(Psi))# + W0 + W1
-    logLik_new <- sum(log(rowSums(exp(logLik_mat), na.rm=T)), na.rm=T)
+    logLik_new <- sum(log(rowSums(exp(logLik_mat), na.rm = TRUE)), na.rm = TRUE)
     prob_mat <- exp(logLik_mat) / rowSums(exp(logLik_mat))
     
     #M-step
     theta[1] <- sum(prob_mat * S1) / sum(prob_mat * (S1+S2))
     theta[2] <- sum(prob_mat * S3) / sum(prob_mat * (S3+S4))
   }
-  print(paste("Total iterations:", t))
+  print(paste("Total iterations:", it))
   
   ## return values
   return_list <- list("theta"=theta, "prob"=prob_mat, "logLik"=logLik)
