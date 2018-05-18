@@ -86,20 +86,26 @@ cell_assign_EM <- function(A, D, C, Psi=NULL, model="Bernoulli", threshold=1,
   ## random initialization for EM
   theta <- c(stats::runif(1, 0.001, 0.25), stats::runif(1, 0.3, 0.6))
   logLik <- 0
-  logLik_new <- logLik + logLik_threshold*2
+  logLik_new <- logLik + logLik_threshold * 2
   
   ## EM iterations
   for(it in seq_len(max_iter)){
     # Check convergence
-    if((it > min_iter) & ((logLik_new - logLik) < logLik_threshold)){break}
+    if((it > min_iter) && ((logLik_new - logLik) < logLik_threshold)) {break}
     logLik <- logLik_new
     
     #E-step
     logLik_mat <- (S1 * log(theta[1]) + S2 * log(1 - theta[1]) + 
                    S3 * log(theta[2]) + S4*log(1 - theta[2]))
     logLik_mat <- t(t(logLik_mat) + log(Psi))# + W0 + W1
-    logLik_new <- sum(log(rowSums(exp(logLik_mat), na.rm = TRUE)), na.rm = TRUE)
-    prob_mat <- exp(logLik_mat) / rowSums(exp(logLik_mat))
+    #logLik_new <- sum(log(rowSums(exp(logLik_mat), na.rm = TRUE)), na.rm = TRUE)
+    logLik_vec <- rep(NA, nrow(logLik_mat))
+    for (i in seq_len(nrow(logLik_mat))) {
+      logLik_vec[i] <- matrixStats::logSumExp(logLik_mat[i,], na.rm = TRUE)
+    }
+    logLik_new <- sum(logLik_vec, na.rm = TRUE)
+    logLik_mat_amplify <- logLik_mat - matrixStats::rowMaxs(logLik_mat)
+    prob_mat <- exp(logLik_mat_amplify) / rowSums(exp(logLik_mat_amplify))
     
     #M-step
     theta[1] <- sum(prob_mat * S1) / sum(prob_mat * (S1+S2))
