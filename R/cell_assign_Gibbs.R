@@ -97,42 +97,42 @@ cell_assign_Gibbs <- function(A, D, C, Psi, prior0 = c(1, 1), prior1 = c(1, 1),
   }
   
   ## Gibbs sampling
-  for(t in 2:max_iter){
+  for(it in 2:max_iter){
     ss1 <- 0
     ss2 <- 0
     ss3 <- 0
     ss4 <- 0
     #sample theta
     for (j in seq_len(M)){
-      ss1 <- ss1+S1[j,assign_all[t-1,j]]
-      ss2 <- ss2+S2[j,assign_all[t-1,j]]
-      ss3 <- ss3+S3[j,assign_all[t-1,j]]
-      ss4 <- ss4+S4[j,assign_all[t-1,j]]
+      ss1 <- ss1+S1[j,assign_all[it-1,j]]
+      ss2 <- ss2+S2[j,assign_all[it-1,j]]
+      ss3 <- ss3+S3[j,assign_all[it-1,j]]
+      ss4 <- ss4+S4[j,assign_all[it-1,j]]
     }
-    theta_all[t, 1] <- rbeta(1, prior0[1] + ss1, prior0[2]+ss2, ncp = 0)
-    theta_all[t, 2] <- rbeta(1, prior1[1] + ss3, prior1[2] + ss4, ncp = 0)
+    theta_all[it, 1] <- rbeta(1, prior0[1] + ss1, prior0[2]+ss2, ncp = 0)
+    theta_all[it, 2] <- rbeta(1, prior1[1] + ss3, prior1[2] + ss4, ncp = 0)
     
     #sample assignment
-    lik_mat <- (theta_all[t,1]**S1 * (1-theta_all[t,1])**S2 * 
-                theta_all[t,2]**S3 *(1-theta_all[t,2])**S4) * Psi
+    lik_mat <- (theta_all[it,1]**S1 * (1-theta_all[it,1])**S2 * 
+                theta_all[it,2]**S3 *(1-theta_all[it,2])**S4) * Psi
     prob_mat <- lik_mat / rowSums(lik_mat)
     
-    logLik_all[t] <- sum(log(rowSums(lik_mat*exp(W0+W1))))
+    logLik_all[it] <- sum(log(rowSums(lik_mat*exp(W0+W1))))
     for (j in seq_len(M)){
-      assign_all[t,j] <- sample(seq_len(K), 1, replace=TRUE, prob=prob_mat[j,])
+      assign_all[it,j] <- sample(seq_len(K), 1, replace=TRUE, prob=prob_mat[j,])
     }
     
     #check convergence
-    if (t >= min_iter && t%%100 == 0){
-      if (Geweke_Z(theta_all[1:t,1]) <= 2 && Geweke_Z(theta_all[1:t,2]) <= 2){
+    if (it >= min_iter && it%%100 == 0){
+      if (Geweke_Z(theta_all[1:it,1]) <= 2 && Geweke_Z(theta_all[1:it,2]) <= 2){
         break
       }
     }
   }
   
   ## return values
-  return_list <- list("theta"=theta_all[1:t,], "assign"=assign_all[1:t,], 
-                      "logLik"=logLik_all[1:t])
+  return_list <- list("theta"=theta_all[1:it,], "assign"=assign_all[1:it,], 
+                      "logLik"=logLik_all[1:it])
   return_list
 }
 
