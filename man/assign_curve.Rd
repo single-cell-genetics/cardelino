@@ -4,13 +4,17 @@
 \alias{assign_curve}
 \title{Calculate assignability and accuracy along prob_gap}
 \usage{
-assign_curve(prob_mat, simu_mat)
+assign_curve(prob_mat, simu_mat, mode = "delta")
 }
 \arguments{
 \item{prob_mat}{A matrix (M cells x K clones), estiamted probability of cell 
 to clone}
 
-\item{simu_mat}{A matrix (M cells x K clones), tru cell-clone assignment}
+\item{simu_mat}{A matrix (M cells x K clones), true cell-clone assignment}
+
+\item{mode}{A string, the mothod for defining scores for filtering cells: 
+best, second and delta. Best: highest probability of a cell to K clones, 
+similarly for second. delta is the difference between the best and second.}
 }
 \description{
 Calculate assignability and accuracy along prob_gap

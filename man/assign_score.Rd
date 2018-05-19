@@ -4,7 +4,7 @@
 \alias{assign_score}
 \title{Assess performance with simulated data}
 \usage{
-assign_score(prob_mat, simu_mat, prob_gap_min = 0.2)
+assign_score(prob_mat, simu_mat, threshold = 0.2, mode = "delta")
 }
 \arguments{
 \item{prob_mat}{A matrix (M cells x K clones), estiamted probability of cell 
@@ -12,7 +12,11 @@ to clone}
 
 \item{simu_mat}{A matrix (M cells x K clones), tru cell-clone assignment}
 
-\item{prob_gap_min}{A float value, the threshold for assignable cells}
+\item{threshold}{A float value, the threshold for assignable cells}
+
+\item{mode}{A string, the mothod for defining scores for filtering cells: 
+best and delta. best: highest probability of a cell to K clones, delta: the 
+difference between the best and second.}
 }
 \description{
 Return overall accuracy, and fraction of assignable cells accuracy with 
