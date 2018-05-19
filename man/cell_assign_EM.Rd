@@ -10,7 +10,7 @@ variant.}
 \usage{
 cell_assign_EM(A, D, C, Psi = NULL, model = "Bernoulli", threshold = 1,
   threshold_type = "count", max_iter = 1000, min_iter = 10,
-  logLik_threshold = 1e-05)
+  logLik_threshold = 1e-05, verbose = TRUE)
 }
 \arguments{
 \item{A}{A matrix of integers. Number of alteration reads in variant i cell j}

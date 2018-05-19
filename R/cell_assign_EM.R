@@ -41,7 +41,7 @@
 #' @examples
 cell_assign_EM <- function(A, D, C, Psi=NULL, model="Bernoulli", threshold=1, 
                            threshold_type="count", max_iter=1000, min_iter=10, 
-                           logLik_threshold=1e-5){
+                           logLik_threshold=1e-5, verbose=TRUE){
   if(is.null(Psi)){Psi <- rep(1/ncol(C), ncol(C))}
   if (dim(A)[1] != dim(D)[1] || dim(A)[2] != dim(D)[2] || 
       dim(A)[1] != dim(C)[1] || dim(C)[2] != length(Psi)) {
@@ -96,7 +96,7 @@ cell_assign_EM <- function(A, D, C, Psi=NULL, model="Bernoulli", threshold=1,
     
     #E-step
     logLik_mat <- (S1 * log(theta[1]) + S2 * log(1 - theta[1]) + 
-                   S3 * log(theta[2]) + S4*log(1 - theta[2]))
+                   S3 * log(theta[2]) + S4 * log(1 - theta[2]))
     logLik_mat <- t(t(logLik_mat) + log(Psi))# + W0 + W1
     #logLik_new <- sum(log(rowSums(exp(logLik_mat), na.rm = TRUE)), na.rm = TRUE)
     logLik_vec <- rep(NA, nrow(logLik_mat))
@@ -111,7 +111,7 @@ cell_assign_EM <- function(A, D, C, Psi=NULL, model="Bernoulli", threshold=1,
     theta[1] <- sum(prob_mat * S1) / sum(prob_mat * (S1+S2))
     theta[2] <- sum(prob_mat * S3) / sum(prob_mat * (S3+S4))
   }
-  print(paste("Total iterations:", it))
+  if(verbose){print(paste("Total iterations:", it))}
   
   ## return values
   return_list <- list("theta"=theta, "prob"=prob_mat, "logLik"=logLik)
