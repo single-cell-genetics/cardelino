@@ -3,20 +3,22 @@
 #' Plot a heatmap for probability of clone assignment
 #' 
 #' @param prob_mat A matrix (M x K), the probability of cell j to clone k
-#' @param prob_gap_min A float, the threshold for assignable cells, i.e., the 
-#' minimum probability gap between the highest and the second clones. It is used
-#' for calculating the fraction of clone
+#' @param threshold A float value, the threshold for assignable cells
+#' @param mode A string, the mothod for defining scores for filtering cells: 
+#' best and delta. best: highest probability of a cell to K clones, delta: the 
+#' difference between the best and second.
+#' 
 #' @param cell_idx A vector the indices of the input cells. If NULL, order by 
 #' the probabilty of each clone
 #' 
 #' @export
-prob_heatmap <- function(prob_mat, prob_gap_min=0.01, cell_idx=NULL){
+prob_heatmap <- function(prob_mat, threshold=0.5, mode="delta", cell_idx=NULL){
   cell_label <- cardelino::get_prob_label(prob_mat)
-  prob_gap <- cardelino::get_prob_gap(prob_mat)
+  prob_value   <- cardelino::get_prob_value(prob_mat, mode=mode)
   # add clone id
   colnames(prob_mat) <- paste0("C", seq_len(ncol(prob_mat)))
   for (i in seq_len(ncol(prob_mat))){
-    conf_frac <- mean(cell_label[prob_gap>=prob_gap_min] == i)        
+    conf_frac <- mean(cell_label[prob_value>=threshold] == i)
     colnames(prob_mat)[i] <- paste0("C", i, ": ", 
                                     round(conf_frac*100,digits=1), "%")
   }
@@ -91,16 +93,18 @@ sites_heatmap <- function(Config, A, prob_mat, mode="present"){
 #' @param prob_mat A matrix (M x K), the estimated probability of cell j to 
 #' clone k
 #' @param prob_mat A matrix (M x K), the true assignment of cell to clone
-#' @param prob_gap_min A float value, only show confusion matrix on cells with 
-#' prob_gap >= prob_gap_min
+#' @param threshold A float value, the threshold for assignable cells
+#' @param mode A string, the mothod for defining scores for filtering cells: 
+#' best and delta. best: highest probability of a cell to K clones, delta: the 
+#' difference between the best and second.
 #' 
 #' @export
-confusion_heatmap <- function(prob_mat, sim_mat, prob_gap_min=0.0,
+confusion_heatmap <- function(prob_mat, sim_mat, threshold=0.5, mode="delta",
                               pre_title=""){
   assign_0 <- cardelino::get_prob_label(sim_mat)
   assign_1 <- cardelino::get_prob_label(prob_mat)
-  prob_gap <- cardelino::get_prob_gap(prob_mat)
-  idx <- prob_gap >= prob_gap_min
+  prob_val <- cardelino::get_prob_value(prob_mat, mode=mode)
+  idx <- prob_val >= threshold
   
   # print(paste("assignable:", mean(idx)))
   # print(paste("accuracy:", mean((assign_0 == assign_1)[idx])))

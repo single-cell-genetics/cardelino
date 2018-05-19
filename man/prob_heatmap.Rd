@@ -4,14 +4,16 @@
 \alias{prob_heatmap}
 \title{Plot a heatmap for probability of clone assignment}
 \usage{
-prob_heatmap(prob_mat, prob_gap_min = 0.01, cell_idx = NULL)
+prob_heatmap(prob_mat, threshold = 0.5, mode = "delta", cell_idx = NULL)
 }
 \arguments{
 \item{prob_mat}{A matrix (M x K), the probability of cell j to clone k}
 
-\item{prob_gap_min}{A float, the threshold for assignable cells, i.e., the 
-minimum probability gap between the highest and the second clones. It is used
-for calculating the fraction of clone}
+\item{threshold}{A float value, the threshold for assignable cells}
+
+\item{mode}{A string, the mothod for defining scores for filtering cells: 
+best and delta. best: highest probability of a cell to K clones, delta: the 
+difference between the best and second.}
 
 \item{cell_idx}{A vector the indices of the input cells. If NULL, order by 
 the probabilty of each clone}
