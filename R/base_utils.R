@@ -16,6 +16,36 @@ get_prob_gap <- function(prob_assign){
   prob_gap
 }
 
+
+#' Get the collapsed probability value
+#' 
+#' the collapsed probability value includes 1) the best probability, 2) the
+#' second best probability, and 3) the delta between the best and the second.
+#' 
+#' @export
+#' 
+#' @param prob_assign A matrix of floats. Clonal assignment probability of N 
+#' cells to K clones.
+#' @param mode A string, the mothod for defining scores for filtering cells: 
+#' best, second and delta. Best: highest probability of a cell to K clones, 
+#' similarly for second. delta is the difference between the best and second.
+#' 
+get_prob_value <- function(prob_assign, mode="delta"){
+  prob_val <- rep(0, nrow(prob_assign))
+  for(i in seq_len(length(prob_val))){
+    prob_sorted <- sort(prob_assign[i,], decreasing=T)
+    if(mode == "best"){
+      prob_val[i] <- prob_sorted[1]
+    }else if(mode == "second"){
+      prob_val[i] <- prob_sorted[2]
+    }else{ #default mode: delta
+      prob_val[i] <- prob_sorted[1] - prob_sorted[2]
+    }
+  }
+  prob_val
+}
+
+
 #' Get the clone label from the assignmnet probabilities. 
 #' 
 #' Note, when multiple clones have the same assignment probability, only the 
