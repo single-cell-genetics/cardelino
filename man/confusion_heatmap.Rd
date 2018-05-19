@@ -4,14 +4,18 @@
 \alias{confusion_heatmap}
 \title{Plot confusion heatmap for assessing simulation accuracy}
 \usage{
-confusion_heatmap(prob_mat, sim_mat, prob_gap_min = 0, pre_title = "")
+confusion_heatmap(prob_mat, sim_mat, threshold = 0.5, mode = "delta",
+  pre_title = "")
 }
 \arguments{
 \item{prob_mat}{A matrix (M x K), the estimated probability of cell j to 
 clone k}
 
-\item{prob_gap_min}{A float value, only show confusion matrix on cells with 
-prob_gap >= prob_gap_min}
+\item{threshold}{A float value, the threshold for assignable cells}
+
+\item{mode}{A string, the mothod for defining scores for filtering cells: 
+best and delta. best: highest probability of a cell to K clones, delta: the 
+difference between the best and second.}
 
 \item{prob_mat}{A matrix (M x K), the true assignment of cell to clone}
 }
