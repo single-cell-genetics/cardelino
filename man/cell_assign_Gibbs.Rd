@@ -8,9 +8,10 @@ The two Bernoulli components correspond to false positive and false negative.
 The two binomial components correspond to reads distribution without and with
 variant.}
 \usage{
-cell_assign_Gibbs(A, D, C, Psi, prior0 = c(1, 1), prior1 = c(1, 1),
-  model = "Bernoulli", threshold = 1, threshold_type = "count",
-  min_iter = 1000, max_iter = 50000)
+cell_assign_Gibbs(A, D, C, Psi = NULL, A_germ = NULL, D_germ = NULL,
+  prior0 = c(0.19, 18.8), prior1 = c(0.765, 0.866), model = "binomial",
+  Bern_threshold = 1, max_iter = 10000, min_iter = 1000,
+  wise = "variant", verbose = TRUE)
 }
 \arguments{
 \item{A}{A matrix of integers. Number of alteration reads in variant i cell j}
@@ -22,6 +23,12 @@ encodes the phylogenetic tree structure. This is the output Z of Canopy}
 
 \item{Psi}{A vector of float. The fractions of each clone, output P of Canopy}
 
+\item{A_germ}{A matrix of integers. Number of alteration reads in germline 
+heterozygous site for variant i cell j}
+
+\item{D_germ}{A matrix of integers. Number of reads depth in germline 
+heterozygous site for variant i cell j}
+
 \item{prior0}{numeric(2), alpha and beta parameters for the Beta prior 
 distribution on the inferred false positive rate.}
 
@@ -30,16 +37,17 @@ distribution on the inferred (1 - false negative) rate.}
 
 \item{model}{A string. The model to use: Bernoulli or binomial}
 
-\item{threshold}{A value of integer or float. the threshold on count or 
-fraction of alteration reads when using Bernoulli model}
+\item{Bern_threshold}{An integer. the count threshold of alteration reads 
+when using Bernoulli model}
 
-\item{threshold_type}{A string. The type of threshold: count or fraction}
+\item{max_iter}{A integer. The maximum number of iterations in the Gibbs 
+sampling, even haven't passed the convergence diagnosis}
 
 \item{min_iter}{A integer. The minimum number of iterations in the Gibbs 
 sampling. The real iteration may be longer utile the convergence.}
 
-\item{max_iter}{A integer. The maximum number of iterations in the Gibbs 
-sampling, even haven't passed the convergence diagnosis}
+\item{wise}{A string, the wise of parameters for theta1: global, variant, 
+element.}
 }
 \value{
 a list containing \code{theta}, a vector of two floats denoting the 
@@ -55,4 +63,7 @@ mixture model.
 The two Bernoulli components correspond to false positive and false negative.
 The two binomial components correspond to reads distribution without and with
 variant.
+}
+\examples{
+
 }
