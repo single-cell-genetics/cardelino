@@ -5,7 +5,8 @@
 \title{Sythetic reads generator for genetic variants}
 \usage{
 sim_read_count(Config, D, Psi = NULL, means = c(0.01, 0.5),
-  vars = c(18.99, 1.63), cell_num = 300, permute_D = FALSE)
+  vars = c(18.99, 1.63), wise0 = "element", wise1 = "variant",
+  cell_num = 300, permute_D = FALSE)
 }
 \arguments{
 \item{Config}{A matrix of binary values. The clone-variant configuration, 
@@ -22,6 +23,12 @@ and the mean theta_2 (true positive rate).}
 
 \item{vars}{A vector of two floats. The variance of theta_1 and theta_2.}
 
+\item{wise0}{A string, the beta-binomal parameter specificity for theta0: 
+global, variant, element.}
+
+\item{wise1}{A string, the beta-binomal parameter specificity for theta1: 
+global, variant, element.}
+
 \item{cell_num}{A interger. The number of cells to generate.}
 
 \item{permute_D}{A boolean value. If True permute variants in D.}
@@ -29,8 +36,8 @@ and the mean theta_2 (true positive rate).}
 \value{
 a list containing \code{A_sim}, a matrix for alteration reads, 
 \code{A_sim}, a matrix for total reads, \code{I_sim}, a matrix for clonal 
-label, \code{H_sim}, a matrix for genotype, \code{theta1}, a matrix of 
-expected false positive rate, and \code{theta2}, a matrix of expected true 
+label, \code{H_sim}, a matrix for genotype, \code{theta0}, a matrix of 
+expected false positive rate, and \code{theta1}, a matrix of expected true 
 positive rate.
 }
 \description{

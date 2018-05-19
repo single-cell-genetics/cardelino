@@ -31,22 +31,29 @@
 #' @param vars A vector of two floats. The variance of theta_1 and theta_2.
 #' @param cell_num A interger. The number of cells to generate.
 #' @param permute_D A boolean value. If True permute variants in D.
+#' @param wise0 A string, the beta-binomal parameter specificity for theta0: 
+#' global, variant, element.
+#' @param wise1 A string, the beta-binomal parameter specificity for theta1: 
+#' global, variant, element.
 #' 
 #' @return a list containing \code{A_sim}, a matrix for alteration reads, 
 #' \code{A_sim}, a matrix for total reads, \code{I_sim}, a matrix for clonal 
-#' label, \code{H_sim}, a matrix for genotype, \code{theta1}, a matrix of 
-#' expected false positive rate, and \code{theta2}, a matrix of expected true 
+#' label, \code{H_sim}, a matrix for genotype, \code{theta0}, a matrix of 
+#' expected false positive rate, and \code{theta1}, a matrix of expected true 
 #' positive rate.
 #' 
-sim_read_count <- function(Config, D, Psi=NULL, means=c(0.01, 0.50), 
-                           vars=c(18.99, 1.63), cell_num=300, permute_D=FALSE){
+sim_read_count <- function(Config, D, Psi=NULL, 
+                           means=c(0.01, 0.50), vars=c(18.99, 1.63), 
+                           wise0="element", wise1="variant", 
+                           cell_num=300, permute_D=FALSE){
   M <- cell_num      #number of cells
   K <- ncol(Config)  #number of clones
   N <- nrow(Config)  #number of variants
   
-  shape1s <- means / vars
-  shape2s <- 1.0 / vars - shape1s
+  shape1s <- means * vars
+  shape2s <- (1.0-means) * vars
   
+  D[which(D == 0)] <- NA
   if (permute_D == TRUE){
     D <- D[sample(nrow(D)), ]
   }
@@ -55,7 +62,7 @@ sim_read_count <- function(Config, D, Psi=NULL, means=c(0.01, 0.50),
   if(is.null(Psi)){
     Psi <- rep(1/K, K)
   }
-  I_sim <- rmultinom(M, 1, prob=Psi) # Clonal label for each cell
+  I_sim <- rmultinom(M, 1, prob=Psi)      # Clonal label for each cell
   H_sim <- Config %*% I_sim               # Genotype for each cell
   
   # generate p, D and A
@@ -65,14 +72,19 @@ sim_read_count <- function(Config, D, Psi=NULL, means=c(0.01, 0.50),
   A_germ_sim <- matrix(NA, N, M)  # Alteration counts matrix for germline var
   D_germ_sim <- matrix(NA, N, M)
   colnames(D_sim) <- NULL
+  theta0_Bern_sim <- matrix(NA, N, M)   # theta0 matrix
   theta1_Bern_sim <- matrix(NA, N, M)   # theta1 matrix
-  theta2_Bern_sim <- matrix(NA, N, M)   # theta2 matrix
+  theta0_binom_sim <- matrix(NA, N, M)  # theta0 matrix
   theta1_binom_sim <- matrix(NA, N, M)  # theta1 matrix
-  theta2_binom_sim <- matrix(NA, N, M)  # theta2 matrix
+  
+  p_sim[1] <- stats::rbeta(1, shape1s[1], shape2s[1])
+  p_sim[2] <- stats::rbeta(1, shape1s[2], shape2s[2])
   for (i in seq_len(N)){
+    if(wise0=="variant"){p_sim[1] <- stats::rbeta(1, shape1s[1], shape2s[1])}
+    if(wise1=="variant"){p_sim[2] <- stats::rbeta(1, shape1s[2], shape2s[2])}
     for(j in seq_len(M)){
-      p_sim[1] <- rbeta(1, shape1s[1], shape2s[1])
-      p_sim[2] <- rbeta(1, shape1s[2], shape2s[2])
+      if(wise0=="element"){p_sim[1] <- stats::rbeta(1, shape1s[1], shape2s[1])}
+      if(wise1=="element"){p_sim[2] <- stats::rbeta(1, shape1s[2], shape2s[2])}
       if(!is.na(D_sim[i,j])){
         # D_no_na <- D[i, (!is.na(D[i,]))]
         # D_no_na <- D[i, (!is.na(D[i,]) & D[i,]>0)]
@@ -80,10 +92,10 @@ sim_read_count <- function(Config, D, Psi=NULL, means=c(0.01, 0.50),
         D_germ_sim[i,j] <- D_sim[i,j]
         A_germ_sim[i,j] <- rbinom(1, D_germ_sim[i,j], p_sim[2])
         
-        theta1_binom_sim[i,j] = p_sim[1]
-        theta2_binom_sim[i,j] = p_sim[2]
-        theta1_Bern_sim[i,j] = 1 - dbinom(0, size=D_sim[i,j], prob=p_sim[1])
-        theta2_Bern_sim[i,j] = 1 - dbinom(0, size=D_sim[i,j], prob=p_sim[2])
+        theta0_binom_sim[i,j] = p_sim[1]
+        theta1_binom_sim[i,j] = p_sim[2]
+        theta0_Bern_sim[i,j] = 1 - dbinom(0, size=D_sim[i,j], prob=p_sim[1])
+        theta1_Bern_sim[i,j] = 1 - dbinom(0, size=D_sim[i,j], prob=p_sim[2])
         if (H_sim[i,j] == 0){
           A_sim[i,j] = rbinom(1, D_sim[i,j], p_sim[1])
         }else{
@@ -104,9 +116,9 @@ sim_read_count <- function(Config, D, Psi=NULL, means=c(0.01, 0.50),
   return_list <- list("H_sim"=H_sim, "I_sim"=I_sim,
                       "A_sim"=A_sim, "D_sim"=D_sim,
                       "A_germ_sim"=A_germ_sim, "D_germ_sim"=D_germ_sim,
-                      "theta1"=theta1_Bern_sim, "theta2"=theta2_Bern_sim,
-                      "theta1_binom"=theta1_binom_sim, 
-                      "theta2_binom"=theta2_binom_sim)
+                      "theta0"=theta0_Bern_sim, "theta1"=theta1_Bern_sim,
+                      "theta0_binom"=theta0_binom_sim, 
+                      "theta1_binom"=theta1_binom_sim)
   return_list
 }
 
@@ -125,29 +137,37 @@ sim_read_count <- function(Config, D, Psi=NULL, means=c(0.01, 0.50),
 #' @export
 #' 
 sample_seq_depth <- function(D, n_cells=NULL, n_sites=NULL, missing_rate=NULL){
+  D[which(D == 0)] <- NA
   if(is.null(n_cells)){
     n_cells <- ncol(D)
   }
   if(is.null(n_sites)){
     n_sites <- nrow(D)
-    D_input <- D
-  }else{
-    idx <- sample(nrow(D), size=n_sites, replace=T)
-    D_input <- D[idx, ]
   }
-  missing_vector <- rowMeans((D_input == 0) | is.na(D_input))
+  missing_vector <- rowMeans(is.na(D))
   if(!is.null(missing_rate)){
-    missing_vector <- missing_vector * (missing_rate / mean(missing_vector))
+    if(missing_rate >= 1.0){
+      stop("missing rate should be < 1.0!")
+    }
+    m_upbound <- 1 - 1.0 / n_cells
+    m_mean <- mean(missing_vector)
+    amplify <- min(missing_rate / m_mean, 
+                   (m_upbound - missing_rate) / (max(missing_vector) - m_mean))
+    missing_vector <- amplify * (missing_vector - m_mean) + missing_rate
   }
+
+  idx <- sample(nrow(D), size=n_sites, replace=(n_sites > nrow(D)))
+  D_input <- D[idx, ]
+  missing_vector <- missing_vector[idx]
 
   D_output <- matrix(NA, nrow=n_sites, ncol=n_cells)
   for (i in seq_len(nrow(D_input))){
     D_no_na <- D_input[i, which(!is.na(D_input[i,]) & D_input[i,]>0)]
     D_output[i, ] <- sample(D_no_na, n_cells, replace = TRUE)
-    
-    missing_idx <- sample(n_cells, round(missing_vector[i] * n_cells))
+    missing_idx <- sample(n_cells, round(missing_vector[i]*n_cells), replace=F)
     D_output[i, missing_idx] <- NA
   }
+
   D_output
 }
 
