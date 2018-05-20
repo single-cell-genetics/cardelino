@@ -43,7 +43,7 @@
 #' positive rate.
 #' 
 sim_read_count <- function(Config, D, Psi=NULL, 
-                           means=c(0.01, 0.50), vars=c(18.99, 1.63), 
+                           means=c(0.01, 0.47), vars=c(30, 4.8), 
                            wise0="element", wise1="variant", 
                            cell_num=300, permute_D=FALSE){
   M <- cell_num      #number of cells
