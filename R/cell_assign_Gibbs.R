@@ -44,7 +44,7 @@
 #' @examples
 #' 
 cell_assign_Gibbs <- function(A, D, C, Psi=NULL, A_germ=NULL, D_germ=NULL, 
-                              prior0 = c(0.19, 18.8), prior1 = c(0.765, 0.866),
+                              prior0 = c(0.3, 29.7), prior1 = c(2.25, 2.65),
                               model="binomial", Bern_threshold=1, 
                               max_iter=10000, min_iter=1000, wise="variant", 
                               verbose=TRUE){
@@ -133,6 +133,7 @@ cell_assign_Gibbs <- function(A, D, C, Psi=NULL, A_germ=NULL, D_germ=NULL,
     stop("prior1 need to be a matrix of n_element x 2")
   }
   
+  prob_all <- matrix(0, nrow=max_iter, ncol=M*K)
   logLik_mat <- matrix(0, nrow=M, ncol=K)
   logLik_all <- matrix(0, nrow=max_iter, ncol=1)
   assign_all <- matrix(0, nrow=max_iter, ncol=M)
@@ -158,6 +159,7 @@ cell_assign_Gibbs <- function(A, D, C, Psi=NULL, A_germ=NULL, D_germ=NULL,
     }
     logLik_mat_amplify <- logLik_mat - matrixStats::rowMaxs(logLik_mat)
     prob_mat <- exp(logLik_mat_amplify) / rowSums(exp(logLik_mat_amplify))
+    prob_all[it, ] <- prob_mat
     
     logLik_vec <- rep(NA, nrow(logLik_mat))
     for (i in seq_len(nrow(logLik_mat))) {
@@ -170,7 +172,7 @@ cell_assign_Gibbs <- function(A, D, C, Psi=NULL, A_germ=NULL, D_germ=NULL,
     for (j in seq_len(M)){
       assign_all[it,j] <- sample(seq_len(K), 1, replace=TRUE, prob=prob_mat[j,])
     }
-    
+
     # Sample theta with assigned clones
     S1_wgt <- S2_wgt <- 0 # weighted S1
     S3_wgt <- S4_wgt <- matrix(0, nrow=N, ncol=M)
@@ -181,6 +183,7 @@ cell_assign_Gibbs <- function(A, D, C, Psi=NULL, A_germ=NULL, D_germ=NULL,
       S3_wgt[,idx] <- S3_wgt[,idx] + S3_list[[k]][,idx]
       S4_wgt[,idx] <- S4_wgt[,idx] + S4_list[[k]][,idx]
     }
+    
     if(wise == "global"){
       S3_wgt[,] <- sum(S3_wgt, na.rm=T)
       S4_wgt[,] <- sum(S4_wgt, na.rm=T)
@@ -220,7 +223,8 @@ cell_assign_Gibbs <- function(A, D, C, Psi=NULL, A_germ=NULL, D_germ=NULL,
   row.names(prob_variant) <- row.names(A)
   colnames(prob_variant) <- colnames(A)
   
-  prob_mat <- get_Gibbs_prob(assign_all[1:it,])
+  # prob_mat <- get_Gibbs_prob(assign_all[1:it,], buin_in=0.25)
+  prob_mat <- matrix(colMeans(prob_all[n_buin:it, ]), nrow = M)
   row.names(prob_mat) <- colnames(A)
   colnames(prob_mat) <- colnames(C)
   
@@ -231,7 +235,7 @@ cell_assign_Gibbs <- function(A, D, C, Psi=NULL, A_germ=NULL, D_germ=NULL,
                       "theta0_all"=as.matrix(theta0_all[1:it,]), 
                       "theta1_all"=as.matrix(theta1_all[1:it,]),
                       "element"=idx_mat, "logLik"=logLik_all[1:it], 
-                      "assign"=assign_all[1:it,], 
+                      "prob_all"=prob_all[1:it,], 
                       "prob"=prob_mat, "prob_variant"=prob_variant)
   return_list
 }

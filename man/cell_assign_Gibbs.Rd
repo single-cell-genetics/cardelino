@@ -9,7 +9,7 @@ The two binomial components correspond to reads distribution without and with
 variant.}
 \usage{
 cell_assign_Gibbs(A, D, C, Psi = NULL, A_germ = NULL, D_germ = NULL,
-  prior0 = c(0.19, 18.8), prior1 = c(0.765, 0.866), model = "binomial",
+  prior0 = c(0.3, 29.7), prior1 = c(2.25, 2.65), model = "binomial",
   Bern_threshold = 1, max_iter = 10000, min_iter = 1000,
   wise = "variant", verbose = TRUE)
 }
