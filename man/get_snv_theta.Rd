@@ -5,7 +5,19 @@
 \title{Calculate the SNV specific allelic frequency (True postive rate) and error
 rate (False possitive rate)}
 \usage{
-get_snv_theta(C, D, A, prob_mat, threshold = 1)
+get_snv_theta(C, D, A, prob_mat)
+}
+\arguments{
+\item{C}{A matrix of binary values. The clone-variant configuration, which 
+encodes the phylogenetic tree structure as presence (1) or absence (0) of 
+each variant (rows) in each clone (columns). This is the output Z of Canopy.}
+
+\item{D}{A matrix of integers. Number of reads depth in variant i cell j.}
+
+\item{A}{A matrix of integers. Number of reads supporting the alternative 
+allele in variant i cell j.}
+
+\item{prob_mat}{matrix of cell-clone assignment probabilities.}
 }
 \description{
 Calculate the SNV specific allelic frequency (True postive rate) and error

@@ -4,7 +4,7 @@
 \alias{vc_heatmap}
 \title{Plot a variant-cell heatmap for cell clonal assignment}
 \usage{
-vc_heatmap(mat, prob, Config, show_legend = F)
+vc_heatmap(mat, prob, Config, show_legend = FALSE)
 }
 \arguments{
 \item{mat}{A matrix for heatmap: N variants x M cells. row and column will be 

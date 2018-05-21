@@ -57,8 +57,8 @@ plot_tree <- function(tree, orient="h") {
     }
   }
   pt <- ggtree::ggtree(tree)
-  pt <- pt + ggplot2::geom_label(ggplot2::aes_string(x = "branch"), label = branch_ids, 
-                                 color = "firebrick")
+  pt <- pt + ggplot2::geom_label(ggplot2::aes_string(x = "branch"), 
+                                 label = branch_ids, color = "firebrick")
   pt <- pt + ggplot2::xlim(-0, node_hidden + 0.5) + ggplot2::ylim(0.8, node_shown + 0.5) #the degree may not be 3
   if (orient == "v") {
     pt <- pt + ggtree::geom_tiplab(hjust = 0.39, vjust = 1.0) + 
@@ -68,6 +68,7 @@ plot_tree <- function(tree, orient="h") {
   }
   pt
 }
+
 
 mut.label <- function(tree){
   SNA.label <- tree$sna[, 3]
@@ -88,15 +89,24 @@ mut.label <- function(tree){
 }
 
 
+#' Define a publication-style plot theme
+#'
+#' @param size numeric, base font size for adapted ggplot2 theme
+#' 
+#' @details This theme modifies the \code{\link[ggplot2]{theme_classic}} theme
+#' in ggplot2.
+#' 
 #' @export
-pub.theme <- function(size = 12){
-  theme_classic(base_size = size) + 
-    ggplot2::theme(axis.text = ggplot2::element_text(size = size),
-                   axis.title = ggplot2::element_text(face = "bold", size = size),
-                   plot.title = ggplot2::element_text(face = "bold", size = size*1.3, 
-                                                      hjust = 0.5),
-                   legend.title=ggplot2::element_text(size=size*1.1), 
-                   legend.text=ggplot2::element_text(size=size),
-                   panel.grid.major = ggplot2::element_line(size=0.1, 
-                                                            colour="#d3d3d3"))
+pub.theme <- function(size = 12) {
+    theme_classic(base_size = size) + 
+        ggplot2::theme(axis.text = ggplot2::element_text(size = size),
+                       axis.title = ggplot2::element_text(
+                           face = "bold", size = size),
+                       plot.title = ggplot2::element_text(
+                           face = "bold", size = size * 1.3, hjust = 0.5),
+                       legend.title = ggplot2::element_text(size = size*1.1), 
+                       legend.text = ggplot2::element_text(size = size),
+                       panel.grid.major = ggplot2::element_line(
+                           size = 0.1, colour = "#d3d3d3")
+                       )
 }

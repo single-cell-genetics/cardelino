@@ -6,6 +6,13 @@
 \usage{
 heatmap.theme(legend.position = "bottom", size = 12)
 }
+\arguments{
+\item{legend.position}{character, describes where to place legend on plot
+(passed to \code{\link[ggplot2]{theme_gray}})}
+
+\item{size}{numeric, base font size for plot (passed to 
+\code{\link[ggplot2]{theme_gray}})}
+}
 \description{
 The theme of heatmaps for prob_heatmap and sites_heatmap
 }
