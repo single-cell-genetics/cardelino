@@ -11,13 +11,15 @@ confusion_heatmap(prob_mat, sim_mat, threshold = 0.5, mode = "delta",
 \item{prob_mat}{A matrix (M x K), the estimated probability of cell j to 
 clone k}
 
+\item{sim_mat}{A matrix (M x K), the true assignment of cell to clone}
+
 \item{threshold}{A float value, the threshold for assignable cells}
 
 \item{mode}{A string, the mothod for defining scores for filtering cells: 
 best and delta. best: highest probability of a cell to K clones, delta: the 
 difference between the best and second.}
 
-\item{prob_mat}{A matrix (M x K), the true assignment of cell to clone}
+\item{pre_title}{character, a prefix to be used for the plot's title.}
 }
 \description{
 Plot confusion heatmap for assessing simulation accuracy

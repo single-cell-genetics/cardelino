@@ -29,6 +29,8 @@
 #' sampling, even haven't passed the convergence diagnosis
 #' @param wise A string, the wise of parameters for theta1: global, variant, 
 #' element.
+#' @param verbose logical(1), should the function output verbose information as
+#' it runs?
 #' 
 #' @return a list containing \code{theta}, a vector of two floats denoting the 
 #' parameters of the two componets of the base model, i.e., mean of Bernoulli or 
@@ -48,14 +50,14 @@ cell_assign_Gibbs <- function(A, D, C, Psi=NULL, A_germ=NULL, D_germ=NULL,
                               model="binomial", Bern_threshold=1, 
                               max_iter=10000, min_iter=1000, wise="variant", 
                               verbose=TRUE){
-  if(is.null(Psi)){Psi <- rep(1/ncol(C), ncol(C))}
+  if (is.null(Psi)) {Psi <- rep(1/ncol(C), ncol(C))}
   if (dim(A)[1] != dim(D)[1] || dim(A)[2] != dim(D)[2] || 
       dim(A)[1] != dim(C)[1] || dim(C)[2] != length(Psi)) {
     stop(paste0("A and D must have the same size;\n ",
                 "A and C must have the same number of variants;\n",
                 "C and Psi must have the same number of clones"))
   }
-  if(sum(c("element", "variant", "global") == wise) == 0){
+  if (sum(c("element", "variant", "global") == wise) == 0) {
     stop(paste0("Input wise mode: ", wise, 
                 ", while only supporting: element, variant, global"))
   }

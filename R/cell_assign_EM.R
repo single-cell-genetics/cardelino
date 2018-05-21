@@ -21,6 +21,8 @@
 #' @param min_iter A integer. The minimum number of iterations in EM algorithm.
 #' @param logLik_threshold A float. The threshold of logLikelihood increase for
 #' detecting convergence.
+#' @param verbose logical(1), should the function output verbose information as
+#' it runs? 
 #' 
 #' @return a list containing \code{alpha}, a float denoting the estimated false 
 #' positive rate, \code{beta}, a float denoting the estimated false negative 
@@ -41,7 +43,7 @@
 #' @examples
 cell_assign_EM <- function(A, D, C, Psi=NULL, model="Bernoulli", threshold=1, 
                            threshold_type="count", max_iter=1000, min_iter=10, 
-                           logLik_threshold=1e-5, verbose=TRUE){
+                           logLik_threshold=1e-5, verbose=TRUE) {
   if(is.null(Psi)){Psi <- rep(1/ncol(C), ncol(C))}
   if (dim(A)[1] != dim(D)[1] || dim(A)[2] != dim(D)[2] || 
       dim(A)[1] != dim(C)[1] || dim(C)[2] != length(Psi)) {

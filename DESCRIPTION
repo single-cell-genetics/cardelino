@@ -1,8 +1,8 @@
 Package: cardelino
 Type: Package
 Title: Clonal Analysis of Cells Using Single Cell Data
-Version: 0.0.2
-Date: 2018-05-18
+Version: 0.0.3
+Date: 2018-05-21
 Authors@R: c(person("Davis", "McCarthy", role=c("aut", "cre"),
         email="davis@ebi.ac.uk"), person("Yuanhua", "Huang", 
         role=c("aut"), email="yuanhua@ebi.ac.uk"))
@@ -13,7 +13,7 @@ Description: Methods to infer clonal structure for a population of cells using
     between clones.
 License: GPL (>= 3)
 Depends: R (>= 3.4), stats
-Imports: bbmle, ggplot2, ggtree, matrixStats, pheatmap, vcfR
+Imports: bbmle, ggplot2, ggtree, matrixStats, pheatmap, reshape2, vcfR
 Suggests: knitr, testthat
 VignetteBuilder: knitr
 LazyData: true

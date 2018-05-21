@@ -36,6 +36,9 @@ The real iteration may finish earlier.}
 
 \item{logLik_threshold}{A float. The threshold of logLikelihood increase for
 detecting convergence.}
+
+\item{verbose}{logical(1), should the function output verbose information as
+it runs?}
 }
 \value{
 a list containing \code{alpha}, a float denoting the estimated false 

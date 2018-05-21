@@ -48,6 +48,9 @@ sampling. The real iteration may be longer utile the convergence.}
 
 \item{wise}{A string, the wise of parameters for theta1: global, variant, 
 element.}
+
+\item{verbose}{logical(1), should the function output verbose information as
+it runs?}
 }
 \value{
 a list containing \code{theta}, a vector of two floats denoting the 
