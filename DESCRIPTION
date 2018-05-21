@@ -14,7 +14,7 @@ Description: Methods to infer clonal structure for a population of cells using
 License: GPL (>= 3)
 Depends: R (>= 3.4), stats
 Imports: bbmle, ggplot2, ggtree, matrixStats, pheatmap, vcfR
-Suggests: knitr
+Suggests: knitr, testthat
 VignetteBuilder: knitr
 LazyData: true
 biocViews: SingleCell, RNASeq, Visualization, Transcriptomics, GeneExpression, 
