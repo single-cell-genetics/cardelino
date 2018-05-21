@@ -13,7 +13,7 @@ Description: Methods to infer clonal structure for a population of cells using
     between clones.
 License: GPL (>= 3)
 Depends: R (>= 3.4), stats
-Imports: bbmle, ggplot2, ggtree, matrixStats, vcfR
+Imports: bbmle, ggplot2, ggtree, matrixStats, pheatmap, vcfR
 Suggests: knitr
 VignetteBuilder: knitr
 LazyData: true
