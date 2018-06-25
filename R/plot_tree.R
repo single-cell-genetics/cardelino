@@ -27,39 +27,34 @@
 #' @examples 
 plot_tree <- function(tree, orient="h") {
   node_total <- max(tree$edge)
-  node_shown <- length(tree$P[, 1])
+  node_shown <- ncol(tree$Z)
   node_hidden <- node_total - node_shown
-  
-  prevalence <- c(tree$P[, 1]*100, rep(0, node_hidden))
-  # node_size <- c(rep(20, node_shown), rep(0, node_hidden))
-  
+  if (!is.null(tree$P)) {
+    tree$tip.label[1:node_shown] = paste0("C", seq_len(node_shown), ": ",
+                                     round(tree$P[, 1]*100, digits = 0), "%")
+  }
+
   mut_ids <- 0
   mut_id_all <- tree$Z %*% (2**seq(ncol(tree$Z),1))
   mut_id_all <- seq(length(unique(mut_id_all)),1)[as.factor(mut_id_all)]
   
   branch_ids <- NULL
   for (i in seq_len(node_total)) {
-    if (i <= node_shown) {
-      tree$tip.label[i] = paste0("C", i, ": ", round(prevalence[i], digits = 0),
-                                 "%")
-    }
     mut_num = sum(tree$sna[,3] == i)
     if (mut_num == 0) {
       if(i == node_shown+1){branch_ids = c(branch_ids, "Root")}
       else{branch_ids = c(branch_ids, "")} #NA
     }
     else {
-      vaf <- mean(tree$VAF[tree$sna[,3] == i])
       mut_ids <- mut_ids + 1
-      mut_ids <- mean(mut_id_all[tree$sna[,3] == i])
-      branch_ids = c(branch_ids, paste0("Mut", mut_ids, ": ", mut_num, 
-                                        sprintf("; %.2f", vaf)))
+      branch_ids = c(branch_ids, paste0("M", mut_ids, ": ", mut_num, " SNVs"))
     }
   }
   pt <- ggtree::ggtree(tree)
   pt <- pt + ggplot2::geom_label(ggplot2::aes_string(x = "branch"), 
                                  label = branch_ids, color = "firebrick")
-  pt <- pt + ggplot2::xlim(-0, node_hidden + 0.5) + ggplot2::ylim(0.8, node_shown + 0.5) #the degree may not be 3
+  pt <- pt + ggplot2::xlim(-0, node_hidden + 0.5) +
+             ggplot2::ylim(0.8, node_shown + 0.5) #the degree may not be 3
   if (orient == "v") {
     pt <- pt + ggtree::geom_tiplab(hjust = 0.39, vjust = 1.0) + 
         ggplot2::scale_x_reverse() + ggplot2::coord_flip() 
@@ -81,8 +76,8 @@ mut.label <- function(tree){
     }
     else{
       mut_ids <- mut_ids + 1
-      branch_ids = c(branch_ids, paste0("Mut", mut_ids, ": ", mut_num))
-      SNA.label[tree$sna[,3] == i] = paste0("Mut", mut_ids, ": ", mut_num)
+      branch_ids = c(branch_ids, paste0("M", mut_ids, ": ", mut_num, " SNVs"))
+      SNA.label[tree$sna[,3] == i] = branch_ids[length(branch_ids)]
     }
   }
   SNA.label
