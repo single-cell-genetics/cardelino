@@ -67,6 +67,3 @@ The two Bernoulli components correspond to false positive and false negative.
 The two binomial components correspond to reads distribution without and with
 variant.
 }
-\examples{
-
-}
