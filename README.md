@@ -1,6 +1,6 @@
 # cardelino
 
-[![Linux Build Status](https://travis-ci.org/davismcc/cardelino.svg?branch=master)](https://travis-ci.org/davismcc/cardelino)
+[![Linux Build Status](https://travis-ci.org/davismcc/cardelino.svg?branch=master)](https://travis-ci.org/PMBio/cardelino)
 
 <img src=inst/cardelino_med.jpg height="400">
 
