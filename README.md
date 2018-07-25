@@ -28,7 +28,7 @@ browseVignettes("cardelino")
 
 Vignettes for the donor identification and clone identification use cases are 
 provided. Accessing the vignettes from within your R session is recommended, but
-you can also view the clone ID vignette [here](https://rawgit.com/PMBio/cardelino/blob/master/inst/doc/vignette-cloneid.html).
+you can also view the clone ID vignette [here](https://rawgit.com/PMBio/cardelino/master/inst/doc/vignette-cloneid.html).
 
 
 
