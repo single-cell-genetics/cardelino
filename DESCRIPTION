@@ -1,8 +1,8 @@
 Package: cardelino
 Type: Package
 Title: Clonal Analysis of Cells Using Single Cell Data
-Version: 0.0.5
-Date: 2018-05-21
+Version: 0.0.6
+Date: 2018-07-25
 Authors@R: c(person("Davis", "McCarthy", role=c("aut", "cre"),
         email="davis@ebi.ac.uk"), person("Yuanhua", "Huang", 
         role=c("aut"), email="yuanhua@ebi.ac.uk"))

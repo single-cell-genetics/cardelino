@@ -1,4 +1,4 @@
-# cardelino: donor and clone identification from single-cell data 
+# cardelino: clone and donor identification from single-cell data 
 
 [![Linux Build Status](https://travis-ci.org/PMBio/cardelino.svg?branch=master)](https://travis-ci.org/PMBio/cardelino)
 
@@ -27,7 +27,10 @@ browseVignettes("cardelino")
 ```
 
 Vignettes for the donor identification and clone identification use cases are 
-provided.
+provided. Accessing the vignettes from within your R session is recommended, but
+you can also access the [clone ID vignette](inst/doc/vignette-cloneid.html)  
+
+
 
 ## About the name
 
