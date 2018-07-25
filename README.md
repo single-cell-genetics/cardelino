@@ -27,8 +27,10 @@ browseVignettes("cardelino")
 ```
 
 Vignettes for the donor identification and clone identification use cases are 
-provided. Accessing the vignettes from within your R session is recommended, but
-you can also view the clone ID vignette [here](https://rawgit.com/PMBio/cardelino/master/inst/doc/vignette-cloneid.html).
+provided. 
+
+Accessing the vignettes from within your R session is recommended, but
+you can also [view the clone ID vignette](https://rawgit.com/PMBio/cardelino/master/inst/doc/vignette-cloneid.html) online.
 
 
 
@@ -38,7 +40,7 @@ you can also view the clone ID vignette [here](https://rawgit.com/PMBio/cardelin
 Italian for "goldfinch", a common and attractive European bird. In the Western 
 art canon, the goldfinch is considered a 
 ["saviour" bird](https://en.wikipedia.org/wiki/European_goldfinch) and appears 
-in paintings from the 
+in notable paintings from the 
 [Italian renaissance](https://en.wikipedia.org/wiki/Madonna_del_cardellino) and 
 the [Dutch Golden Age](https://en.wikipedia.org/wiki/The_Goldfinch_(painting)). 
 Perhaps this package may prove a saviour for certain single-cell datasets.
