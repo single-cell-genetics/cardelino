@@ -1,6 +1,131 @@
-## Donor id inference with Gibbs sampling.
+## Donor deconvolution in multiplexed scRNA-seq.
 
-#' Gibbs sampler of the cell donor id and genotypes
+#' EM algorithm for donor deconvolution in multiplexed scRNA-seq with genotypes.
+#' 
+#' @param A A matrix of integers. Number of alteration reads in SNP i cell j
+#' @param D A matrix of integers. Number of reads depth in SNP i cell j
+#' @param GT A matrix of integers for genotypes. The donor-SNP configuration, 
+#' the element should be 0, 1, 2, but others are probably also appliable.
+#' @param Psi A vector of float. The fractions of each donor; default uniform.
+#' @param max_iter A integer. The maximum number of iterations in EM algorithm. 
+#' The real iteration may finish earlier.
+#' @param min_iter A integer. The minimum number of iterations in EM algorithm.
+#' @param logLik_threshold A float. The threshold of logLikelihood increase for
+#' detecting convergence.
+#' @param check_doublet logical(1), If TRUE, check doublet, otherwise ignore. 
+#' @param verbose logical(1), If TRUE, output verbose information when running.
+#' 
+#' @return a list containing 
+#' \code{logLik}, the log likelihood.
+#' \code{theta}, a vector denoting the binomial parameters for each genotype. 
+#' \code{prob}, a matrix of posterior probability of cell assignment to donors. 
+#' The summary may less than 1, as there are some probabilities go to doublets. 
+#' \code{prob_doublet}, a matrix of posterior probability of cell assignment to 
+#' each inter-donor doublet. 
+#' 
+#' @import stats
+#' 
+#' @export
+#' 
+#' @examples
+donor_id_GT <- function(A, D, GT, Psi=NULL, max_iter=1000, min_iter=10,
+                        logLik_threshold=1e-5, check_doublet=TRUE,
+                        verbose=TRUE) {
+  ## Create doublet genotypes
+  K_doublet <- 0
+  K_singlet <- ncol(GT)
+  if (check_doublet) {
+    donor_ids <- colnames(GT)
+    if(is.null(donor_ids)) { donor_ids <- paste0("donor", seq_len(ncol(GT))) }
+    
+    combn_idx <- utils::combn(ncol(GT), 2)
+    K_doublet <- ncol(combn_idx)
+    GT_doublet <- (GT[,combn_idx[1,]] + GT[,combn_idx[2,]]) / 2
+    colnames(GT_doublet) <- paste0(donor_ids[combn_idx[1,]], ",",  
+                                   donor_ids[combn_idx[2,]])
+    
+    GT <- cbind(GT, GT_doublet)
+  }
+  ## Check input data
+  if (is.null(Psi)) {
+    Psi <- rep(1/ncol(GT), ncol(GT))
+  }
+  if (dim(A)[1] != dim(D)[1] || dim(A)[2] != dim(D)[2]) {
+    stop("A and D must have the same size.")
+  }
+  if (dim(A)[1] != dim(GT)[1]) {
+    stop("nrow(A) and nrow(GT) must be the same.")
+  }
+  if (dim(GT)[2] != length(Psi)) {
+    stop("ncol(GT) and length(Psi) must be the same.")
+  }
+  
+  ## preprocessing
+  N <- dim(A)[1]        # number of variants 
+  M <- dim(A)[2]        # number of cells
+  K <- dim(GT)[2]       # number of clones
+  
+  A[is.na(A)] <- 0
+  D[is.na(D)] <- 0
+  W_log <- sum(lchoose(D, A), na.rm = TRUE)  #log binomial coefficients
+  
+  GT_uniq <- sort(unique(c(GT)))
+  S1 <- S2 <- SS <- list()
+  for (ig in seq_len(length(GT_uniq))) {
+    print(c(ig, GT_uniq[ig]))
+    S1[[ig]] <- t(A) %*% (GT == GT_uniq[ig])
+    SS[[ig]] <- t(D) %*% (GT == GT_uniq[ig])
+    S2[[ig]] <- SS[[ig]] - S1[[ig]]
+  }
+  
+  ## random initialization for EM
+  theta <- matrix(0.98 * GT_uniq / max(GT_uniq) + 0.01, ncol=1)
+  row.names(theta) <- paste0("GT=", GT_uniq)
+  logLik <- 0
+  logLik_new <- logLik + logLik_threshold * 2
+  
+  ## EM iterations
+  for(it in seq_len(max_iter)){
+    # Check convergence
+    if((it > min_iter) && ((logLik_new - logLik) < logLik_threshold)) {break}
+    logLik <- logLik_new
+    
+    # E-step: update assignment posterior probability
+    logLik_mat <- matrix(0, nrow=M, ncol=K)
+    for (ig in seq_len(length(GT_uniq))) {
+      logLik_mat <- (logLik_mat + S1[[ig]] * log(theta[ig]) + 
+                       S2[[ig]] * log(1 - theta[ig]))
+    }
+    
+    logLik_vec <- rep(NA, nrow(logLik_mat))
+    for (i in seq_len(nrow(logLik_mat))) {
+      logLik_vec[i] <- matrixStats::logSumExp(logLik_mat[i,], na.rm = TRUE)
+    }
+    logLik_new <- sum(logLik_vec, na.rm = TRUE) + W_log
+    logLik_mat_amplify <- logLik_mat - matrixStats::rowMaxs(logLik_mat)
+    prob_mat <- exp(logLik_mat_amplify) / rowSums(exp(logLik_mat_amplify))
+    
+    # M-step: maximumize the likelihood with theta
+    for (ig in seq_len(length(GT_uniq))) {
+      theta[ig] <- sum(prob_mat * S1[[ig]]) / sum(prob_mat * SS[[ig]])
+    }
+    
+  }
+  if(verbose){print(paste("Total iterations:", it))}
+  
+  ## return values
+  prob_singlet <- prob_mat[,1:K_singlet]
+  prob_doublet <- NULL
+  if (check_doublet) {prob_doublet=prob_mat[, (K_singlet + 1) : ncol(prob_mat)]}
+  
+  return_list <- list("logLik"=logLik, "theta"=theta, "prob"=prob_singlet, 
+                      "prob_doublet" = prob_doublet)
+  return_list
+}
+
+
+
+#' Gibbs sampler for donor deconvolution without genotypes.
 #' 
 #' @param A A matrix of integers. Number of alteration reads in variant i cell j
 #' @param D A matrix of integers. Number of reads depth in variant i cell j
@@ -32,9 +157,10 @@
 #' 
 #' @export
 #' 
-donor_id <- function(A, D, K, prior0 = c(0.02, 40), prior1 = c(2.4, 2.4),
-                     min_iter=500, max_iter=50000, buin_in=0.25){
+donor_id_Gibbs <- function(A, D, K, prior0 = c(0.02, 40), prior1 = c(2.4, 2.4),
+                           min_iter=500, max_iter=50000, buin_in=0.25){
   ##TODO: 1) detect doublet with BF, 2) support inputed Config
+  ## 3) multiple chain for local optima
   
   ## check input
   if (dim(A)[1] != dim(D)[1] || dim(A)[2] != dim(D)[2]) {
@@ -61,6 +187,8 @@ donor_id <- function(A, D, K, prior0 = c(0.02, 40), prior1 = c(2.4, 2.4),
   theta1_all <- matrix(0, nrow = max_iter, ncol = 1)
   assign_all <- matrix(0, nrow = max_iter, ncol = M)
   Config_all <- matrix(0, nrow = max_iter, ncol = N*K)
+  singlet_logLik <- matrix(0, nrow = max_iter, ncol = M)
+  doublet_logLik <- matrix(0, nrow = max_iter, ncol = M)
   
   ## Random initialization
   #Potential extension: allele specific expression, K-Means warm initialization
@@ -94,12 +222,30 @@ donor_id <- function(A, D, K, prior0 = c(0.02, 40), prior1 = c(2.4, 2.4),
     prob_mat <- exp(logLik_mat_amptify) / rowSums(exp(logLik_mat_amptify))
     for (j in seq_len(M)) {
       Iden_mat[j, ] <- stats::rmultinom(1, size = 1, prob = prob_mat[j,])
+      logLik_all[it] <- logLik_all[it] + 
+        matrixStats::logSumExp(logLik_mat[j,], na.rm = T)
     }
     assign_all[it, ] <- Iden_mat %*% seq_len(K)
     
+    ## singlet loglikelihood
+    for (j in seq_len(M)) {
+      singlet_logLik[it, j] <- matrixStats::logSumExp(logLik_mat[j,], na.rm = T) /
+        sum(!is.na(logLik_mat[j,]))
+    }
+    ## doublet loglikelihood
+    combn_idx <- utils::combn(K, 2)
+    Conf_mat2 <- Conf_mat[,combn_idx[1,]] + Conf_mat[,combn_idx[2,]]
+    Conf_mat2[which(Conf_mat2 > 1)] <- 1
+    logLik_mat2 <- t(P0_mat) %*% (1 - Conf_mat2) + t(P1_mat) %*% Conf_mat2
+    for (j in seq_len(nrow(logLik_mat2))) {
+      doublet_logLik[it, j] <- matrixStats::logSumExp(logLik_mat2[j,], na.rm = T) / 
+        sum(!is.na(logLik_mat2[j,]))
+    }
+    
     # Update logLikelihood (TODO: add W0 and W1)
-    logLik_all[it] <- sum(log(rowSums(exp(logLik_mat), na.rm = TRUE)), 
-                          na.rm = TRUE)
+    # logLik_all[it] <- sum(log(rowSums(exp(logLik_mat), na.rm = TRUE)), 
+    #                       na.rm = TRUE)
+    logLik_all[it] <- sum(singlet_logLik[it])
     
     # Sample parameters
     Geno_mat <- Conf_mat %*% t(Iden_mat) # genotype matrix: N * M
@@ -133,10 +279,18 @@ donor_id <- function(A, D, K, prior0 = c(0.02, 40), prior1 = c(2.4, 2.4),
   
   Config <- matrix(colMeans(Config_all[n_buin:it, ]), nrow = N)
   
+  ## Bayes factor with harmonic mean of the likelihoods (Newton & Raftery,1994)
+  log10_BF <- rep(0, M) 
+  for (j in seq_len(M)) {
+    log10_BF[j] <- (matrixStats::logSumExp(-singlet_logLik[n_buin:it, j]) - 
+                    matrixStats::logSumExp(-doublet_logLik[n_buin:it, j]))
+  }
+  
   return_list <- list("prob" = prob_mat, "theta0" = theta0, "theta1" = theta1, 
                       "theta0_all" = as.matrix(theta0_all[1:it,]), 
                       "theta1_all" = as.matrix(theta1_all[1:it,]),
                       "logLik" = logLik_all[1:it], "assign" = assign_all[1:it,],
-                      "Config" = Config, "Config_all" = Config_all[1:it,])
+                      "Config" = Config, "Config_all" = Config_all[1:it,], 
+                      "log10_BF" = log10_BF)
   return_list
 }
