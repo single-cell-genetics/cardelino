@@ -147,9 +147,9 @@ here we show just one approach using convenience functions in `cardelino`:
 Read in data from VCF included in the package. 
 
 ```{r read-vcf-data}
-vcf <- system.file("extdata", "cell_example.mpileup.vcf.gz", 
-                   package = "cardelino")
-input_data <- parse_cell_vcf(vcf, filter_variants = TRUE)
+vcf <- read_vcf(system.file("extdata", "cell_example.mpileup.vcf.gz", 
+                   package = "cardelino"))
+input_data <- get_snp_matrices(vcf)
 ```
 
 Read in Canopy tree results for the same individual.
@@ -163,7 +163,7 @@ C <- canopy$tree$Z
 Be careful to ensure that the same variant IDs are used in both data sources.
 
 ```{r correct-variant-ids}
-rownames(C) <- gsub(":", "_", gsub("_.*", "", rownames(C)))
+rownames(C) <- gsub("chr", "", gsub(":", "_", gsub("_.*", "", rownames(C))))
 ```
 
 Now we can run the clone ID function to assign cells to clones.

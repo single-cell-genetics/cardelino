@@ -1,68 +1,180 @@
 # Functions to read data into cardelino
 
-#' Parse with single-cell variant data from VCF file for cardelino
+# parse_cell_vcf <- function(vcf_file, filter_variants = TRUE, filter_cells = FALSE,
+#                       cell_nvars_threshold = 1.5, verbose = TRUE, ...) {
+#     vcf <- vcfR::read.vcfR(vcf_file, verbose = verbose, ...)
+#     ## get read count data
+#     dp <- vcfR::extract.gt(vcf, element = "DP", as.numeric = TRUE)
+#     ad <- vcfR::extract.gt(vcf, element = "AD")
+#     rf <- vcfR::masplit(ad, record = 1L, sort = FALSE)
+#     ad <- vcfR::masplit(ad, record = 2L, sort = FALSE)
+#     rownames(ad) <- rownames(dp) <- rownames(rf) <-
+#         paste0(vcf@fix[, 1], "_", vcf@fix[, 2])
+#     ## fix up dodgy entries - if depth is zero, set A to NA
+#     ad[which(dp == 0)] <- NA
+#     dp[which(dp == 0)] <- NA
+#     ## if depth is non-zero, but ad is NA, set ad to zero
+#     ad[(dp > 0) & is.na(ad)] <- 0
+#
+#     ## filter variants with no cells
+#     if (filter_variants) {
+#         idx_var_use <- rowSums(dp, na.rm = TRUE) > 0.5
+#         if (!any(idx_var_use))
+#             stop("No variants are genotyped in at least one cell.")
+#         ad <- ad[idx_var_use,, drop = FALSE]
+#         dp <- dp[idx_var_use,, drop = FALSE]
+#         rf <- rf[idx_var_use,, drop = FALSE]
+#     }
+#
+#     ## filter cells
+#     if (filter_cells) {
+#         nvars_genotyped <- colSums(dp > 0.5, na.rm = TRUE)
+#         if (all(nvars_genotyped < cell_nvars_threshold))
+#             stop("No cells have more than one variant with read coverage.")
+#         ad <- ad[, nvars_genotyped > cell_nvars_threshold, drop = FALSE]
+#         dp <- dp[, nvars_genotyped > cell_nvars_threshold, drop = FALSE]
+#         rf <- rf[, nvars_genotyped > cell_nvars_threshold, drop = FALSE]
+#     }
+#     list(A = ad, D = dp, R = rf)
+# }
+
+
+#' Read a VCF file into R session
 #'
-#' @param vcf_file path to VCF file from which to read data
-#' @param filter_variants logical(1), should variants that do not have any read
-#' coverage in any cell be filtered out?
-#' @param filter_cells logical(1), should cells with fewer than a threshold
-#' number of variants with read coverage be filtered out?
-#' @param cell_nvars_threshold numeric(1), threshold for the number of variants
-#' with non-zero read coverage; if \code{filter_cells} is \code{TRUE} then cells
-#' with a number of variants with read coverage below this threshold will be
-#' filtered out.
+#' @param vcf_file character(1), path to VCF file to read into R session as a
+#' \code{\link[VariantAnnotation]{CollapsedVCF}} object
+#' @param genome character(1), string indicating the genome build used in the
+#' VCF file(s) (default: "GRCh37")
+#' @param seq_levels_style character(1), string passed to
+#' \code{\link[GenomeInfoDb]{seqlevelsStyle}} the style to use for
+#' chromosome/contig names (default: "Ensembl")
 #' @param verbose logical(1), should messages be printed as function runs?
-#' @param ... further arguments passed to \code{\link[vcfR]{read.vcfR}}
 #'
-#' @return a list with elements: \code{A}, a variant x cell matrix of read
-#' counts supporting the alternative allele; \code{D}, a variant x cell matrix
-#' of total read depth for each variant (set to \code{NA} if depth is zero);
-#' \code{R}, a variant x cell matrix of the read counts supporting the reference
-#' allele.
+#' @import VariantAnnotation
+#' @importFrom methods as is
+#' @export
 #'
-#' @author Davis McCarthy
+#' @examples
+#' vcf <- read_vcf(system.file("extdata", "cells.donorid.vcf.gz", package = "cardelino"))
+#'
+read_vcf <- function(vcf_file, genome = "GRCh37",
+                          seq_levels_style = "Ensembl", verbose = TRUE) {
+    ## Read in VCF from this sample
+    if (verbose)
+        message("Reading VCF.")
+    vcf_sample <- VariantAnnotation::readVcf(vcf_file, genome)
+    vcf_sample <- vcf_sample[VariantAnnotation::isSNV(vcf_sample)]
+    if (length(vcf_sample) > 0) {
+        GenomeInfoDb::seqlevelsStyle(vcf_sample) <- seq_levels_style
+        new_snp_names <- gsub("chr", "",
+                              gsub(":", "_",
+                                   gsub("_[ATCG]/[ATCG]", "",
+                                        names(vcf_sample))))
+        names(vcf_sample) <- new_snp_names
+    } else
+        stop("No SNVs present in VCF file.")
+    if (verbose)
+        message("Read ", dim(vcf_sample)[1], " variants for ",
+                dim(vcf_sample)[2], " samples.")
+    vcf_sample
+}
+
+
+#' Get SNP data matrices from VCF object(s)
+#'
+#' @param vcf_cell a \code{\link[VariantAnnotation]{CollapsedVCF}} object
+#' containing variant data for cells
+#' @param vcf_donor an optional \code{\link[VariantAnnotation]{CollapsedVCF}}
+#' object containing genotype data for donors
+#' @param verbose logical(1), should the function output verbose information as
+#' it runs?
+#' @param donors optional character vector providing a set of donors to use, by
+#' subsetting the donors present in the \code{donor_vcf_file}; if \code{NULL}
+#' (default) then all donors present in VCF will be used.
+#'
+#' @import snpStats
+#' @import GenomicRanges
 #'
 #' @export
 #'
 #' @examples
-#' vcf <- system.file("extdata", "cell_example.mpileup.vcf.gz",
-#'                    package = "cardelino")
-#' input_data <- parse_cell_vcf(vcf, filter_variants = TRUE)
+#' vcf_cell <- read_vcf(system.file("extdata", "cells.donorid.vcf.gz", package = "cardelino"))
+#' vcf_donor <-  read_vcf(system.file("extdata", "donors.donorid.vcf.gz", package = "cardelino"))
+#' snp_data <- get_snp_matrices(vcf_cell, vcf_donor)
 #'
-parse_cell_vcf <- function(vcf_file, filter_variants = TRUE, filter_cells = FALSE,
-                      cell_nvars_threshold = 1.5, verbose = TRUE, ...) {
-    vcf <- vcfR::read.vcfR(vcf_file, verbose = verbose, ...)
-    ## get read count data
-    dp <- vcfR::extract.gt(vcf, element = "DP", as.numeric = TRUE)
-    ad <- vcfR::extract.gt(vcf, element = "AD")
-    rf <- vcfR::masplit(ad, record = 1L, sort = FALSE)
-    ad <- vcfR::masplit(ad, record = 2L, sort = FALSE)
-    rownames(ad) <- rownames(dp) <- rownames(rf) <-
-        paste0(vcf@fix[, 1], "_", vcf@fix[, 2])
-    ## fix up dodgy entries - if depth is zero, set A to NA
-    ad[which(dp == 0)] <- NA
-    dp[which(dp == 0)] <- NA
-    ## if depth is non-zero, but ad is NA, set ad to zero
-    ad[(dp > 0) & is.na(ad)] <- 0
-
-    ## filter variants with no cells
-    if (filter_variants) {
-        idx_var_use <- rowSums(dp, na.rm = TRUE) > 0.5
-        if (!any(idx_var_use))
-            stop("No variants are genotyped in at least one cell.")
-        ad <- ad[idx_var_use,, drop = FALSE]
-        dp <- dp[idx_var_use,, drop = FALSE]
-        rf <- rf[idx_var_use,, drop = FALSE]
-    }
-
-    ## filter cells
-    if (filter_cells) {
-        nvars_genotyped <- colSums(dp > 0.5, na.rm = TRUE)
-        if (all(nvars_genotyped < cell_nvars_threshold))
-            stop("No cells have more than one variant with read coverage.")
-        ad <- ad[, nvars_genotyped > cell_nvars_threshold, drop = FALSE]
-        dp <- dp[, nvars_genotyped > cell_nvars_threshold, drop = FALSE]
-        rf <- rf[, nvars_genotyped > cell_nvars_threshold, drop = FALSE]
-    }
-    list(A = ad, D = dp, R = rf)
+get_snp_matrices <- function(vcf_cell, vcf_donor=NULL, verbose = TRUE,
+                             donors = NULL) {
+    if (!methods::is(vcf_cell, "CollapsedVCF"))
+        stop("vcf_cell must be a CollapsedVCF object from the VariantAnnotation package.")
+    vcf_cell <- GenomeInfoDb::sortSeqlevels(vcf_cell, X.is.sexchrom = TRUE)
+    slengths_sample <- GenomeInfoDb::seqlengths(vcf_cell)
+    if (!is.null(vcf_donor)) {
+        if (!is(vcf_donor, "CollapsedVCF"))
+            stop("vcf_donor must be a CollapsedVCF object from the VariantAnnotation package.")
+        ## filter sample VCF to those variants found in donor VCF
+        if (!is.null(donors)) {
+            if (sum(colnames(vcf_donor) %in% donors) < 1)
+                stop("No donors in vcf_donor are found in the donors argument supplied.")
+            vcf_donor <- vcf_donor[, colnames(vcf_donor) %in% donors]
+        }
+        vcf_donor <- GenomeInfoDb::sortSeqlevels(vcf_donor, X.is.sexchrom = TRUE)
+        GenomeInfoDb::seqlengths(vcf_donor) <-
+            slengths_sample[GenomeInfoDb::seqlevels(vcf_donor)]
+        ovlap <- GenomicRanges::findOverlaps(vcf_cell, vcf_donor)
+        if (length(ovlap) < 1L) {
+            stop("No variants overlapping in cell VCF and Donor VCF.")
+        } else {
+            if (verbose)
+                message("Filtering cell VCF.")
+            vcf_cell <- vcf_cell[S4Vectors::queryHits(ovlap)]
+            if (verbose)
+                message("Filtering donor VCF.")
+            vcf_donor <- vcf_donor[S4Vectors::subjectHits(ovlap)]
+            match_alleles <- unlist(
+                VariantAnnotation::ref(vcf_cell) == VariantAnnotation::ref(vcf_donor) &
+                    VariantAnnotation::alt(vcf_cell) == VariantAnnotation::alt(vcf_donor))
+            if (sum(match_alleles) < 1L)
+                stop("No variants with matching alleles in sample and donor VCFs")
+            vcf_cell <- vcf_cell[match_alleles]
+            vcf_donor <- vcf_donor[match_alleles]
+            if (verbose)
+                message("Extracting donor SNP genotype matrix.")
+            sm_donor <- VariantAnnotation::genotypeToSnpMatrix(
+                VariantAnnotation::geno(vcf_donor, "GT"),
+                ref = VariantAnnotation::ref(vcf_donor),
+                alt = VariantAnnotation::alt(vcf_donor))
+        }
+    } else
+        sm_donor <- NULL
+    ## get snp matrices
+    if (verbose)
+        message("Extracting cell SNP matrices.")
+    sm_sample <- VariantAnnotation::genotypeToSnpMatrix(
+        VariantAnnotation::geno(vcf_cell, "GT"),
+        ref = VariantAnnotation::ref(vcf_cell),
+        alt = VariantAnnotation::alt(vcf_cell))
+    sm_sample_REF <- matrix(sapply(VariantAnnotation::geno(vcf_cell, "AD"),
+                                   function(x) x[[1]]), ncol = ncol(vcf_cell))
+    sm_sample_ALT <- matrix(sapply(VariantAnnotation::geno(vcf_cell, "AD"),
+                                   function(x) x[[2]]), ncol = ncol(vcf_cell))
+    sm_sample_ALT[is.na(sm_sample_ALT) & !is.na(sm_sample_REF)] <- 0
+    sm_sample_DEP <- sm_sample_REF + sm_sample_ALT
+    sm_sample_DEP[sm_sample_DEP == 0] <- NA
+    sm_sample_REF[is.na(sm_sample_DEP)] <- NA
+    sm_sample_ALT[is.na(sm_sample_DEP)] <- NA
+    rownames(sm_sample_REF) <- rownames(sm_sample_ALT) <-
+        rownames(sm_sample_DEP) <- rownames(vcf_cell)
+    colnames(sm_sample_REF) <- colnames(sm_sample_ALT) <-
+        colnames(sm_sample_DEP) <- colnames(vcf_cell)
+    na_sample <- is.na(sm_sample_DEP)
+    if (sum(!na_sample) < 1L)
+        stop("No variants with non-missing genotypes cells VCF and Donor VCF\n")
+    out <- list(A = sm_sample_ALT, D = sm_sample_DEP, R = sm_sample_REF,
+                GT_cells = t(methods::as(sm_sample$genotypes, "numeric")))
+    if (!is.null(vcf_donor))
+        out[["GT_donors"]] <- t(methods::as(sm_donor$genotypes, "numeric"))
+    else
+        out[["GT_donors"]] <- NULL
+    out
 }
+

@@ -14,24 +14,24 @@ donor_id_Gibbs(A, D, K, prior0 = c(0.02, 40), prior1 = c(2.4, 2.4),
 
 \item{K}{A integer. Number for expected donors}
 
-\item{prior0}{numeric(2), alpha and beta parameters for the Beta prior 
+\item{prior0}{numeric(2), alpha and beta parameters for the Beta prior
 distribution of the ALT read when variant does not exist.}
 
-\item{prior1}{numeric(2), alpha and beta parameters for the Beta prior 
+\item{prior1}{numeric(2), alpha and beta parameters for the Beta prior
 distribution of the ALT read when variant does exists.}
 
-\item{min_iter}{A integer. The minimum number of iterations in the Gibbs 
+\item{min_iter}{A integer. The minimum number of iterations in the Gibbs
 sampling. The real iteration may be longer utile the convergence.}
 
-\item{max_iter}{A integer. The maximum number of iterations in the Gibbs 
+\item{max_iter}{A integer. The maximum number of iterations in the Gibbs
 sampling, even haven't passed the convergence diagnosis}
 
-\item{buin_in}{A float between 0 and 1. The fraction for buil-in in MCMC 
+\item{buin_in}{A float between 0 and 1. The fraction for buil-in in MCMC
 samplers.}
 }
 \value{
-a list containing 
-\code{prob}, a matrix (M x K) of probability of cell j assign to donor k. 
+a list containing
+\code{prob}, a matrix (M x K) of probability of cell j assign to donor k.
 \code{theta0}, a float, the averaged theta0 in samples.
 \code{theta1}, a float, the averaged theta1 in samples.
 \code{theta0_all}, a vector of all sampled theta0.
@@ -39,7 +39,7 @@ a list containing
 \code{logLik}, a vector of all sampled log likelihood.
 \code{assign}, a matrix of donor assignment of each cell in all samples.
 \code{Config}, a matrix of genotype configuration, averaged all samples.
-\code{Config_all}, a matrix of all sample genotype configuration. Each 
+\code{Config_all}, a matrix of all sample genotype configuration. Each
 column is a melted N x K matrix.
 }
 \description{
