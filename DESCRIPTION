@@ -1,8 +1,8 @@
 Package: cardelino
 Type: Package
-Title: Clonal Analysis of Cells Using Single Cell Data
-Version: 0.0.7
-Date: 2018-07-27
+Title: Clone and Donor Identification from Single Cell Data
+Version: 0.0.8
+Date: 2018-07-31
 Authors@R: c(person("Davis", "McCarthy", role=c("aut", "cre"),
         email="davis@ebi.ac.uk"), person("Yuanhua", "Huang", 
         role=c("aut"), email="yuanhua@ebi.ac.uk"))
@@ -21,5 +21,5 @@ biocViews: SingleCell, RNASeq, Visualization, Transcriptomics, GeneExpression,
     Sequencing, Software
 RoxygenNote: 6.0.1
 NeedsCompilation: yes
-URL: https://github.com/davismcc/cardelino
-BugReports: https://github.com/davismcc/cardelino/issues
+URL: https://github.com/PMBio/cardelino
+BugReports: https://github.com/PMBio/cardelino/issues

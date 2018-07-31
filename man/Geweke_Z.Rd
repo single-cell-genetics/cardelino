@@ -7,14 +7,14 @@
 Geweke_Z(X, first = 0.1, last = 0.5)
 }
 \arguments{
-\item{X}{A vector of MCMC samples. Note, it is one-dimentional.}
+\item{X}{A matrix of MCMC samples for N samples per K variables}
 
 \item{first}{A float between 0 and 1. The initial region of MCMC chain.}
 
 \item{last}{A float between 0 and 1. The final region of MCMC chain.}
 }
 \value{
-an absolute value of the Z score.
+\code{Z}, a vector of absolute value of Z scores for each variable.
 }
 \description{
 Geweke diagnostic for MCMC sampling.

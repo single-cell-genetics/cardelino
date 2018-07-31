@@ -4,21 +4,21 @@
 \alias{donor_id_Gibbs}
 \title{Gibbs sampler for donor deconvolution without genotypes.}
 \usage{
-donor_id_Gibbs(A, D, K, prior0 = c(0.02, 40), prior1 = c(2.4, 2.4),
-  min_iter = 500, max_iter = 50000, buin_in = 0.25)
+donor_id_Gibbs(A, D, K, gt_singlet = c(0, 1, 2), check_doublet = TRUE,
+  min_iter = 400, max_iter = 1000, buin_in = 0.25, EM_initial = TRUE,
+  verbose = TRUE, ...)
 }
 \arguments{
-\item{A}{A matrix of integers. Number of alteration reads in variant i cell j}
+\item{A}{A matrix of integers. Number of alteration reads in SNP i cell j}
 
-\item{D}{A matrix of integers. Number of reads depth in variant i cell j}
+\item{D}{A matrix of integers. Number of reads depth in SNP i cell j}
 
-\item{K}{A integer. Number for expected donors}
+\item{K}{An integer. The number of donors to infer if not given GT.}
 
-\item{prior0}{numeric(2), alpha and beta parameters for the Beta prior
-distribution of the ALT read when variant does not exist.}
+\item{gt_singlet}{A vector of integers. The candidate elements of GT. Default
+is c(0, 1, 2); but can be others. Note, gt will be averaged for doublet.}
 
-\item{prior1}{numeric(2), alpha and beta parameters for the Beta prior
-distribution of the ALT read when variant does exists.}
+\item{check_doublet}{logical(1), if TRUE, check doublet, otherwise ignore.}
 
 \item{min_iter}{A integer. The minimum number of iterations in the Gibbs
 sampling. The real iteration may be longer utile the convergence.}
@@ -28,20 +28,35 @@ sampling, even haven't passed the convergence diagnosis}
 
 \item{buin_in}{A float between 0 and 1. The fraction for buil-in in MCMC
 samplers.}
+
+\item{EM_initial}{logical(1), if TRUE, use the EM estimate for a warm
+initialization on GT and theta; otherwise random GT.}
+
+\item{verbose}{logical(1), If TRUE, output verbose information when running.}
+
+\item{...}{arguments passed to \code{donor_id_EM}}
 }
 \value{
 a list containing
-\code{prob}, a matrix (M x K) of probability of cell j assign to donor k.
-\code{theta0}, a float, the averaged theta0 in samples.
-\code{theta1}, a float, the averaged theta1 in samples.
-\code{theta0_all}, a vector of all sampled theta0.
-\code{theta1_all}, a vector of all sampled theta1.
-\code{logLik}, a vector of all sampled log likelihood.
-\code{assign}, a matrix of donor assignment of each cell in all samples.
-\code{Config}, a matrix of genotype configuration, averaged all samples.
-\code{Config_all}, a matrix of all sample genotype configuration. Each
-column is a melted N x K matrix.
+\code{logLik_samples}, the log likelihood for all samples.
+\code{theta}, a vector denoting the binomial parameters for each genotype; 
+mean of all samples in \code{theta_samples}.
+\code{theta_samples}, all samples of theta vector.
+\code{prob}, a matrix of posterior probability of cell assignment to donors.
+The summary may less than 1, as there are some probabilities go to doublets.
+\code{prob_doublet}, a matrix of posterior probability of cell assignment to
+each inter-donor doublet.
+\code{prob_samples}, all samples of singlet probability and doublet 
+probability. Each column should be reshaped into a M by K2 matrix.
+\code{GT_prob}, the posterior distribution of genotypes for each donors. 
+It has size of (N*K, length(gt_singlet)); each row should be reshaped into
+a N by K matrix via matrix(GT_prob[, t], nrow = N, ncol = K).
+\code{GT_samples}, all samples of donor genotype configuration matrices.
 }
 \description{
 Gibbs sampler for donor deconvolution without genotypes.
+}
+\details{
+Users should typically use \code{\link{donor_id}} rather than this
+lower-level function.
 }
