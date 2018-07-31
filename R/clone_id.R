@@ -185,22 +185,19 @@ cell_assign_EM <- function(A, D, C, Psi=NULL, model="binomial", threshold=1,
             A1 <- (A >= threshold)
         }
         B1 <- 1 - A1
-        W_log <- matrix(0, N, M)
+        W_log <- 0
     } else{
         A1 <- A                #number of alteration reads
         B1 <- D - A            #number of reference reads
-        W_log <- lchoose(D, A)  #log binomial coefficients, need for likelihood
+        W_log <- sum(lchoose(D, A), na.rm = TRUE)  #log binomial coefficients
     }
     A1[is.na(A1)] <- 0
     B1[is.na(B1)] <- 0
-    W_log[is.na(W_log)] <- 0
 
     S1 <- t(A1) %*% C0  #Alteration reads without variants (C=0): theta[1]
     S2 <- t(B1) %*% C0  #Reference reads without variants  (C=0): 1-theta[1]
     S3 <- t(A1) %*% C1  #Alteration reads with variants (C=1): theta[2]
     S4 <- t(B1) %*% C1  #Reference reads with variants  (C=1): 1-theta[2]
-    W0 <- t(W_log) %*% C0 #log product of Binomial cofficient for C=0
-    W1 <- t(W_log) %*% C1 #log product of Binomial cofficient for C=1
 
     ## random initialization for EM
     theta <- c(stats::runif(1, 0.001, 0.25), stats::runif(1, 0.3, 0.6))
@@ -216,14 +213,14 @@ cell_assign_EM <- function(A, D, C, Psi=NULL, model="binomial", threshold=1,
 
         #E-step
         logLik_mat <- (S1 * log(theta[1]) + S2 * log(1 - theta[1]) +
-                           S3 * log(theta[2]) + S4 * log(1 - theta[2]))
-        logLik_mat <- t(t(logLik_mat) + log(Psi))# + W0 + W1
-        #logLik_new <- sum(log(rowSums(exp(logLik_mat), na.rm = TRUE)), na.rm = TRUE)
+                       S3 * log(theta[2]) + S4 * log(1 - theta[2]))
+        logLik_mat <- t(t(logLik_mat) + log(Psi))
+
         logLik_vec <- rep(NA, nrow(logLik_mat))
         for (i in seq_len(nrow(logLik_mat))) {
             logLik_vec[i] <- matrixStats::logSumExp(logLik_mat[i,], na.rm = TRUE)
         }
-        logLik_new <- sum(logLik_vec, na.rm = TRUE)
+        logLik_new <- sum(logLik_vec, na.rm = TRUE) + W_log
         logLik_mat_amplify <- logLik_mat - matrixStats::rowMaxs(logLik_mat)
         prob_mat <- exp(logLik_mat_amplify) / rowSums(exp(logLik_mat_amplify))
 
@@ -317,8 +314,7 @@ cell_assign_Gibbs <- function(A, D, C, Psi=NULL, A_germ=NULL, D_germ=NULL,
         A2 <- A_germ             #number of alteration reads in germline var
         B1 <- D - A              #number of reference reads
         B2 <- D_germ - A_germ    #number of reference reads in germline var
-        W_log <- lchoose(D, A)   #log binomial coefficients, need for likelihood
-        # TODO: dose the likelihood include the germline var? (Yes)
+        W_log <- sum(lchoose(D, A), na.rm = TRUE)  #log binomial coefficients
     }
     A1[is.na(A1)] <- 0
     B1[is.na(B1)] <- 0
@@ -375,10 +371,10 @@ cell_assign_Gibbs <- function(A, D, C, Psi=NULL, A_germ=NULL, D_germ=NULL,
         theta0 <- theta0_all[it - 1, 1]
         theta1[idx_mat] <- theta1_all[it - 1,  ]
         for (k in seq_len(K)) {
-            logLik_mat[,k] <- (colSums(S1_list[[k]] * log(theta0),     na.rm = TRUE) +
-                                   colSums(S2_list[[k]] * log(1 - theta0), na.rm = TRUE) +
-                                   colSums(S3_list[[k]] * log(theta1),     na.rm = TRUE) +
-                                   colSums(S4_list[[k]] * log(1 - theta1), na.rm = TRUE))
+            logLik_mat[,k] <- (colSums(S1_list[[k]] * log(theta0), na.rm = TRUE) +
+                        colSums(S2_list[[k]] * log(1 - theta0), na.rm = TRUE) +
+                        colSums(S3_list[[k]] * log(theta1),     na.rm = TRUE) +
+                        colSums(S4_list[[k]] * log(1 - theta1), na.rm = TRUE))
             logLik_mat[,k] <- logLik_mat[,k] + log(Psi[k])
         }
         logLik_mat_amplify <- logLik_mat - matrixStats::rowMaxs(logLik_mat)
@@ -389,7 +385,7 @@ cell_assign_Gibbs <- function(A, D, C, Psi=NULL, A_germ=NULL, D_germ=NULL,
         for (i in seq_len(nrow(logLik_mat))) {
             logLik_vec[i] <- matrixStats::logSumExp(logLik_mat[i,], na.rm = TRUE)
         }
-        logLik_all[it] <- sum(logLik_vec, na.rm = TRUE)
+        logLik_all[it] <- sum(logLik_vec, na.rm = TRUE) + W_log
         #Update logLikelihood (TODO: add W0 and W1)
 
         # Sample assignment
@@ -416,7 +412,8 @@ cell_assign_Gibbs <- function(A, D, C, Psi=NULL, A_germ=NULL, D_germ=NULL,
             S3_wgt[,] <- rowSums(S3_wgt, na.rm = TRUE)
             S4_wgt[,] <- rowSums(S4_wgt, na.rm = TRUE)
         }
-        theta0_all[it, 1] <- stats::rbeta(1, prior0[1] + S1_wgt, prior0[2] + S2_wgt)
+        theta0_all[it, 1] <- stats::rbeta(1, prior0[1] + S1_wgt, 
+                                             prior0[2] + S2_wgt)
         theta1_all[it,  ] <- stats::rbeta(rep(1, n_element),
                                           prior1[,1] + S3_wgt[idx_vec],
                                           prior1[,2] + S4_wgt[idx_vec])
@@ -467,60 +464,24 @@ cell_assign_Gibbs <- function(A, D, C, Psi=NULL, A_germ=NULL, D_germ=NULL,
 
 
 #' Geweke diagnostic for MCMC sampling.
-#' @param X A vector of MCMC samples. Note, it is one-dimentional.
+#' @param X A matrix of MCMC samples for N samples per K variables
 #' @param first A float between 0 and 1. The initial region of MCMC chain.
 #' @param last A float between 0 and 1. The final region of MCMC chain.
 #'
-#' @return an absolute value of the Z score.
+#' @return \code{Z}, a vector of absolute value of Z scores for each variable.
 Geweke_Z <- function(X, first=0.1, last=0.5){
-    N = length(X)
-    A = X[1:floor(first*N)]
-    B = X[ceiling(last*N):N]
-    Z = abs(mean(A) - mean(B)) / sqrt(var(A) + var(B))
+    if (is.null(dim(X))) {X <- as.matrix(X, ncol = 1)}
+    N = nrow(X)
+    A = X[1:floor(first*N), , drop = FALSE]
+    B = X[ceiling(last*N):N, , drop = FALSE]
+
+    A_col_mean <- colMeans(A)
+    B_col_mean <- colMeans(B)
+    A_col_var <- rowSums((t(A) - A_col_mean)^2) / (ncol(A) - 1)
+    B_col_var <- rowSums((t(B) - B_col_mean)^2) / (ncol(A) - 1)
+
+    Z = abs(A_col_mean - B_col_mean) / sqrt(A_col_var + B_col_var)
 
     return(Z)
 }
 
-
-#' Get the probability matrix from Gibbs sampling on assignment
-#' @param assign_Gibbs A matrix of T iterations on M cells
-#' @param buin_in A float of the fraction of buin-in iterations
-#'
-#' @return A probability matrix of M cells and K clones
-get_Gibbs_prob <- function(assign_Gibbs, buin_in=0.25){
-    T <- nrow(assign_Gibbs)
-    T_buin_in <- ceiling(T * buin_in)
-    assign_Gibbs <- assign_Gibbs[T_buin_in:T, ]
-    K <- max(assign_Gibbs)
-    prob_mat <- matrix(0, nrow = ncol(assign_Gibbs), K)
-    for (m in seq_len(nrow(prob_mat))) {
-        for (k in seq_len(K)) {
-            prob_mat[m, k] <- mean(assign_Gibbs[,m] == k)
-        }
-    }
-    prob_mat
-}
-
-
-get_logLik <- function(A, D, Config, theta1, theta0){
-    A[which(D == 0)] <- NA
-    D[which(D == 0)] <- NA
-
-    P0_mat <- dbinom(A, D, theta0, log = TRUE)
-    P1_mat <- dbinom(A, D, theta1, log = TRUE)
-
-    P0_mat[which(is.na(P0_mat))] <- 0
-    P1_mat[which(is.na(P1_mat))] <- 0
-
-    logLik_mat <- t(P0_mat) %*% (1 - Config) + t(P1_mat) %*% Config
-    logLik_mat_amplify <- logLik_mat - matrixStats::rowMaxs(logLik_mat)
-    prob_mat <- exp(logLik_mat_amplify) / rowSums(exp(logLik_mat_amplify))
-
-    logLik_vec <- rep(NA, nrow(logLik_mat))
-    for (i in seq_len(nrow(logLik_mat))) {
-        logLik_vec[i] <- matrixStats::logSumExp(logLik_mat[i,], na.rm = TRUE)
-    }
-    logLik <- sum(logLik_vec, na.rm = TRUE)
-
-    list(prob_mat, logLik)
-}
