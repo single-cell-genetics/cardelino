@@ -4,9 +4,10 @@
 \alias{donor_id}
 \title{Donor deconvolution of scRNA-seq data}
 \usage{
-donor_id(cell_vcf_file, donor_vcf_file = NULL, check_doublet = TRUE,
-  n_vars_threshold = 10, p_threshold = 0.95, verbose = TRUE,
-  genome = "GRCh37", seq_levels_style = "Ensembl", donors = NULL, ...)
+donor_id(cell_vcf_file, donor_vcf_file = NULL, n_donor = NULL,
+  check_doublet = TRUE, model = "EM", n_vars_threshold = 10,
+  p_threshold = 0.95, verbose = TRUE, genome = "GRCh37",
+  seq_levels_style = "Ensembl", donors = NULL, ...)
 }
 \arguments{
 \item{cell_vcf_file}{character(1), path to a VCF file containing variant data
@@ -15,7 +16,11 @@ for cells}
 \item{donor_vcf_file}{character(1), path to a VCF file containing reference
 donor genotypes}
 
+\item{n_donor}{integer(1), number of donors to infer if not given genotypes}
+
 \item{check_doublet}{logical(1), should the function check for doublet cells?}
+
+\item{model}{character(1), model for estimating cell donor ids: EM or Gibbs}
 
 \item{n_vars_threshold}{integer(1), if the number of variants with coverage
 in a cell is below this threshold, then the cell will be given an
@@ -41,7 +46,7 @@ chromosome/contig names (default: "Ensembl")}
 subsetting the donors present in the \code{donor_vcf_file}; if \code{NULL}
 (default) then all donors present in VCF will be used.}
 
-\item{...}{arguments passed to \code{donor_id_GT}}
+\item{...}{arguments passed to \code{donor_id_EM} or \code{donor_id_Gibbs}}
 }
 \description{
 Donor deconvolution of scRNA-seq data
