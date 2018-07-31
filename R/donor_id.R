@@ -71,56 +71,56 @@ donor_id <- function(cell_vcf_file, donor_vcf_file = NULL, check_doublet = TRUE,
     out
 }
 
-# ## test example
-# ids <- donor_id("inst/extdata/cells.donorid.vcf.gz",
-#          "inst/extdata/donors.donorid.vcf.gz")
-# table(ids$assigned$donor_id)
-# head(ids$assigned)
-# ggplot(ids$assigned, aes(n_vars, prob_doublet, colour = donor_id)) +
-#     geom_point(size = 3, alpha = 0.5) +
-#     #ggthemes::scale_color_canva(palette = "Surf and turf")
-#     theme_bw()
-# dplyr::filter(ids$assigned, donor_id == "doublet")
-#
-# sce <- readRDS("../hipsci-fibro/Data/processed/sce_merged_donors_cardelino_donorid_all_with_qc_labels.rds")
-# coldat <- colData(sce)
-# rm(sce)
-# ids$assigned$sample_id <- ids$assigned$cell
-# iddf <- dplyr::inner_join(ids$assigned, as.data.frame(coldat))
-# iddf %>% dplyr::filter(donor_id == "doublet") %>%
-#     dplyr::select(sample_id, well_condition, well_type, prob_max, prob_doublet) %>% as.data.frame
-#
-#
-# ids2_sing <- donor_id("inst/extdata/cells.donorid.vcf.gz",
-#                       "inst/extdata/donors.allfibro.vcf.gz",
-#                       check_doublet = FALSE)
-# table(ids2_sing$assigned$donor_id)
-# dplyr::filter(ids2_sing$assigned, grepl("laia", donor_id))
-# ids2_doub <- donor_id("inst/extdata/cells.donorid.vcf.gz",
-#                       "inst/extdata/donors.allfibro.vcf.gz",
-#                       check_doublet = TRUE,
-#                       donors = unique(ids2_sing$assigned$donor_id))
-# table(ids2_doub$assigned$donor_id)
-# ggplot(ids2_doub$assigned, aes(n_vars, prob_doublet, colour = donor_id)) +
-#     geom_point(size = 3, alpha = 0.5) +
-#     #ggthemes::scale_color_canva(palette = "Surf and turf")
-#     theme_bw()
-# ids2_doub$assigned$sample_id <- ids2_doub$assigned$cell
-# id2df <- dplyr::inner_join(ids2_doub$assigned, as.data.frame(coldat))
-# id2df %>% dplyr::filter(donor_id %in% c("doublet", "unassigned")) %>%
-#     dplyr::select(cell, donor_id, well_condition, well_type, prob_max, prob_doublet) %>% as.data.frame
-#
-# dplyr::filter(ids2_doub$assigned, donor_id %in% c("doublet", "unassigned")) %>% as.data.frame
-# dplyr::filter(ids2_doub$assigned, grepl("laia", donor_id))
-#
-# ## ppca on cell genotypes
-# pp <- pcaMethods::ppca(t(ids2$GT))
-# id2df$PPCA1 <- pp@scores[, 1]
-# id2df$PPCA2 <- pp@scores[, 2]
-# ggplot(id2df, aes(PPCA1, PPCA2, colour = donor_id)) +
-#     geom_point(size = 3, alpha = 0.5) +
-#     #ggthemes::scale_color_canva(palette = "Surf and turf")
-#     theme_bw()
+## test example
+ids <- donor_id("inst/extdata/cells.donorid.vcf.gz",
+         "inst/extdata/donors.donorid.vcf.gz")
+table(ids$assigned$donor_id)
+head(ids$assigned)
+ggplot(ids$assigned, aes(n_vars, prob_doublet, colour = donor_id)) +
+    geom_point(size = 3, alpha = 0.5) +
+    #ggthemes::scale_color_canva(palette = "Surf and turf")
+    theme_bw()
+dplyr::filter(ids$assigned, donor_id == "doublet")
+
+sce <- readRDS("../hipsci-fibro/Data/processed/sce_merged_donors_cardelino_donorid_all_with_qc_labels.rds")
+coldat <- colData(sce)
+rm(sce)
+ids$assigned$sample_id <- ids$assigned$cell
+iddf <- dplyr::inner_join(ids$assigned, as.data.frame(coldat))
+iddf %>% dplyr::filter(donor_id == "doublet") %>%
+    dplyr::select(sample_id, well_condition, well_type, prob_max, prob_doublet) %>% as.data.frame
+
+
+ids2_sing <- donor_id("inst/extdata/cells.donorid.vcf.gz",
+                      "inst/extdata/donors.allfibro.vcf.gz",
+                      check_doublet = FALSE)
+table(ids2_sing$assigned$donor_id)
+dplyr::filter(ids2_sing$assigned, grepl("laia", donor_id))
+ids2_doub <- donor_id("inst/extdata/cells.donorid.vcf.gz",
+                      "inst/extdata/donors.allfibro.vcf.gz",
+                      check_doublet = TRUE,
+                      donors = unique(ids2_sing$assigned$donor_id))
+table(ids2_doub$assigned$donor_id)
+ggplot(ids2_doub$assigned, aes(n_vars, prob_doublet, colour = donor_id)) +
+    geom_point(size = 3, alpha = 0.5) +
+    #ggthemes::scale_color_canva(palette = "Surf and turf")
+    theme_bw()
+ids2_doub$assigned$sample_id <- ids2_doub$assigned$cell
+id2df <- dplyr::inner_join(ids2_doub$assigned, as.data.frame(coldat))
+id2df %>% dplyr::filter(donor_id %in% c("doublet", "unassigned")) %>%
+    dplyr::select(cell, donor_id, well_condition, well_type, prob_max, prob_doublet) %>% as.data.frame
+
+dplyr::filter(ids2_doub$assigned, donor_id %in% c("doublet", "unassigned")) %>% as.data.frame
+dplyr::filter(ids2_doub$assigned, grepl("laia", donor_id))
+
+## ppca on cell genotypes
+pp <- pcaMethods::ppca(t(ids2_doub$GT))
+id2df$PPCA1 <- pp@scores[, 1]
+id2df$PPCA2 <- pp@scores[, 2]
+ggplot(id2df, aes(PPCA1, PPCA2, colour = donor_id)) +
+    geom_point(size = 3, alpha = 0.5) +
+    #ggthemes::scale_color_canva(palette = "Surf and turf")
+    theme_bw()
 
 
 #' EM algorithm for donor deconvolution in multiplexed scRNA-seq with genotypes.
