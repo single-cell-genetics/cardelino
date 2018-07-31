@@ -187,7 +187,6 @@ heatmap.theme <- function(legend.position="bottom", size=12) {
 #' @references
 #' This function makes use of the \code{\link{pheatmap}} packages
 #'
-#' @examples
 vc_heatmap <- function(mat, prob, Config, show_legend=FALSE){
     # sort variants
     mut_label <- Config %*% (2**seq(ncol(Config),1))
@@ -246,7 +245,6 @@ vc_heatmap <- function(mat, prob, Config, show_legend=FALSE){
 #' Guangchuang Yu, David Smith, Huachen Zhu, Yi Guan, Tommy Tsan-Yuk Lam.
 #' ggtree: an R package for visualization and annotation of phylogenetic trees with their covariates and other associated data. Methods in Ecology and Evolution 2017, 8(1):28-36, doi:10.1111/2041-210X.12628
 #'
-#' @examples
 plot_tree <- function(tree, orient="h") {
     node_total <- max(tree$edge)
     node_shown <- ncol(tree$Z)
