@@ -9,12 +9,41 @@ individual cells from single-cell RNA-sequencing data.
 
 ## Installation
 
+### From R
+
 The `cardelino` package can be conveniently installed using the 
 [`devtools`](https://www.rstudio.com/products/rpackages/devtools/) package thus:
 
 ```{R}
 devtools::install_github("PMBio/cardelino", build_vignettes = TRUE)
 ```
+
+### Cardelino in a container
+
+For situations in which installing software is a challenge (for example, on 
+institutional HPC clusters or on cloud computing platforms), we provide a 
+pre-built [Docker image](https://hub.docker.com/r/davismcc/r-singlecell-img) on
+[DockerHub](https://hub.docker.com/). This image contains R version 3.5.0 with 
+`cardelino` and other packages (e.g. tidyverse, basic Bioconductor and other
+single-cell RNA-seq packages) installed and ready to use with 
+[Docker](https://www.docker.com/) or [Singularity](https://www.sylabs.io/).
+
+For example, to build a Singularity image that can be used on an HPC cluster
+(with Singularity installed) one simply pulls the image from DockerHub:
+
+```{bash}
+singularity build rsc.img docker://davismcc/r-singlecell-img
+```
+
+This builds a Singularity image called `rsc.img` in the current working 
+directory. We can then run R from the container and use the installed version
+of `cardelino`:
+
+```{bash}
+singularity exec rsc.img R
+```
+
+Equivalent commands enable running R from the container with Docker.
 
 ## Getting started
 
@@ -30,7 +59,8 @@ Vignettes for the donor identification and clone identification use cases are
 provided. 
 
 Accessing the vignettes from within your R session is recommended, but
-you can also [view the clone ID vignette](https://rawgit.com/PMBio/cardelino/master/inst/doc/vignette-cloneid.html) online.
+you can also [view the clone ID vignette](https://rawgit.com/PMBio/cardelino/master/inst/doc/vignette-cloneid.html) 
+and [view the donor ID vignette](https://rawgit.com/PMBio/cardelino/master/inst/doc/vignette-cloneid.html) online.
 
 
 

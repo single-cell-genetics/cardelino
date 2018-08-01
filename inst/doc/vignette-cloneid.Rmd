@@ -25,19 +25,23 @@ library(knitr)
 opts_chunk$set(fig.align = 'center', fig.width = 6, fig.height = 5, dev = 'png',
     warning = FALSE, error = FALSE, message = FALSE)
 library(ggplot2)
+library(BiocStyle)
 theme_set(theme_bw(12))
 ```
 
 # Introduction
 
-This document gives an introduction to and overview of inferring the clonal identity of cells using the `r Biocpkg("cardelino")` package using a given clonal structure.
+This document gives an introduction to and overview of inferring the **clone**
+identity of cells using the `r Biocpkg("cardelino")` package using a given 
+clonal structure.
 
-`r Biocpkg("cardelino")` contains general tools for inferring the clonal or donor identity of cells from single-cell transcriptomic data, focusing on RNA-seq data. 
-Specifically, the package features:
+`r Biocpkg("cardelino")` contains general tools for inferring the clonal or 
+donor identity of cells from single-cell transcriptomic data, focusing on 
+RNA-seq data. Specifically, the package features:
 
-* Methods to infer the clonal identity of single cells from scRNA-seq read 
+* Methods to infer the **clonal identity** of single cells from scRNA-seq read 
 information, given a clonal structure;
-* Methods to infer the donor identity of single cells from scRNA-seq read 
+* Methods to infer the **donor identity** of single cells from scRNA-seq read 
 information, when donor genotype data is available for a set of possible donors.
 
 Here, we focus on demonstrating the use of `cardelino` to probabilistically 
@@ -147,9 +151,9 @@ here we show just one approach using convenience functions in `cardelino`:
 Read in data from VCF included in the package. 
 
 ```{r read-vcf-data}
-vcf <- system.file("extdata", "cell_example.mpileup.vcf.gz", 
-                   package = "cardelino")
-input_data <- parse_cell_vcf(vcf, filter_variants = TRUE)
+vcf <- read_vcf(system.file("extdata", "cell_example.mpileup.vcf.gz", 
+                   package = "cardelino"))
+input_data <- get_snp_matrices(vcf)
 ```
 
 Read in Canopy tree results for the same individual.
@@ -163,7 +167,7 @@ C <- canopy$tree$Z
 Be careful to ensure that the same variant IDs are used in both data sources.
 
 ```{r correct-variant-ids}
-rownames(C) <- gsub(":", "_", gsub("_.*", "", rownames(C)))
+rownames(C) <- gsub("chr", "", gsub(":", "_", gsub("_.*", "", rownames(C))))
 ```
 
 Now we can run the clone ID function to assign cells to clones.

@@ -31,14 +31,17 @@ theme_set(theme_bw(12))
 
 # Introduction
 
-This document gives an introduction to and overview of inferring the clonal identity of cells using the `r Biocpkg("cardelino")` package using a given clonal structure.
+This document gives an introduction to and overview of inferring the **clone**
+identity of cells using the `r Biocpkg("cardelino")` package using a given 
+clonal structure.
 
-`r Biocpkg("cardelino")` contains general tools for inferring the clonal or donor identity of cells from single-cell transcriptomic data, focusing on RNA-seq data. 
-Specifically, the package features:
+`r Biocpkg("cardelino")` contains general tools for inferring the clonal or 
+donor identity of cells from single-cell transcriptomic data, focusing on 
+RNA-seq data. Specifically, the package features:
 
-* Methods to infer the clonal identity of single cells from scRNA-seq read 
+* Methods to infer the **clonal identity** of single cells from scRNA-seq read 
 information, given a clonal structure;
-* Methods to infer the donor identity of single cells from scRNA-seq read 
+* Methods to infer the **donor identity** of single cells from scRNA-seq read 
 information, when donor genotype data is available for a set of possible donors.
 
 Here, we focus on demonstrating the use of `cardelino` to probabilistically 
