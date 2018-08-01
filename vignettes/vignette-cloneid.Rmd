@@ -25,6 +25,7 @@ library(knitr)
 opts_chunk$set(fig.align = 'center', fig.width = 6, fig.height = 5, dev = 'png',
     warning = FALSE, error = FALSE, message = FALSE)
 library(ggplot2)
+library(BiocStyle)
 theme_set(theme_bw(12))
 ```
 
