@@ -50,7 +50,8 @@
 #' chromosome/contig names (default: "Ensembl")
 #' @param verbose logical(1), should messages be printed as function runs?
 #'
-#' @import VariantAnnotation
+#' @importFrom VariantAnnotation readVcf isSNV geno ref alt genotypeToSnpMatrix
+#' @importFrom GenomeInfoDb seqlevelsStyle seqlengths
 #' @importFrom methods as is
 #' @export
 #'
@@ -93,7 +94,8 @@ read_vcf <- function(vcf_file, genome = "GRCh37",
 #' (default) then all donors present in VCF will be used.
 #'
 #' @import snpStats
-#' @import GenomicRanges
+#' @importFrom GenomicRanges findOverlaps
+#' @importFrom S4Vectors queryHits subjectHits
 #'
 #' @export
 #'

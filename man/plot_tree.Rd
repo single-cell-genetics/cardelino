@@ -23,7 +23,7 @@ This function plots a phylogenetic tree from an object of class "phylo", as
 produced, for example, by the Canopy package.
 }
 \references{
-This function makes use of the \code{\link{ggtree}} packages:
+This function makes use of the \code{\link{ggtree}} package:
 
 Guangchuang Yu, David Smith, Huachen Zhu, Yi Guan, Tommy Tsan-Yuk Lam.
 ggtree: an R package for visualization and annotation of phylogenetic trees with their covariates and other associated data. Methods in Ecology and Evolution 2017, 8(1):28-36, doi:10.1111/2041-210X.12628

@@ -4,17 +4,17 @@
 \alias{donor_id}
 \title{Donor deconvolution of scRNA-seq data}
 \usage{
-donor_id(cell_vcf_file, donor_vcf_file = NULL, n_donor = NULL,
-  check_doublet = TRUE, model = "EM", n_vars_threshold = 10,
-  p_threshold = 0.95, verbose = TRUE, genome = "GRCh37",
-  seq_levels_style = "Ensembl", donors = NULL, ...)
+donor_id(cell_vcf, donor_vcf = NULL, n_donor = NULL, check_doublet = TRUE,
+  model = "EM", n_vars_threshold = 10, p_threshold = 0.95,
+  verbose = TRUE, genome = "GRCh37", seq_levels_style = "Ensembl",
+  donors = NULL, ...)
 }
 \arguments{
-\item{cell_vcf_file}{character(1), path to a VCF file containing variant data
-for cells}
+\item{cell_vcf}{either character(1), path to a VCF file containing variant
+data for cells, or a \code{\link[VariantAnnotation]{CollapsedVCF}} object}
 
-\item{donor_vcf_file}{character(1), path to a VCF file containing reference
-donor genotypes}
+\item{donor_vcf}{either character(1), path to a VCF file containing genotype
+data for donors, or a \code{\link[VariantAnnotation]{CollapsedVCF}} object}
 
 \item{n_donor}{integer(1), number of donors to infer if not given genotypes}
 
@@ -47,6 +47,21 @@ subsetting the donors present in the \code{donor_vcf_file}; if \code{NULL}
 (default) then all donors present in VCF will be used.}
 
 \item{...}{arguments passed to \code{donor_id_EM} or \code{donor_id_Gibbs}}
+}
+\value{
+a list with elements: \code{logLik}, log-likelihood of the fitted
+model; \code{theta}, ; \code{GT}, a matrix of inferred genotypes for each
+donor; \code{GT_doublet}, a matrix of inferred genotypes for each possible
+doublet (pairwise combinations of donors); \code{prob}, a matrix of posterior
+probabilities of donor identities for each cell; \code{prob_doublet}, a
+matrix of posterior probabilities for each possible doublet for each cell;
+\code{A}, a variant x cell matrix of observed read counts supporting the
+alternative allele; \code{D}, a variant x cell matrix of observed read depth;
+\code{assigned}, a data.frame reporting the cell-donor assignments with
+columns "cell" (cell identifier), "donor_id" (inferred donor, or "doublet" or
+"unassigned"), "prob_max" (the maximum posterior probability across donors),
+"prob_doublet" (the probability that the cell is a doublet), "n_vars" (the
+number of variants with non-zero read depth used for assignment).
 }
 \description{
 Donor deconvolution of scRNA-seq data
