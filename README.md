@@ -60,7 +60,7 @@ provided.
 
 Accessing the vignettes from within your R session is recommended, but
 you can also [view the clone ID vignette](https://rawgit.com/PMBio/cardelino/master/inst/doc/vignette-cloneid.html) 
-and [view the donor ID vignette](https://rawgit.com/PMBio/cardelino/master/inst/doc/vignette-cloneid.html) online.
+and [view the donor ID vignette](https://rawgit.com/PMBio/cardelino/master/inst/doc/vignette-donorid.html) online.
 
 
 
