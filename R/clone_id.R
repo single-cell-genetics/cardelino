@@ -122,7 +122,8 @@ clone_id <- function(A, D, C, model = "binomial", inference = "sampling",
 assign_cells_to_clones <- function(prob_mat, threshold = 0.5) {
     assigns <- data.frame(cell = rownames(prob_mat),
                           clone = rep("unassigned", nrow(prob_mat)),
-                          prob_max = rep(NA, nrow(prob_mat)))
+                          prob_max = rep(NA, nrow(prob_mat)),
+                          stringsAsFactors = FALSE)
     for (i in seq_len(nrow(prob_mat))) {
         assigns[i, "prob_max"] <- max(prob_mat[i,])
         if (max(prob_mat[i,]) > threshold) {
@@ -412,7 +413,7 @@ cell_assign_Gibbs <- function(A, D, C, Psi=NULL, A_germ=NULL, D_germ=NULL,
             S3_wgt[,] <- rowSums(S3_wgt, na.rm = TRUE)
             S4_wgt[,] <- rowSums(S4_wgt, na.rm = TRUE)
         }
-        theta0_all[it, 1] <- stats::rbeta(1, prior0[1] + S1_wgt, 
+        theta0_all[it, 1] <- stats::rbeta(1, prior0[1] + S1_wgt,
                                              prior0[2] + S2_wgt)
         theta1_all[it,  ] <- stats::rbeta(rep(1, n_element),
                                           prior1[,1] + S3_wgt[idx_vec],

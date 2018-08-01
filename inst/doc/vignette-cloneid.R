@@ -5,6 +5,7 @@ library(knitr)
 opts_chunk$set(fig.align = 'center', fig.width = 6, fig.height = 5, dev = 'png',
     warning = FALSE, error = FALSE, message = FALSE)
 library(ggplot2)
+library(BiocStyle)
 theme_set(theme_bw(12))
 
 ## ----load-pkg--------------------------------------------------------------
@@ -27,9 +28,9 @@ head(df)
 table(df$clone)
 
 ## ----read-vcf-data---------------------------------------------------------
-vcf <- system.file("extdata", "cell_example.mpileup.vcf.gz", 
-                   package = "cardelino")
-input_data <- parse_cell_vcf(vcf, filter_variants = TRUE)
+vcf <- read_vcf(system.file("extdata", "cell_example.mpileup.vcf.gz", 
+                   package = "cardelino"))
+input_data <- get_snp_matrices(vcf)
 
 ## ----read-canopy-data------------------------------------------------------
 canopy <- readRDS(system.file("extdata", "canopy_results.example.rds", 
@@ -37,7 +38,7 @@ canopy <- readRDS(system.file("extdata", "canopy_results.example.rds",
 C <- canopy$tree$Z
 
 ## ----correct-variant-ids---------------------------------------------------
-rownames(C) <- gsub(":", "_", gsub("_.*", "", rownames(C)))
+rownames(C) <- gsub("chr", "", gsub(":", "_", gsub("_.*", "", rownames(C))))
 
 ## ----run-cell-assign-------------------------------------------------------
 assignments <- clone_id(input_data$A, input_data$D, C)
