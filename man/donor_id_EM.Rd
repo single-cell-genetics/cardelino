@@ -18,7 +18,7 @@ donor_id_EM(A, D, GT = NULL, K = NULL, gt_singlet = c(0, 1, 2),
 \item{K}{An integer. The number of donors to infer if not given GT.}
 
 \item{gt_singlet}{A vector of integers. The candidate elements of GT. Default
-is c(0, 1, 2); but can be others. Note, gt will be averaged for doublet. 
+is c(0, 1, 2); but can be others. Note, gt will be averaged for doublet.
 When GT is given, gt_singlet will be adapted to GT.}
 
 \item{check_doublet}{logical(1), if TRUE, check doublet, otherwise ignore.}
@@ -28,7 +28,7 @@ When GT is given, gt_singlet will be adapted to GT.}
 \item{max_iter}{A integer. The maximum number of iterations in EM algorithm.
 The real iteration may finish earlier.}
 
-\item{n_init}{A integer. The number of random initializations for EM 
+\item{n_init}{A integer. The number of random initializations for EM
 algorithm, which can be useful to avoid local optima if not given genotypes.
 Default: 1 if given GT, 5 if not given GT.}
 
@@ -45,7 +45,7 @@ a list containing
 The summary may less than 1, as there are some probabilities go to doublets.
 \code{prob_doublet}, a matrix of posterior probability of cell assignment to
 each inter-donor doublet.
-\code{GT}, the input GT or a point estimate of genotype of donors. Note, 
+\code{GT}, the input GT or a point estimate of genotype of donors. Note,
 this may be not very accurate, especially for lowly expressed SNPs.
 \code{GT_doublet}, the pair-wise doublet genotype based on GT.
 }
