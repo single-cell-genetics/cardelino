@@ -39,16 +39,16 @@ initialization on GT and theta; otherwise random GT.}
 \value{
 a list containing
 \code{logLik_samples}, the log likelihood for all samples.
-\code{theta}, a vector denoting the binomial parameters for each genotype; 
+\code{theta}, a vector denoting the binomial parameters for each genotype;
 mean of all samples in \code{theta_samples}.
 \code{theta_samples}, all samples of theta vector.
 \code{prob}, a matrix of posterior probability of cell assignment to donors.
 The summary may less than 1, as there are some probabilities go to doublets.
 \code{prob_doublet}, a matrix of posterior probability of cell assignment to
 each inter-donor doublet.
-\code{prob_samples}, all samples of singlet probability and doublet 
+\code{prob_samples}, all samples of singlet probability and doublet
 probability. Each column should be reshaped into a M by K2 matrix.
-\code{GT_prob}, the posterior distribution of genotypes for each donors. 
+\code{GT_prob}, the posterior distribution of genotypes for each donors.
 It has size of (N*K, length(gt_singlet)); each row should be reshaped into
 a N by K matrix via matrix(GT_prob[, t], nrow = N, ncol = K).
 \code{GT_samples}, all samples of donor genotype configuration matrices.
