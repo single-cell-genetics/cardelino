@@ -84,6 +84,10 @@ donor_id <- function(cell_vcf, donor_vcf = NULL, n_donor=NULL,
                                  verbose = verbose)
         in_data <- get_snp_matrices(cell_vcf, donor_vcf, verbose = verbose,
                                     donors = donors)
+        if (ncol(in_data$GT_donors) < 2 && check_doublet) {
+            warning("Only one donor with genotypes provided, so cannot check for doublets.")
+            check_doublet <- FALSE
+        }
     }
     if (verbose)
         message("Donor ID using ", nrow(in_data$A), " variants")
@@ -139,6 +143,14 @@ donor_id <- function(cell_vcf, donor_vcf = NULL, n_donor=NULL,
 # sce <- readRDS("../hipsci-fibro/Data/processed/sce_merged_donors_cardelino_donorid_all_with_qc_labels.rds")
 # coldat <- colData(sce)
 # rm(sce)
+#
+# dplyr::filter(coldat, run_lane %in% c("22782_5", "22782_6", "22666_7")) %>%
+#     ggplot(aes(x = log10_total_counts_endogenous, y = total_features,
+#                colour = well_type)) +
+#     geom_point() +
+#     facet_wrap(~run_lane, ncol = 1)
+
+
 # ids$assigned$sample_id <- ids$assigned$cell
 # iddf <- dplyr::inner_join(ids$assigned, as.data.frame(coldat))
 # iddf %>% dplyr::filter(donor_id == "doublet") %>%
@@ -320,23 +332,28 @@ donor_id_EM <- function(A, D, GT=NULL, K=NULL, gt_singlet=c(0, 1, 2),
             # update theta, but use the default for longer initialization
             if (it > min_iter / 2) {
                 for (ig in seq_len(length(gt_uniq))) {
-                    theta[ig] <- sum(prob_mat * S1[[ig]]) / sum(prob_mat * SS[[ig]])
+                    if (!is.na(sum(prob_mat * SS[[ig]])) &&
+                        sum(prob_mat * SS[[ig]]) > 0) {
+                        theta[ig] <- (sum(prob_mat * S1[[ig]]) /
+                                          sum(prob_mat * SS[[ig]]))
+                    }
                 }
             }
 
             # update GT
             if (update_GT) {
-                S1_gt <- A %*% prob_mat[, 1:K1]
-                S2_gt <- B %*% prob_mat[, 1:K1]
+                S1_gt <- A %*% prob_mat[, 1:K1, drop = FALSE]
+                S2_gt <- B %*% prob_mat[, 1:K1, drop = FALSE]
                 GT_prob <- matrix(0, nrow = N * K1, ncol = length(gt_singlet))
                 for (ig in seq_len(ncol(GT_prob))) {
                     GT_prob[, ig] <- S1_gt * log(theta[ig]) +
                         S2_gt * log(1 - theta[ig])
                 }
                 for (ik in seq_len(length(GT[, 1:K1]))) {
-                    GT[ik] <- gt_uniq[which.max(GT_prob[ik, ])]
+                    GT[ik] <- gt_uniq[which.max(GT_prob[ik,, drop = FALSE])]
                 }
-                if (check_doublet) {GT[, (K1 + 1):K2] <- get_doublet_GT(GT[, 1:K1])}
+                if (check_doublet) {GT[, (K1 + 1):K2, drop = FALSE] <-
+                    get_doublet_GT(GT[, 1:K1, drop = FALSE])}
 
                 for (ig in seq_len(length(gt_uniq))) {
                     S1[[ig]] <- t(A) %*% (GT == gt_uniq[ig])
@@ -362,17 +379,17 @@ donor_id_EM <- function(A, D, GT=NULL, K=NULL, gt_singlet=c(0, 1, 2),
     logLik <- logLik_list[[max_idx]]
     prob_mat <- prob_mat_list[[max_idx]]
 
-    i## return values
-    prob_singlet <- prob_mat[, 1:K1]
+    ## return values
+    prob_singlet <- prob_mat[, 1:K1, drop = FALSE]
     prob_doublet <- GT_doublet <- NULL
     if (check_doublet) {
-        prob_doublet <- prob_mat[, (K1 + 1):K2]
-        GT_doublet <- GT[, (K1 + 1):K2]
+        prob_doublet <- prob_mat[, (K1 + 1):K2, drop = FALSE]
+        GT_doublet <- GT[, (K1 + 1):K2, drop = FALSE]
     }
 
     return_list <- list("logLik" = logLik,
                         "theta" = theta,
-                        "GT" = GT[, 1:K1],
+                        "GT" = GT[, 1:K1, drop = FALSE],
                         "GT_doublet" = GT_doublet,
                         "prob" = prob_singlet,
                         "prob_doublet" = prob_doublet)
