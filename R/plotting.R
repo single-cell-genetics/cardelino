@@ -34,7 +34,13 @@ prob_heatmap <- function(prob_mat, threshold=0.5, mode="delta", cell_idx=NULL){
     if (is.null(cell_idx)) {
         cell_idx <- order(cell_label - diag(prob_mat[, cell_label]))
     }
-    nba.m <- reshape2::melt(prob_mat[cell_idx,])
+    nba.m <- data.frame(
+        Cell = rep(rownames(prob_mat[cell_idx,]), ncol(prob_mat[cell_idx,])),
+        Clone = rep(colnames(prob_mat[cell_idx,]),
+                    each = nrow(prob_mat[cell_idx,])),
+        Prob = as.vector(prob_mat[cell_idx,]),
+        stringsAsFactors = FALSE
+    )
     colnames(nba.m) <- c("Cell", "Clone", "Prob")
 
     fig_assign <- ggplot(nba.m, aes_string("Clone", "Cell", fill = "Prob")) +
@@ -44,55 +50,6 @@ prob_heatmap <- function(prob_mat, threshold=0.5, mode="delta", cell_idx=NULL){
         cardelino::heatmap.theme() # + cardelino::pub.theme()
 
     fig_assign
-}
-
-
-#' Plot a heatmap for number of mutation sites in each cell
-#'
-#' @param Config A matrix (N x K), clonal genotype configuration
-#' @param prob_mat A matrix (M x K), the probability of cell j to clone k
-#' @param A A matrix (N x M), the present of alternative reads. NA means missing
-#' @param mode A string: present or absent
-#'
-#' @export
-sites_heatmap <- function(Config, A, prob_mat, mode="present"){
-    mut_label <- Config %*% (2**seq(ncol(Config),1))
-    mut_label <- seq(length(unique(mut_label)),1)[as.factor(mut_label)]
-    mut_uniq <- sort(unique(mut_label))
-
-    A_cnt <- A
-    if (mode == "absent") {
-        A_cnt[is.na(A_cnt)] <- 1
-        A_cnt[which(A_cnt > 0)] <- 1
-        A_cnt <- 1 - A_cnt
-    } else {
-        A_cnt[is.na(A_cnt)] <- 0
-        A_cnt[which(A_cnt > 0)] <- 1
-    }
-
-    mut_mat <- matrix(0, nrow = ncol(A_cnt), ncol = length(mut_uniq))
-    for (i in seq_len(length(mut_uniq))) {
-        idx.tmp <- mut_label == mut_uniq[i]
-        mut_mat[,i] <- colSums(A_cnt[idx.tmp, ])
-    }
-    colnames(mut_mat) <- paste0("Mut", mut_uniq, ": ", table(mut_label))
-    print(table(mut_label))
-
-    #order by assignment probability
-    cell_label <- cardelino::get_prob_label(prob_mat)
-    idx <- order(cell_label - diag(prob_mat[, cell_label]))
-    mut_mat <- mut_mat[idx,]
-
-    nba.m <- reshape2::melt(mut_mat)
-    colnames(nba.m) <- c("Cell", "Mut", "Sites")
-
-    fig_sites <- ggplot(nba.m, aes_string("Mut", "Cell", fill = "Sites")) +
-        geom_tile(show.legend = TRUE) +
-        scale_fill_gradient(low = "white", high = "darkblue") +
-        ylab(paste("Total sites: ", nrow(prob_mat), "cells")) +
-        cardelino::heatmap.theme()# + cardelino::pub.theme()
-
-    fig_sites
 }
 
 
