@@ -336,6 +336,10 @@ donor_id_EM <- function(A, D, GT=NULL, K=NULL, gt_singlet=c(0, 1, 2),
                         sum(prob_mat * SS[[ig]]) > 0) {
                         theta[ig] <- (sum(prob_mat * S1[[ig]]) /
                                           sum(prob_mat * SS[[ig]]))
+                        if (theta[ig] < 0.01)
+                            theta[ig] <- 0.01
+                        if (theta[ig] > 0.98)
+                            theta[ig] <- 0.98
                     }
                 }
             }
