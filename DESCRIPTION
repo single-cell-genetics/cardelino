@@ -1,8 +1,8 @@
 Package: cardelino
 Type: Package
 Title: Clone and Donor Identification from Single Cell Data
-Version: 0.0.9
-Date: 2018-08-01
+Version: 0.0.10
+Date: 2018-08-03
 Authors@R: c(person("Davis", "McCarthy", role=c("aut", "cre"),
         email="davis@ebi.ac.uk"), person("Yuanhua", "Huang", 
         role=c("aut"), email="yuanhua@ebi.ac.uk"))
@@ -13,7 +13,7 @@ Description: Methods to infer clonal structure for a population of cells using
     between clones.
 License: GPL (>= 3)
 Depends: R (>= 3.4), stats
-Imports: bbmle, GenomeInfoDb, GenomicRanges, ggplot2, ggtree, matrixStats, methods, pheatmap, reshape2, snpStats, S4Vectors, VariantAnnotation
+Imports: GenomeInfoDb, GenomicRanges, ggplot2, ggtree, matrixStats, methods, pheatmap, snpStats, S4Vectors, VariantAnnotation
 Suggests: BiocStyle, knitr, pcaMethods, testthat
 VignetteBuilder: knitr
 LazyData: true
