@@ -1,7 +1,7 @@
 Package: cardelino
 Type: Package
 Title: Clone and Donor Identification from Single Cell Data
-Version: 0.0.10
+Version: 0.0.11
 Date: 2018-08-03
 Authors@R: c(person("Davis", "McCarthy", role=c("aut", "cre"),
         email="davis@ebi.ac.uk"), person("Yuanhua", "Huang", 
@@ -19,7 +19,7 @@ VignetteBuilder: knitr
 LazyData: true
 biocViews: SingleCell, RNASeq, Visualization, Transcriptomics, GeneExpression, 
     Sequencing, Software
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.0
 NeedsCompilation: yes
 URL: https://github.com/PMBio/cardelino
 BugReports: https://github.com/PMBio/cardelino/issues
