@@ -226,8 +226,16 @@ cell_assign_EM <- function(A, D, C, Psi=NULL, model="binomial", threshold=1,
         prob_mat <- exp(logLik_mat_amplify) / rowSums(exp(logLik_mat_amplify))
 
         #M-step
-        theta[1] <- sum(prob_mat * S1) / sum(prob_mat * (S1 + S2))
-        theta[2] <- sum(prob_mat * S3) / sum(prob_mat * (S3 + S4))
+        if (is.na(sum(prob_mat * (S1 + S2))) ||
+            sum(prob_mat * (S1 + S2)) == 0)
+            theta[1] <- 0.02
+        else
+            theta[1] <- sum(prob_mat * S1) / sum(prob_mat * (S1 + S2))
+        if (is.na(sum(prob_mat * (S3 + S4))) ||
+            sum(prob_mat * (S3 + S4)) == 0)
+            theta[2] <- 0.75
+        else
+            theta[2] <- sum(prob_mat * S3) / sum(prob_mat * (S3 + S4))
     }
     if (verbose)
         print(paste("Total iterations:", it))
