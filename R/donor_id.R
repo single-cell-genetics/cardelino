@@ -356,7 +356,7 @@ donor_id_EM <- function(A, D, GT=NULL, K=NULL, gt_singlet=c(0, 1, 2),
                 for (ik in seq_len(length(GT[, 1:K1]))) {
                     GT[ik] <- gt_uniq[which.max(GT_prob[ik,, drop = FALSE])]
                 }
-                if (check_doublet) {GT[, (K1 + 1):K2, drop = FALSE] <-
+                if (check_doublet) {GT[, (K1 + 1):K2] <-
                     get_doublet_GT(GT[, 1:K1, drop = FALSE])}
 
                 for (ig in seq_len(length(gt_uniq))) {
