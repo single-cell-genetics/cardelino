@@ -276,6 +276,7 @@ donor_id_EM <- function(A, D, GT=NULL, K=NULL, gt_singlet=c(0, 1, 2),
             K <- ncol(GT) # number of donors
             gt_singlet <- sort(unique(c(GT)))
         }
+        if (is.null(colnames(GT))) {colnames(GT) <- paste0("donor", seq_len(K))}
 
         # check doublet;
         if (check_doublet) {
