@@ -69,8 +69,8 @@ sim_read_count <- function(Config, D, Psi=NULL,
   is_doublet <- rep(FALSE, M)
   is_doublet[sample(M, round(doublet*M))] <- TRUE
   I_sim <- rmultinom(M, 1, prob=Psi)      # Clonal label for each cell
-  print(sum(is_doublet))
-  print(dim(rmultinom(sum(is_doublet), 2, prob=Psi)))
+  # print(sum(is_doublet))
+  # print(dim(rmultinom(sum(is_doublet), 2, prob=Psi)))
   I_sim[, is_doublet] <- rmultinom(sum(is_doublet), 2, prob=Psi)
   I_sim[which(I_sim > 1)] <- 1
   H_sim <- Config %*% I_sim               # Genotype for each cell
