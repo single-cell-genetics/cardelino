@@ -1,8 +1,8 @@
 Package: cardelino
 Type: Package
 Title: Clone and Donor Identification from Single Cell Data
-Version: 0.0.14
-Date: 2018-08-17
+Version: 0.0.15
+Date: 2018-08-18
 Authors@R: c(person("Davis", "McCarthy", role=c("aut", "cre"),
         email="davis@ebi.ac.uk"), person("Yuanhua", "Huang", 
         role=c("aut"), email="yuanhua@ebi.ac.uk"))
