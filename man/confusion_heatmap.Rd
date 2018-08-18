@@ -4,7 +4,7 @@
 \alias{confusion_heatmap}
 \title{Plot confusion heatmap for assessing simulation accuracy}
 \usage{
-confusion_heatmap(prob_mat, sim_mat, threshold = 0.5, mode = "delta",
+confusion_heatmap(prob_mat, sim_mat, threshold = 0.5, mode = "best",
   pre_title = "")
 }
 \arguments{

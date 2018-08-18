@@ -10,9 +10,9 @@
 clone_id(A, D, C, model = "binomial", inference = "sampling",
   verbose = TRUE, ...)
 
-cell_assign_EM(A, D, C, Psi = NULL, model = "binomial",
-  threshold = 1, threshold_type = "count", min_iter = 10,
-  max_iter = 1000, logLik_threshold = 1e-05, verbose = TRUE)
+cell_assign_EM(A, D, C, Psi = NULL, model = "binomial", threshold = 1,
+  threshold_type = "count", min_iter = 10, max_iter = 1000,
+  logLik_threshold = 1e-05, verbose = TRUE)
 
 cell_assign_Gibbs(A, D, C, Psi = NULL, A_germ = NULL, D_germ = NULL,
   prior0 = c(0.3, 29.7), prior1 = c(2.25, 2.65), model = "binomial",
