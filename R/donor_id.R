@@ -444,11 +444,15 @@ donor_id_EM <- function(A, D, GT=NULL, K=NULL, gt_singlet=c(0, 1, 2),
 #' @import matrixStats
 #'
 #' @export
+#' @examples 
+#' data(example_donor)
+#' res <- donor_id_Gibbs(A, D, K = 4)
+#' head(res$prob)
 #'
 donor_id_Gibbs <- function(A, D, K, gt_singlet=c(0, 1, 2), check_doublet=TRUE,
                            min_iter=400, max_iter=1000, buin_in=0.25,
                            EM_initial=TRUE, verbose=TRUE, ...) {
-    ##TODO: 1) BF seems not practically suitable; sparse matrix maybe useful;
+    ##TODO: 1) BF seems not practically suitable; sparse matrix may be useful;
     ## future: support informative prior, e.g., bulk RNA-seq for donor genotype,
     ## and imputed genotype.
 
@@ -565,8 +569,8 @@ donor_id_Gibbs <- function(A, D, K, gt_singlet=c(0, 1, 2), check_doublet=TRUE,
         # Check convergence
         if (it >= min_iter && it %% 100 == 0) {
             is_converged <- Geweke_Z(prob_all[1:it, 1:K1]) <= 2
-            if (verbose) {cat(sprintf("%d iterations: %.3f cells converged.\n",
-                                     it, mean(is_converged)))}
+            if (verbose) {cat(sprintf("%d iterations: %.1f%% cells converged.\n",
+                                     it, mean(is_converged) * 100))}
             if (sum(is_converged) >= (length(is_converged) - 1)) {break}
         }
     }
@@ -601,6 +605,9 @@ donor_id_Gibbs <- function(A, D, K, gt_singlet=c(0, 1, 2), check_doublet=TRUE,
 #' Generate genotype for doublets
 #' @param GT A matrix of genotype for singlets
 #' @return \code{GT_doublet}, a matrix genotype for doublets
+#' @example 
+#' GT <- matrix(sample(c(0,1,2), 150, replace = TRUE), nrow = 50)
+#' GT_doublet <- get_doublet_GT(GT)
 #'
 get_doublet_GT <- function(GT) {
     donor_ids <- colnames(GT)

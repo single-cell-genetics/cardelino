@@ -15,6 +15,7 @@ Geweke_Z(X, first = 0.1, last = 0.5)
 }
 \value{
 \code{Z}, a vector of absolute value of Z scores for each variable.
+When |Z| <= 2, the sampling could be taken as converged.
 }
 \description{
 Geweke diagnostic for MCMC sampling.

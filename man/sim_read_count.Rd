@@ -4,9 +4,9 @@
 \alias{sim_read_count}
 \title{Sythetic reads generator for genetic variants}
 \usage{
-sim_read_count(Config, D, Psi = NULL, means = c(0.01, 0.47), vars = c(30,
-  4.8), wise0 = "element", wise1 = "variant", cell_num = 300,
-  permute_D = FALSE, doublet = 0)
+sim_read_count(Config, D, Psi = NULL, means = c(0.01, 0.47),
+  vars = c(30, 4.8), wise0 = "element", wise1 = "variant",
+  cell_num = 300, permute_D = FALSE, doublet = 0)
 }
 \arguments{
 \item{Config}{A matrix of binary values. The clone-variant configuration, 
@@ -62,4 +62,10 @@ papramitized the allelic frequency, sampled from step 3.
 5) Given the genotype of a cell, if the mutation does not exist in a cell, 
 the alteration read counts will be genenrated by a binomial distribution,
 paramerized by the technical error rate.
+}
+\examples{
+data(simulation_input)
+D2 <- sample_seq_depth(D_input, n_cells=500, n_sites=nrow(tree_4clone$Z))
+simu <- sim_read_count(tree_4clone$Z, D2, Psi=NULL, cell_num=500)
+
 }

@@ -10,13 +10,13 @@
 clone_id(A, D, C, model = "binomial", inference = "sampling",
   verbose = TRUE, ...)
 
-cell_assign_EM(A, D, C, Psi = NULL, model = "binomial", threshold = 1,
-  threshold_type = "count", min_iter = 10, max_iter = 1000,
+cell_assign_EM(A, D, C, Psi = NULL, model = "binomial",
+  Bernoulli_threshold = 1, min_iter = 10, max_iter = 1000,
   logLik_threshold = 1e-05, verbose = TRUE)
 
 cell_assign_Gibbs(A, D, C, Psi = NULL, A_germ = NULL, D_germ = NULL,
   prior0 = c(0.3, 29.7), prior1 = c(2.25, 2.65), model = "binomial",
-  Bern_threshold = 1, min_iter = 1000, max_iter = 10000,
+  Bernoulli_threshold = 1, min_iter = 1000, max_iter = 10000,
   wise = "variant", verbose = TRUE)
 }
 \arguments{
@@ -41,15 +41,13 @@ expectation-maximisation (faster)}
 \item{verbose}{logical(1), should the function output verbose information as
 it runs?}
 
-\item{...}{arguments passed to \code{\link{cell_assign_EM}} or
+\item{...}{arguments passed to \code{\link{cell_assign_Gibbs}} or
 \code{\link{cell_assign_EM}} (as appropriate)}
 
 \item{Psi}{A vector of float. The fractions of each clone, output P of Canopy}
 
-\item{threshold}{A value of integer or float. the threshold on count or
-fraction of alteration reads when using Bernoulli model}
-
-\item{threshold_type}{A string. The type of threshold: count or fraction}
+\item{Bernoulli_threshold}{An integer. The count threshold of alteration 
+reads when using Bernoulli model.}
 
 \item{min_iter}{A integer. The minimum number of iterations in the Gibbs
 sampling. The real iteration may be longer utile the convergence.}
@@ -71,9 +69,6 @@ distribution on the inferred false positive rate.}
 
 \item{prior1}{numeric(2), alpha and beta parameters for the Beta prior
 distribution on the inferred (1 - false negative) rate.}
-
-\item{Bern_threshold}{An integer. the count threshold of alteration reads
-when using Bernoulli model}
 
 \item{wise}{A string, the wise of parameters for theta1: global, variant,
 element.}

@@ -4,10 +4,10 @@
 \alias{donor_id}
 \title{Donor deconvolution of scRNA-seq data}
 \usage{
-donor_id(cell_vcf, donor_vcf = NULL, n_donor = NULL, check_doublet = TRUE,
-  model = "EM", n_vars_threshold = 10, p_threshold = 0.95,
-  verbose = TRUE, genome = "GRCh37", seq_levels_style = "Ensembl",
-  donors = NULL, ...)
+donor_id(cell_vcf, donor_vcf = NULL, n_donor = NULL,
+  check_doublet = TRUE, model = "EM", n_vars_threshold = 10,
+  p_threshold = 0.95, verbose = TRUE, genome = "GRCh37",
+  seq_levels_style = "Ensembl", donors = NULL, ...)
 }
 \arguments{
 \item{cell_vcf}{either character(1), path to a VCF file containing variant

@@ -18,9 +18,17 @@ sorted automatically.}
 }
 \value{
 a pheatmap object
+
+a ggplot object
 }
 \description{
 Plot a variant-cell heatmap for cell clonal assignment
+}
+\examples{
+data(example_donor)
+assignments <- clone_id(A, D, C = tree$Z)
+fig <- vc_heatmap(assignments$prob_variant, assignments$prob, tree$Z)
+
 }
 \references{
 This function makes use of the \code{\link{pheatmap}} packages

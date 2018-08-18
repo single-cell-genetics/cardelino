@@ -20,6 +20,9 @@ chromosome/contig names (default: "Ensembl")}
 
 \item{verbose}{logical(1), should messages be printed as function runs?}
 }
+\value{
+a vcf object
+}
 \description{
 Read a VCF file into R session
 }

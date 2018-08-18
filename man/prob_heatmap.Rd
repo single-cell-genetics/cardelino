@@ -4,7 +4,8 @@
 \alias{prob_heatmap}
 \title{Plot a heatmap for probability of clone assignment}
 \usage{
-prob_heatmap(prob_mat, threshold = 0.5, mode = "best", cell_idx = NULL)
+prob_heatmap(prob_mat, threshold = 0.5, mode = "best",
+  cell_idx = NULL)
 }
 \arguments{
 \item{prob_mat}{A matrix (M x K), the probability of cell j to clone k}
@@ -18,12 +19,15 @@ difference between the best and second.}
 \item{cell_idx}{A vector the indices of the input cells. If NULL, order by
 the probabilty of each clone}
 }
+\value{
+a ggplot object
+}
 \description{
 Plot a heatmap for probability of clone assignment
 }
 \examples{
 data(example_donor)
-assignments <- clone_id(A, D, C = tree$Z)
-prob_heatmap(assignments$prob)
+assignments <- clone_id(A, D, C = tree$Z, inference = "EM")
+fig <- prob_heatmap(assignments$prob)
 
 }
