@@ -20,7 +20,7 @@
 #' assignments <- clone_id(A, D, C = tree$Z)
 #' prob_heatmap(assignments$prob)
 #'
-prob_heatmap <- function(prob_mat, threshold=0.5, mode="delta", cell_idx=NULL){
+prob_heatmap <- function(prob_mat, threshold=0.5, mode="best", cell_idx=NULL){
     cell_label <- cardelino::get_prob_label(prob_mat)
     prob_value <- cardelino::get_prob_value(prob_mat, mode = mode)
     # add clone id
@@ -35,19 +35,17 @@ prob_heatmap <- function(prob_mat, threshold=0.5, mode="delta", cell_idx=NULL){
         cell_idx <- order(cell_label - diag(prob_mat[, cell_label]))
     }
     nba.m <- data.frame(
-        Cell = rep(rownames(prob_mat[cell_idx,]), ncol(prob_mat[cell_idx,])),
-        Clone = rep(colnames(prob_mat[cell_idx,]),
-                    each = nrow(prob_mat[cell_idx,])),
-        Prob = as.vector(prob_mat[cell_idx,]),
+        Cell = rep(seq_len(nrow(prob_mat)), ncol(prob_mat)),
+        Clone = rep(colnames(prob_mat), each = nrow(prob_mat)),
+        Prob = as.vector(prob_mat[cell_idx, ]),
         stringsAsFactors = FALSE
     )
-    colnames(nba.m) <- c("Cell", "Clone", "Prob")
 
     fig_assign <- ggplot(nba.m, aes_string("Clone", "Cell", fill = "Prob")) +
         geom_tile(show.legend = TRUE) +
         scale_fill_gradient(low = "white", high = "firebrick4") +
         ylab(paste("Clonal assignment:", nrow(prob_mat), "cells")) +
-        cardelino::heatmap.theme() # + cardelino::pub.theme()
+        cardelino::heatmap.theme()
 
     fig_assign
 }
@@ -65,7 +63,7 @@ prob_heatmap <- function(prob_mat, threshold=0.5, mode="delta", cell_idx=NULL){
 #' @param pre_title character, a prefix to be used for the plot's title.
 #'
 #' @export
-confusion_heatmap <- function(prob_mat, sim_mat, threshold=0.5, mode="delta",
+confusion_heatmap <- function(prob_mat, sim_mat, threshold=0.5, mode="best",
                               pre_title=""){
     assign_0 <- cardelino::get_prob_label(sim_mat)
     assign_1 <- cardelino::get_prob_label(prob_mat)
@@ -184,8 +182,8 @@ vc_heatmap <- function(mat, prob, Config, show_legend=FALSE){
 #' @param orient A string for the orientation of the tree: "v" (vertical) or "h"
 #' (horizontal)
 #'
-#' @details This function plots a phylogenetic tree from an object of class "phylo", as
-#' produced, for example, by the Canopy package.
+#' @details This function plots a phylogenetic tree from an object of class 
+#' "phylo", as produced, for example, by the Canopy package.
 #'
 #' @return a ggtree object
 #'
@@ -200,7 +198,9 @@ vc_heatmap <- function(mat, prob, Config, show_legend=FALSE){
 #' This function makes use of the \code{\link{ggtree}} package:
 #'
 #' Guangchuang Yu, David Smith, Huachen Zhu, Yi Guan, Tommy Tsan-Yuk Lam.
-#' ggtree: an R package for visualization and annotation of phylogenetic trees with their covariates and other associated data. Methods in Ecology and Evolution 2017, 8(1):28-36, doi:10.1111/2041-210X.12628
+#' ggtree: an R package for visualization and annotation of phylogenetic trees 
+#' with their covariates and other associated data. Methods in Ecology and 
+#' Evolution 2017, 8(1):28-36, doi:10.1111/2041-210X.12628
 #'
 plot_tree <- function(tree, orient="h") {
     node_total <- max(tree$edge)
@@ -208,7 +208,7 @@ plot_tree <- function(tree, orient="h") {
     node_hidden <- node_total - node_shown
     if (!is.null(tree$P)) {
         tree$tip.label[1:node_shown] = paste0("C", seq_len(node_shown), ": ",
-                                              round(tree$P[, 1]*100, digits = 0), "%")
+            round(tree$P[, 1]*100, digits = 0), "%")
     }
 
     mut_ids <- 0
