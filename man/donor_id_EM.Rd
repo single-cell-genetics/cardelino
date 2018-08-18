@@ -5,8 +5,8 @@
 \title{EM algorithm for donor deconvolution with or without genotypes.}
 \usage{
 donor_id_EM(A, D, GT = NULL, K = NULL, gt_singlet = c(0, 1, 2),
-  check_doublet = TRUE, min_iter = 10, max_iter = 200, n_init = NULL,
-  logLik_threshold = 1e-05, verbose = TRUE)
+  check_doublet = TRUE, min_iter = 10, max_iter = 200,
+  n_init = NULL, logLik_threshold = 1e-05, verbose = TRUE)
 }
 \arguments{
 \item{A}{A matrix of integers. Number of alteration reads in SNP i cell j}

@@ -17,7 +17,7 @@
 #' expectation-maximisation (faster)
 #' @param verbose logical(1), should the function output verbose information as
 #' it runs?
-#' @param ... arguments passed to \code{\link{cell_assign_EM}} or
+#' @param ... arguments passed to \code{\link{cell_assign_Gibbs}} or
 #' \code{\link{cell_assign_EM}} (as appropriate)
 #' @param Psi A vector of float. The fractions of each clone, output P of Canopy
 #' @param min_iter A integer. The minimum number of iterations in the Gibbs
@@ -136,9 +136,6 @@ assign_cells_to_clones <- function(prob_mat, threshold = 0.5) {
 
 #' Assign cells to clones using an EM algorithm
 #'
-#' @param threshold A value of integer or float. the threshold on count or
-#' fraction of alteration reads when using Bernoulli model
-#' @param threshold_type A string. The type of threshold: count or fraction
 #' @param logLik_threshold A float. The threshold of logLikelihood increase for
 #' detecting convergence.
 #'
@@ -157,8 +154,8 @@ assign_cells_to_clones <- function(prob_mat, threshold = 0.5) {
 #' assignments_binom <- cell_assign_EM(A, D, C = tree$Z, model = "binomial")
 #' assignments_bern <- cell_assign_EM(A, D, C = tree$Z, model = "Bernoulli")
 #'
-cell_assign_EM <- function(A, D, C, Psi=NULL, model="binomial", threshold=1,
-                           threshold_type="count", min_iter=10, max_iter=1000,
+cell_assign_EM <- function(A, D, C, Psi=NULL, model="binomial", 
+                           Bernoulli_threshold=1, min_iter=10, max_iter=1000,
                            logLik_threshold=1e-5, verbose=TRUE) {
     if (is.null(Psi))
         Psi <- rep(1/ncol(C), ncol(C))
@@ -180,11 +177,7 @@ cell_assign_EM <- function(A, D, C, Psi=NULL, model="binomial", threshold=1,
     C1 <- C
     C0 <- 1 - C
     if (model == "Bernoulli") {
-        if (threshold_type == "fraction") {
-            A1 <- (A/D >= threshold)
-        } else{
-            A1 <- (A >= threshold)
-        }
+        A1 <- A >= Bernoulli_threshold
         B1 <- 1 - A1
         W_log <- 0
     } else{
@@ -256,8 +249,8 @@ cell_assign_EM <- function(A, D, C, Psi=NULL, model="binomial", threshold=1,
 #' distribution on the inferred false positive rate.
 #' @param prior1 numeric(2), alpha and beta parameters for the Beta prior
 #' distribution on the inferred (1 - false negative) rate.
-#' @param Bern_threshold An integer. the count threshold of alteration reads
-#' when using Bernoulli model
+#' @param Bernoulli_threshold An integer. The count threshold of alteration 
+#' reads when using Bernoulli model.
 #' @param wise A string, the wise of parameters for theta1: global, variant,
 #' element.
 #'
@@ -273,7 +266,7 @@ cell_assign_EM <- function(A, D, C, Psi=NULL, model="binomial", threshold=1,
 #'
 cell_assign_Gibbs <- function(A, D, C, Psi=NULL, A_germ=NULL, D_germ=NULL,
                               prior0 = c(0.3, 29.7), prior1 = c(2.25, 2.65),
-                              model="binomial", Bern_threshold=1,
+                              model="binomial", Bernoulli_threshold=1,
                               min_iter=1000, max_iter=10000, wise="variant",
                               verbose=TRUE) {
     if (is.null(Psi)) {Psi <- rep(1/ncol(C), ncol(C))}
@@ -313,11 +306,11 @@ cell_assign_Gibbs <- function(A, D, C, Psi=NULL, A_germ=NULL, D_germ=NULL,
     C1 <- C
     C0 <- 1 - C
     if (model == "Bernoulli") {
-        A1 <- A >= Bern_threshold        # bool values
-        A2 <- A_germ >= Bern_threshold
+        A1 <- A >= Bernoulli_threshold        # bool values
+        A2 <- A_germ >= Bernoulli_threshold
         B1 <- 1 - A1
         B2 <- 1 - A2
-        W_log <- matrix(0, N, M)
+        W_log <- 0
     }else{
         A1 <- A                  #number of alteration reads
         A2 <- A_germ             #number of alteration reads in germline var
@@ -356,7 +349,8 @@ cell_assign_Gibbs <- function(A, D, C, Psi=NULL, A_germ=NULL, D_germ=NULL,
     n_element <- length(idx_vec)
 
     if (is.null(dim(prior1)) && length(prior1) == 2) {
-        prior1 <- t(matrix(rep(prior1, n_element), nrow = 2)) #two variable to a matrix
+        #two variable to a matrix
+        prior1 <- t(matrix(rep(prior1, n_element), nrow = 2))
     }
     if (!is.matrix(prior1)) {
         stop("prior1 need to be a matrix of n_element x 2")
@@ -446,8 +440,10 @@ cell_assign_Gibbs <- function(A, D, C, Psi=NULL, A_germ=NULL, D_germ=NULL,
     d <- A1[idx_mat] + B1[idx_mat]
     binom_pdf1 <- binom_pdf0 <- rep(0, n_element)
     for (i in seq(n_buin, it)) {
-        binom_pdf1 <- binom_pdf1 + stats::dbinom(a, size = d, prob = theta1_all[i,])
-        binom_pdf0 <- binom_pdf0 + stats::dbinom(a, size = d, prob = theta0_all[i])
+        binom_pdf1 <- binom_pdf1 + stats::dbinom(a, size = d, 
+                                                 prob = theta1_all[i,])
+        binom_pdf0 <- binom_pdf0 + stats::dbinom(a, size = d, 
+                                                 prob = theta0_all[i])
     }
     prob_variant <- matrix(NA, nrow = N, ncol = M)
     prob_variant[idx_mat] <- binom_pdf1 / (binom_pdf1 + binom_pdf0)
@@ -473,11 +469,14 @@ cell_assign_Gibbs <- function(A, D, C, Psi=NULL, A_germ=NULL, D_germ=NULL,
 
 
 #' Geweke diagnostic for MCMC sampling.
+#' 
 #' @param X A matrix of MCMC samples for N samples per K variables
 #' @param first A float between 0 and 1. The initial region of MCMC chain.
 #' @param last A float between 0 and 1. The final region of MCMC chain.
 #'
 #' @return \code{Z}, a vector of absolute value of Z scores for each variable.
+#' When |Z| <= 2, the sampling could be taken as converged.
+#' 
 Geweke_Z <- function(X, first=0.1, last=0.5){
     if (is.null(dim(X))) {X <- as.matrix(X, ncol = 1)}
     N = nrow(X)

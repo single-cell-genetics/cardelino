@@ -22,6 +22,11 @@ Plot a phylogenetic tree
 This function plots a phylogenetic tree from an object of class 
 "phylo", as produced, for example, by the Canopy package.
 }
+\examples{
+data(example_donor)
+plot_tree(tree, orient = "v")
+
+}
 \references{
 This function makes use of the \code{\link{ggtree}} package:
 

@@ -15,3 +15,8 @@ test_that("read counts generator works as expected", {
     simu <- sim_read_count(tree_4clone$Z, D2, Psi=NULL, cell_num=500)
     expect_is(simu, "list")
 })
+
+test_that("down sample variants in tree works as expected", {
+    tree_lite <- sample_tree_SNV(tree_4clone, n_SNV=10)
+    expect_is(tree_lite, "phylo")
+})
