@@ -7,14 +7,24 @@
 get_prob_value(prob_assign, mode = "best")
 }
 \arguments{
-\item{prob_assign}{A matrix of floats. Clonal assignment probability of N 
+\item{prob_assign}{A matrix of floats. Clonal assignment probability of M
 cells to K clones.}
 
 \item{mode}{A string, the mothod for defining scores for filtering cells: 
-best, second and delta. Best: highest probability of a cell to K clones, 
-similarly for second. delta is the difference between the best and second.}
+best, second and delta. \code{best}: highest probability of a cell to K 
+clones, similarly for the \code{second}. \code{delta} is the difference 
+between the best and the second.}
+}
+\value{
+a vector of the collapsed probability value for each cell, depending 
+on the mode used.
 }
 \description{
-the collapsed probability value includes 1) the best probability, 2) the
-second best probability, and 3) the delta between the best and the second.
+Get the collapsed probability value
+}
+\examples{
+data(example_donor)
+assignments <- clone_id(A, D, C = tree$Z, inference = "EM")
+prob_val <- get_prob_value(assignments$prob, mode = "best")
+
 }

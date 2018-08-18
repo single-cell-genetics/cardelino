@@ -9,10 +9,21 @@ pub.theme(size = 12)
 \arguments{
 \item{size}{numeric, base font size for adapted ggplot2 theme}
 }
+\value{
+a ggplot theme based on theme_classic
+}
 \description{
 Define a publication-style plot theme
 }
 \details{
 This theme modifies the \code{\link[ggplot2]{theme_classic}} theme
 in ggplot2.
+}
+\examples{
+library(ggplot2) 
+x = sample(10)
+y = x + runif(10) - 0.5 
+df <- data.frame(x = x, y = y)
+fig <- ggplot(df, aes(x=x, y=y)) + geom_point() + pub.theme()
+
 }

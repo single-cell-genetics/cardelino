@@ -29,3 +29,14 @@ test_that("donor_id without genotypes and doublet detection works as expected",
     ids4 <- donor_id(cell_vcf, n_donor = 3, check_doublet = FALSE)
     expect_is(ids4, "list")
 })
+
+test_that("donor_id_Gibbs works as expected", {
+    ids5 <- donor_id(cell_vcf, n_donor=3, model="Gibbs")
+    expect_is(ids5, "list")
+})
+
+test_that("donor_id_Gibbs and doublet detection works as expected", 
+{
+    ids6 <- donor_id(cell_vcf, n_donor=3, check_doublet=FALSE, model="Gibbs")
+    expect_is(ids6, "list")
+})

@@ -49,6 +49,8 @@
 #' \code{\link[GenomeInfoDb]{seqlevelsStyle}} the style to use for
 #' chromosome/contig names (default: "Ensembl")
 #' @param verbose logical(1), should messages be printed as function runs?
+#' 
+#' @return a vcf object
 #'
 #' @importFrom VariantAnnotation readVcf isSNV geno ref alt genotypeToSnpMatrix
 #' @importFrom GenomeInfoDb seqlevelsStyle seqlengths
@@ -92,6 +94,15 @@ read_vcf <- function(vcf_file, genome = "GRCh37",
 #' @param donors optional character vector providing a set of donors to use, by
 #' subsetting the donors present in the \code{donor_vcf_file}; if \code{NULL}
 #' (default) then all donors present in VCF will be used.
+#' 
+#' @return a list containing
+#' \code{A}, a matrix of integers. Number of alteration reads in SNP i cell j.
+#' \code{D}, a matrix of integers. Number of reads depth in SNP i cell j.
+#' \code{R}, a matrix of integers. Number of reference reads in SNP i cell j.
+#' \code{GT_cells}, a matrix of integers for genotypes. The cell-SNP 
+#' configuration.
+#' \code{GT_donors}, a matrix of integers for genotypes. The donor-SNP 
+#' configuration.
 #'
 #' @import snpStats
 #' @importFrom GenomicRanges findOverlaps

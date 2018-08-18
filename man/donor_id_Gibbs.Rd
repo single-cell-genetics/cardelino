@@ -5,8 +5,8 @@
 \title{Gibbs sampler for donor deconvolution without genotypes.}
 \usage{
 donor_id_Gibbs(A, D, K, gt_singlet = c(0, 1, 2), check_doublet = TRUE,
-  min_iter = 400, max_iter = 1000, buin_in = 0.25, EM_initial = TRUE,
-  verbose = TRUE, ...)
+  min_iter = 400, max_iter = 1000, buin_in = 0.25,
+  EM_initial = TRUE, verbose = TRUE, ...)
 }
 \arguments{
 \item{A}{A matrix of integers. Number of alteration reads in SNP i cell j}
@@ -59,4 +59,10 @@ Gibbs sampler for donor deconvolution without genotypes.
 \details{
 Users should typically use \code{\link{donor_id}} rather than this
 lower-level function.
+}
+\examples{
+data(example_donor)
+res <- donor_id_Gibbs(A, D, K = 4)
+head(res$prob)
+
 }

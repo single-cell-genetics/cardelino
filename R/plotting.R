@@ -12,13 +12,14 @@
 #'
 #' @param cell_idx A vector the indices of the input cells. If NULL, order by
 #' the probabilty of each clone
+#' @return a ggplot object
 #'
 #' @export
 #'
 #' @examples
 #' data(example_donor)
-#' assignments <- clone_id(A, D, C = tree$Z)
-#' prob_heatmap(assignments$prob)
+#' assignments <- clone_id(A, D, C = tree$Z, inference = "EM")
+#' fig <- prob_heatmap(assignments$prob)
 #'
 prob_heatmap <- function(prob_mat, threshold=0.5, mode="best", cell_idx=NULL){
     cell_label <- cardelino::get_prob_label(prob_mat)
@@ -45,57 +46,12 @@ prob_heatmap <- function(prob_mat, threshold=0.5, mode="best", cell_idx=NULL){
         geom_tile(show.legend = TRUE) +
         scale_fill_gradient(low = "white", high = "firebrick4") +
         ylab(paste("Clonal assignment:", nrow(prob_mat), "cells")) +
-        cardelino::heatmap.theme()
+        heatmap.theme()
 
     fig_assign
 }
 
 
-#' Plot confusion heatmap for assessing simulation accuracy
-#'
-#' @param prob_mat A matrix (M x K), the estimated probability of cell j to
-#' clone k
-#' @param sim_mat A matrix (M x K), the true assignment of cell to clone
-#' @param threshold A float value, the threshold for assignable cells
-#' @param mode A string, the mothod for defining scores for filtering cells:
-#' best and delta. best: highest probability of a cell to K clones, delta: the
-#' difference between the best and second.
-#' @param pre_title character, a prefix to be used for the plot's title.
-#'
-#' @export
-confusion_heatmap <- function(prob_mat, sim_mat, threshold=0.5, mode="best",
-                              pre_title=""){
-    assign_0 <- cardelino::get_prob_label(sim_mat)
-    assign_1 <- cardelino::get_prob_label(prob_mat)
-    prob_val <- cardelino::get_prob_value(prob_mat, mode = mode)
-    idx <- prob_val >= threshold
-
-    # print(paste("assignable:", mean(idx)))
-    # print(paste("accuracy:", mean((assign_0 == assign_1)[idx])))
-    # print(paste("overall acc:", mean(assign_0 == assign_1)))
-
-    acc <- mean((assign_0 == assign_1)[idx])
-    confusion_matrix <- as.data.frame(table(assign_0[idx], assign_1[idx]))
-    colnames(confusion_matrix) <- c("Var1", "Var2", "Freq")
-    confusion_matrix[["Freq_tidy"]] <- sprintf("%1.0f",
-                                               confusion_matrix[["Freq"]])
-
-    confusion.plot <- ggplot(data = confusion_matrix,
-                             mapping = aes_string(x = "Var1", y = "Var2")) +
-        geom_tile(aes_string(fill = "Freq"), colour = "grey") +
-        xlab("True clone") + ylab("Estimated clone") +
-        geom_text(aes_string(label = "Freq_tidy"), vjust = 0.5) +
-        ggtitle(paste0(pre_title, sprintf("Acc=%.1f%%", acc * 100))) +
-        scale_fill_gradient(low = "white", high = "steelblue") +
-        theme_grey(base_size = 12) + pub.theme() +
-        theme(legend.position = "none",
-              panel.grid.major = element_blank(),
-              panel.border = element_blank(),
-              panel.background = element_blank(),
-              axis.ticks.x = ggplot2::element_blank(),
-              axis.ticks.y = ggplot2::element_blank())
-    confusion.plot
-}
 
 
 #' The theme of heatmaps for prob_heatmap and sites_heatmap
@@ -104,8 +60,8 @@ confusion_heatmap <- function(prob_mat, sim_mat, threshold=0.5, mode="best",
 #' (passed to \code{\link[ggplot2]{theme_gray}})
 #' @param size numeric, base font size for plot (passed to
 #' \code{\link[ggplot2]{theme_gray}})
+#' @return a ggplot theme based on theme_gray
 #'
-#' @export
 heatmap.theme <- function(legend.position="bottom", size=12) {
     ggplot2::theme_gray(base_size = size) + ggplot2::theme(
         axis.text = ggplot2::element_text(size = size),
@@ -136,8 +92,14 @@ heatmap.theme <- function(legend.position="bottom", size=12) {
 #'
 #' @import pheatmap
 #' @import ggplot2
+#' @return a ggplot object
 #'
 #' @export
+#' 
+#' @examples
+#' data(example_donor)
+#' assignments <- clone_id(A, D, C = tree$Z)
+#' fig <- vc_heatmap(assignments$prob_variant, assignments$prob, tree$Z)
 #'
 #' @references
 #' This function makes use of the \code{\link{pheatmap}} packages
@@ -168,7 +130,8 @@ vc_heatmap <- function(mat, prob, Config, show_legend=FALSE){
     fig <- pheatmap::pheatmap(mat, legend = show_legend,
                               cluster_rows = FALSE, cluster_cols = FALSE,
                               gaps_row = gaps_row, gaps_col = gaps_col,
-                              annotation_row = anno_row, annotation_col = anno_col,
+                              annotation_row = anno_row, 
+                              annotation_col = anno_col,
                               show_rownames = FALSE, show_colnames = FALSE)
     fig
 }
@@ -201,14 +164,18 @@ vc_heatmap <- function(mat, prob, Config, show_legend=FALSE){
 #' ggtree: an R package for visualization and annotation of phylogenetic trees 
 #' with their covariates and other associated data. Methods in Ecology and 
 #' Evolution 2017, 8(1):28-36, doi:10.1111/2041-210X.12628
+#' 
+#' @examples
+#' data(example_donor)
+#' plot_tree(tree, orient = "v")
 #'
 plot_tree <- function(tree, orient="h") {
     node_total <- max(tree$edge)
     node_shown <- ncol(tree$Z)
     node_hidden <- node_total - node_shown
     if (!is.null(tree$P)) {
-        tree$tip.label[1:node_shown] = paste0("C", seq_len(node_shown), ": ",
-            round(tree$P[, 1]*100, digits = 0), "%")
+        tree$tip.label[seq_len(node_shown)] = paste0("C", seq_len(node_shown), 
+                                ": ", round(tree$P[, 1]*100, digits = 0), "%")
     }
 
     mut_ids <- 0
@@ -245,33 +212,23 @@ plot_tree <- function(tree, orient="h") {
 }
 
 
-mut.label <- function(tree){
-    SNA.label <- tree$sna[, 3]
-    mut_ids <- 0
-    branch_ids <- NULL
-    for (i in seq_len(max(tree$edge))) {
-        mut_num = sum(tree$sna[,3] == i)
-        if (mut_num == 0) {
-            branch_ids = c(branch_ids, "") #NA
-        }
-        else{
-            mut_ids <- mut_ids + 1
-            branch_ids = c(branch_ids, paste0("M", mut_ids, ": ", mut_num, " SNVs"))
-            SNA.label[tree$sna[,3] == i] = branch_ids[length(branch_ids)]
-        }
-    }
-    SNA.label
-}
-
-
 #' Define a publication-style plot theme
 #'
 #' @param size numeric, base font size for adapted ggplot2 theme
-#'
+#' @return a ggplot theme based on theme_classic
+#' 
 #' @details This theme modifies the \code{\link[ggplot2]{theme_classic}} theme
 #' in ggplot2.
 #'
+#' @import ggplot2
 #' @export
+#' @examples
+#' library(ggplot2) 
+#' x = sample(10)
+#' y = x + runif(10) - 0.5 
+#' df <- data.frame(x = x, y = y)
+#' fig <- ggplot(df, aes(x=x, y=y)) + geom_point() + pub.theme()
+#' 
 pub.theme <- function(size = 12) {
     theme_classic(base_size = size) +
         ggplot2::theme(axis.text = ggplot2::element_text(size = size),

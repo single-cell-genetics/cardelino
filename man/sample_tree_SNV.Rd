@@ -11,6 +11,14 @@ sample_tree_SNV(tree, n_SNV = NULL)
 
 \item{n_SNV}{A integer, the number of SNVs to keep in the output tree}
 }
+\value{
+a phylo tree with down sampled variants
+}
 \description{
 Down sample number of SNVs in the tree
+}
+\examples{
+data(simulation_input)
+tree_lite <- sample_tree_SNV(tree_4clone, n_SNV=10)
+
 }

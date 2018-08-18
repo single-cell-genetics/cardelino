@@ -10,8 +10,17 @@ get_prob_label(prob_assign)
 \item{prob_assign}{A matrix of floats. Clonal assignment probability of N 
 cells to K clones.}
 }
+\value{
+a vector of the index of clone for each cell. Note, when multiple 
+clones have the same assignment probability, only the earliest clone will be 
+return. Normally, these cells should be filtered for analysis.
+}
 \description{
-Note, when multiple clones have the same assignment probability, only the 
-earliest clone will be return. Usually, these cells should be filtered for 
-analysis.
+Get the clone label from the assignmnet probabilities.
+}
+\examples{
+data(example_donor)
+assignments <- clone_id(A, D, C = tree$Z, inference = "EM")
+clone_idx <- get_prob_label(assignments$prob)
+
 }

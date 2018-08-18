@@ -4,7 +4,8 @@
 \alias{sample_seq_depth}
 \title{Update matrix D with manully selected missing rate}
 \usage{
-sample_seq_depth(D, n_cells = NULL, n_sites = NULL, missing_rate = NULL)
+sample_seq_depth(D, n_cells = NULL, n_sites = NULL,
+  missing_rate = NULL)
 }
 \arguments{
 \item{D}{A matrix (N variants x M cells), the orignal sequencing coverage, 
@@ -16,8 +17,16 @@ NA means missing}
 
 \item{missing_rate}{A float value, if NULL, use the same missing rate as D}
 }
+\value{
+a n_sites by n_cells matrix sampled from input D.
+}
 \description{
 Given missing rate, the NA will be generated first. For none NA element, 
 sequencing depth with uniformly sampled from D, row wisely. Namely, the depth
 is variant specific.
+}
+\examples{
+data(simulation_input)
+D1 <- sample_seq_depth(D_input, n_cells=500, n_sites=50, missing_rate=0.85)
+
 }
