@@ -4,7 +4,7 @@
 \alias{get_prob_value}
 \title{Get the collapsed probability value}
 \usage{
-get_prob_value(prob_assign, mode = "delta")
+get_prob_value(prob_assign, mode = "best")
 }
 \arguments{
 \item{prob_assign}{A matrix of floats. Clonal assignment probability of N 
