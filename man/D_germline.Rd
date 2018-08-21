@@ -15,8 +15,8 @@ example_donor
 NULL, but makes aavailable a matrix
 }
 \description{
-This matrix contains sequncing depths for 34 germline variants 
-(near the somatic variants) across 428 cells, from one example scRNA-seq 
+This matrix contains sequncing depths for 34 germline variants
+(near the somatic variants) across 428 cells, from one example scRNA-seq
 sample
 }
 \author{

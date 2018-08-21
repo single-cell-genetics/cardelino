@@ -15,8 +15,8 @@ simulation_input
 NULL, but makes aavailable a matrix
 }
 \description{
-This matrix contains sequncing depths for 439 somatic variants 
-across 151 cells, from one particular scRNA-seq sample, can be used to 
+This matrix contains sequncing depths for 439 somatic variants
+across 151 cells, from one particular scRNA-seq sample, can be used to
 generate sequncing depths
 }
 \author{

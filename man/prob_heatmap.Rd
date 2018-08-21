@@ -27,7 +27,7 @@ Plot a heatmap for probability of clone assignment
 }
 \examples{
 data(example_donor)
-assignments <- clone_id(A, D, C = tree$Z, inference = "EM")
+assignments <- clone_id(A_clone, D_clone, Config = tree$Z, inference = "EM")
 fig <- prob_heatmap(assignments$prob)
 
 }

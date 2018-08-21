@@ -62,7 +62,7 @@ lower-level function.
 }
 \examples{
 data(example_donor)
-res <- donor_id_Gibbs(A, D, K = 4)
+res <- donor_id_Gibbs(A_clone, D_clone, K = 4)
 head(res$prob)
 
 }

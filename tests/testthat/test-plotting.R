@@ -5,7 +5,7 @@ context("test plotting")
 
 data(example_donor)
 
-assignments <- clone_id(A, D, C = tree$Z)
+assignments <- clone_id(A_clone, D_clone, Config = tree$Z)
 
 test_that("heatmap for assignment probability works as expected", {
     fig1 <- prob_heatmap(assignments$prob)
@@ -14,7 +14,7 @@ test_that("heatmap for assignment probability works as expected", {
 
 test_that("pheatmap for variants probability across cells works as expected", {
     fig2 <- vc_heatmap(assignments$prob_variant, assignments$prob, tree$Z)
-    expect_is(fig2, "list")
+    expect_is(fig2, "pheatmap")
 })
 
 test_that("plot tree works as expected", {

@@ -26,7 +26,7 @@ Plot a variant-cell heatmap for cell clonal assignment
 }
 \examples{
 data(example_donor)
-assignments <- clone_id(A, D, C = tree$Z)
+assignments <- clone_id(A_clone, D_clone, Config = tree$Z)
 fig <- vc_heatmap(assignments$prob_variant, assignments$prob, tree$Z)
 
 }
