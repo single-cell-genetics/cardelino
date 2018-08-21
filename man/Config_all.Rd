@@ -15,7 +15,7 @@ config_all
 NULL, but makes aavailable a list
 }
 \description{
-This list of tree configuration between 3 clones to 10 clones, 
+This list of tree configuration between 3 clones to 10 clones,
 each element is a list with all possible tree matrix
 }
 \author{

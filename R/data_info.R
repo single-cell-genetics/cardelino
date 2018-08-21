@@ -2,7 +2,7 @@
 
 #' @name Config_all
 #' @title A list of tree configuration
-#' @description This list of tree configuration between 3 clones to 10 clones, 
+#' @description This list of tree configuration between 3 clones to 10 clones,
 #' each element is a list with all possible tree matrix
 #' @return NULL, but makes aavailable a list
 #' @docType data
@@ -17,8 +17,8 @@ NULL
 
 #' @name D_input
 #' @title A matrix of sequncing depths
-#' @description This matrix contains sequncing depths for 439 somatic variants 
-#' across 151 cells, from one particular scRNA-seq sample, can be used to 
+#' @description This matrix contains sequncing depths for 439 somatic variants
+#' across 151 cells, from one particular scRNA-seq sample, can be used to
 #' generate sequncing depths
 #' @return NULL, but makes aavailable a matrix
 #' @docType data
@@ -69,7 +69,7 @@ NULL
 
 #' @name tree
 #' @title A tree object
-#' @description This tree object contains clonal tree information, inferred 
+#' @description This tree object contains clonal tree information, inferred
 #' from bulk exome-seq data
 #' @return NULL, but makes aavailable a tree object
 #' @docType data
@@ -79,9 +79,9 @@ NULL
 #' @author Yuanhua Huang, Davis McCarthy, 2018-06-25
 NULL
 
-#' @name D
-#' @title A matrix of sequncing depths
-#' @description This matrix contains sequncing depths for 34 somatic variants 
+#' @name D_clone
+#' @title A matrix of sequencing depths for clone ID
+#' @description This matrix contains sequncing depths for 34 somatic variants
 #' across 428 cells, from one example scRNA-seq sample
 #' @return NULL, but makes aavailable a matrix
 #' @docType data
@@ -91,9 +91,9 @@ NULL
 #' @author Yuanhua Huang, Davis McCarthy, 2018-06-25
 NULL
 
-#' @name A
-#' @title A matrix of read numbers of alternative alleles
-#' @description This matrix contains read numbers of alternative alleles for 
+#' @name A_clone
+#' @title A matrix of read numbers of alternative alleles for clone ID
+#' @description This matrix contains read numbers of alternative alleles for
 #' 34 somatic variants across 428 cells, from one example scRNA-seq sample
 #' @return NULL, but makes aavailable a matrix
 #' @docType data
@@ -105,8 +105,8 @@ NULL
 
 #' @name D_germline
 #' @title A matrix of sequncing depths
-#' @description This matrix contains sequncing depths for 34 germline variants 
-#' (near the somatic variants) across 428 cells, from one example scRNA-seq 
+#' @description This matrix contains sequncing depths for 34 germline variants
+#' (near the somatic variants) across 428 cells, from one example scRNA-seq
 #' sample
 #' @return NULL, but makes aavailable a matrix
 #' @docType data
@@ -118,8 +118,8 @@ NULL
 
 #' @name A_germline
 #' @title A matrix of read numbers of alternative alleles
-#' @description This matrix contains read numbers of alternative alleles for 
-#' 34 germline variants (near the somatic variants) across 428 cells, 
+#' @description This matrix contains read numbers of alternative alleles for
+#' 34 germline variants (near the somatic variants) across 428 cells,
 #' from one example scRNA-seq sample
 #' @return NULL, but makes aavailable a matrix
 #' @docType data

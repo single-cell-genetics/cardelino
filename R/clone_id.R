@@ -6,7 +6,7 @@
 #' reads in variant i cell j
 #' @param D variant x cell matrix of integers; number of total reads covering
 #' variant i cell j
-#' @param C variant x clone matrix of binary values. The clone-variant
+#' @param Config variant x clone matrix of binary values. The clone-variant
 #' configuration, which encodes the phylogenetic tree structure. This is the
 #' output Z of Canopy
 #' @param model character(1), the model to use for inference; either "binomial"
@@ -56,44 +56,45 @@
 #'
 #' @examples
 #' data(example_donor)
-#' assignments <- clone_id(A, D, C = tree$Z)
+#' assignments <- clone_id(A_clone, D_clone, Config = tree$Z)
 #' prob_heatmap(assignments$prob)
 #'
-#' assignments_EM <- clone_id(A, D, C = tree$Z, inference = "EM")
+#' assignments_EM <- clone_id(A_clone, D_clone, Config = tree$Z, inference = "EM")
 #' prob_heatmap(assignments_EM$prob)
 #'
-#' assignments_bern <- clone_id(A, D, C = tree$Z, model = "Bernoulli")
+#' assignments_bern <- clone_id(A_clone, D_clone, Config = tree$Z, model = "Bernoulli")
 #' prob_heatmap(assignments_bern$prob)
 #'
-#' assignments_bern_EM <- clone_id(A, D, C = tree$Z, model = "Bernoulli",
+#' assignments_bern_EM <- clone_id(A_clone, D_clone, Config = tree$Z, model = "Bernoulli",
 #'                                  inference = "EM")
 #' prob_heatmap(assignments_bern_EM$prob)
 #'
-clone_id <- function(A, D, C, model = "binomial", inference = "sampling",
+clone_id <- function(A, D, Config, model = "binomial", inference = "sampling",
                      verbose = TRUE, ...) {
     model <- match.arg(model, c("binomial", "Bernoulli"))
     inference <- match.arg(inference, c("sampling", "EM"))
     ## check input data
-    if (!(identical(rownames(A), rownames(D))))
+    if (!(all(rownames(A) == rownames(D))))
         stop("Rownames for A and D are not identical.")
-    if (!(identical(colnames(A), colnames(D))))
+    if (!(all(colnames(A) == colnames(D))))
         stop("Colnames for A and D are not identical.")
     ## Match exome-seq and scRNA-seq data
-    if (!any(rownames(D) %in% rownames(C)))
-        stop("No matches in variant names between C and D arguments.")
+    if (!any(rownames(D) %in% rownames(Config)))
+        stop("No matches in variant names between Config and D arguments.")
     ## match variants
-    common_vars <- intersect(rownames(C), rownames(D))
+    common_vars <- intersect(rownames(Config), rownames(D))
     A <- A[common_vars,, drop = FALSE]
     D <- D[common_vars,, drop = FALSE]
-    C <- C[common_vars,, drop = FALSE]
+    Config <- Config[common_vars,, drop = FALSE]
     if (verbose)
         message(length(common_vars), " variants used for cell assignment.")
     ## pass data to specific functions
     if (inference == "sampling")
-        return(cell_assign_Gibbs(A, D, C, model = model, verbose = verbose,
+        return(cell_assign_Gibbs(A, D, Config, model = model, verbose = verbose,
                                  ...))
     else
-        return(cell_assign_EM(A, D, C, model = model, verbose = verbose, ...))
+        return(cell_assign_EM(A, D, Config, model = model, verbose = verbose,
+                              ...))
 }
 
 
@@ -114,7 +115,7 @@ clone_id <- function(A, D, C, model = "binomial", inference = "sampling",
 #'
 #' @examples
 #' data(example_donor)
-#' assignments <- clone_id(A, D, C = tree$Z, inference = "EM")
+#' assignments <- clone_id(A_clone, D_clone, Config = tree$Z, inference = "EM")
 #' df <- assign_cells_to_clones(assignments$prob)
 #' head(df)
 #' table(df$clone)
@@ -150,32 +151,31 @@ assign_cells_to_clones <- function(prob_mat, threshold = 0.5) {
 #' @export
 #'
 #' @examples
-#' data(example_donor)
-#' assignments_binom <- cell_assign_EM(A, D, C = tree$Z, model = "binomial")
-#' assignments_bern <- cell_assign_EM(A, D, C = tree$Z, model = "Bernoulli")
+#' assignments_binom <- cell_assign_EM(A_clone, D_clone, Config = tree$Z, model = "binomial")
+#' assignments_bern <- cell_assign_EM(A_clone, D_clone, Config = tree$Z, model = "Bernoulli")
 #'
-cell_assign_EM <- function(A, D, C, Psi=NULL, model="binomial", 
+cell_assign_EM <- function(A, D, Config, Psi=NULL, model="binomial",
                            Bernoulli_threshold=1, min_iter=10, max_iter=1000,
                            logLik_threshold=1e-5, verbose=TRUE) {
     if (is.null(Psi))
-        Psi <- rep(1/ncol(C), ncol(C))
+        Psi <- rep(1/ncol(Config), ncol(Config))
     if (dim(A)[1] != dim(D)[1] || dim(A)[2] != dim(D)[2] ||
-        dim(A)[1] != dim(C)[1] || dim(C)[2] != length(Psi)) {
+        dim(A)[1] != dim(Config)[1] || dim(Config)[2] != length(Psi)) {
         stop(paste("A and D must have the same size;\n ",
-                   "A and C must have the same number of variants;\n",
-                   "C and Psi must have the same number of clones",sep = ""))
+                   "A and Config must have the same number of variants;\n",
+                   "Config and Psi must have the same number of clones",sep = ""))
     }
 
     ## preprocessing
     N <- dim(A)[1] # number of variants
     M <- dim(A)[2] # number of cells
-    K <- dim(C)[2] # number of clones
+    K <- dim(Config)[2] # number of clones
     A[which(D == 0)] <- NA
     D[which(D == 0)] <- NA
     A[(D > 0) & is.na(A)] <- 0
 
-    C1 <- C
-    C0 <- 1 - C
+    C1 <- Config
+    C0 <- 1 - Config
     if (model == "Bernoulli") {
         A1 <- A >= Bernoulli_threshold
         B1 <- 1 - A1
@@ -249,7 +249,7 @@ cell_assign_EM <- function(A, D, C, Psi=NULL, model="binomial",
 #' distribution on the inferred false positive rate.
 #' @param prior1 numeric(2), alpha and beta parameters for the Beta prior
 #' distribution on the inferred (1 - false negative) rate.
-#' @param Bernoulli_threshold An integer. The count threshold of alteration 
+#' @param Bernoulli_threshold An integer. The count threshold of alteration
 #' reads when using Bernoulli model.
 #' @param wise A string, the wise of parameters for theta1: global, variant,
 #' element.
@@ -260,21 +260,20 @@ cell_assign_EM <- function(A, D, C, Psi=NULL, model="binomial",
 #' @export
 #'
 #' @examples
-#' data(example_donor)
-#' assignments_binom <- cell_assign_Gibbs(A, D, C = tree$Z, model = "binomial")
-#' assignments_bern <- cell_assign_Gibbs(A, D, C = tree$Z, model = "Bernoulli")
+#' assignments_binom <- cell_assign_Gibbs(A_clone, D_clone, Config = tree$Z, model = "binomial")
+#' assignments_bern <- cell_assign_Gibbs(A_clone, D_clone, Config = tree$Z, model = "Bernoulli")
 #'
-cell_assign_Gibbs <- function(A, D, C, Psi=NULL, A_germ=NULL, D_germ=NULL,
+cell_assign_Gibbs <- function(A, D, Config, Psi=NULL, A_germ=NULL, D_germ=NULL,
                               prior0 = c(0.3, 29.7), prior1 = c(2.25, 2.65),
                               model="binomial", Bernoulli_threshold=1,
                               min_iter=1000, max_iter=10000, wise="variant",
                               verbose=TRUE) {
-    if (is.null(Psi)) {Psi <- rep(1/ncol(C), ncol(C))}
+    if (is.null(Psi)) {Psi <- rep(1/ncol(Config), ncol(Config))}
     if (dim(A)[1] != dim(D)[1] || dim(A)[2] != dim(D)[2] ||
-        dim(A)[1] != dim(C)[1] || dim(C)[2] != length(Psi)) {
+        dim(A)[1] != dim(Config)[1] || dim(Config)[2] != length(Psi)) {
         stop(paste0("A and D must have the same size;\n ",
-                    "A and C must have the same number of variants;\n",
-                    "C and Psi must have the same number of clones"))
+                    "A and Config must have the same number of variants;\n",
+                    "Config and Psi must have the same number of clones"))
     }
     if (sum(c("element", "variant", "global") == wise) == 0) {
         stop(paste0("Input wise mode: ", wise,
@@ -284,7 +283,7 @@ cell_assign_Gibbs <- function(A, D, C, Psi=NULL, A_germ=NULL, D_germ=NULL,
     ## preprocessing
     N <- dim(A)[1]             # number of variants
     M <- dim(A)[2]             # number of cells
-    K <- dim(C)[2]             # number of clones
+    K <- dim(Config)[2]             # number of clones
     if (is.null(A_germ))
         A_germ <- matrix(NA, nrow = N, ncol = M)
     if (is.null(D_germ))
@@ -303,8 +302,8 @@ cell_assign_Gibbs <- function(A, D, C, Psi=NULL, A_germ=NULL, D_germ=NULL,
     idx_tmp <- which(A_germ > (D_germ - A_germ))
     A_germ[idx_tmp] <- D_germ[idx_tmp] - A_germ[idx_tmp]
 
-    C1 <- C
-    C0 <- 1 - C
+    C1 <- Config
+    C0 <- 1 - Config
     if (model == "Bernoulli") {
         A1 <- A >= Bernoulli_threshold        # bool values
         A2 <- A_germ >= Bernoulli_threshold
@@ -440,9 +439,9 @@ cell_assign_Gibbs <- function(A, D, C, Psi=NULL, A_germ=NULL, D_germ=NULL,
     d <- A1[idx_mat] + B1[idx_mat]
     binom_pdf1 <- binom_pdf0 <- rep(0, n_element)
     for (i in seq(n_buin, it)) {
-        binom_pdf1 <- binom_pdf1 + stats::dbinom(a, size = d, 
+        binom_pdf1 <- binom_pdf1 + stats::dbinom(a, size = d,
                                                  prob = theta1_all[i,])
-        binom_pdf0 <- binom_pdf0 + stats::dbinom(a, size = d, 
+        binom_pdf0 <- binom_pdf0 + stats::dbinom(a, size = d,
                                                  prob = theta0_all[i])
     }
     prob_variant <- matrix(NA, nrow = N, ncol = M)
@@ -453,7 +452,7 @@ cell_assign_Gibbs <- function(A, D, C, Psi=NULL, A_germ=NULL, D_germ=NULL,
     # prob_mat <- get_Gibbs_prob(assign_all[1:it,], buin_in=0.25)
     prob_mat <- matrix(colMeans(prob_all[n_buin:it, ]), nrow = M)
     row.names(prob_mat) <- colnames(A)
-    colnames(prob_mat) <- colnames(C)
+    colnames(prob_mat) <- colnames(Config)
 
     theta0 <- mean(theta0_all[n_buin:it,])
     theta1[idx_mat] <- colMeans(as.matrix(theta1_all[n_buin:it,]))
@@ -469,27 +468,29 @@ cell_assign_Gibbs <- function(A, D, C, Psi=NULL, A_germ=NULL, D_germ=NULL,
 
 
 #' Geweke diagnostic for MCMC sampling.
-#' 
+#'
 #' @param X A matrix of MCMC samples for N samples per K variables
 #' @param first A float between 0 and 1. The initial region of MCMC chain.
 #' @param last A float between 0 and 1. The final region of MCMC chain.
 #'
 #' @return \code{Z}, a vector of absolute value of Z scores for each variable.
 #' When |Z| <= 2, the sampling could be taken as converged.
-#' 
-Geweke_Z <- function(X, first=0.1, last=0.5){
-    if (is.null(dim(X))) {X <- as.matrix(X, ncol = 1)}
-    N = nrow(X)
-    A = X[1:floor(first*N), , drop = FALSE]
-    B = X[ceiling(last*N):N, , drop = FALSE]
+#'
+Geweke_Z <- function(X, first=0.1, last=0.5) {
+    if (is.null(dim(X)))
+        X <- as.matrix(X, ncol = 1)
+    N <- nrow(X)
+    A <- X[1:floor(first*N), , drop = FALSE]
+    B <- X[ceiling(last*N):N, , drop = FALSE]
 
     A_col_mean <- colMeans(A)
     B_col_mean <- colMeans(B)
     A_col_var <- rowSums((t(A) - A_col_mean)^2) / (ncol(A) - 1)
     B_col_var <- rowSums((t(B) - B_col_mean)^2) / (ncol(A) - 1)
 
-    Z = abs(A_col_mean - B_col_mean) / sqrt(A_col_var + B_col_var)
+    min_var <- 10^(-10)
+    Z <- abs(A_col_mean - B_col_mean) / sqrt(A_col_var + B_col_var + min_var)
 
-    return(Z)
+    Z
 }
 

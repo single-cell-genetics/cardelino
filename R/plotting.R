@@ -18,7 +18,7 @@
 #'
 #' @examples
 #' data(example_donor)
-#' assignments <- clone_id(A, D, C = tree$Z, inference = "EM")
+#' assignments <- clone_id(A_clone, D_clone, Config = tree$Z, inference = "EM")
 #' fig <- prob_heatmap(assignments$prob)
 #'
 prob_heatmap <- function(prob_mat, threshold=0.5, mode="best", cell_idx=NULL){
@@ -95,10 +95,10 @@ heatmap.theme <- function(legend.position="bottom", size=12) {
 #' @return a ggplot object
 #'
 #' @export
-#' 
+#'
 #' @examples
 #' data(example_donor)
-#' assignments <- clone_id(A, D, C = tree$Z)
+#' assignments <- clone_id(A_clone, D_clone, Config = tree$Z)
 #' fig <- vc_heatmap(assignments$prob_variant, assignments$prob, tree$Z)
 #'
 #' @references
@@ -130,7 +130,7 @@ vc_heatmap <- function(mat, prob, Config, show_legend=FALSE){
     fig <- pheatmap::pheatmap(mat, legend = show_legend,
                               cluster_rows = FALSE, cluster_cols = FALSE,
                               gaps_row = gaps_row, gaps_col = gaps_col,
-                              annotation_row = anno_row, 
+                              annotation_row = anno_row,
                               annotation_col = anno_col,
                               show_rownames = FALSE, show_colnames = FALSE)
     fig
@@ -145,7 +145,7 @@ vc_heatmap <- function(mat, prob, Config, show_legend=FALSE){
 #' @param orient A string for the orientation of the tree: "v" (vertical) or "h"
 #' (horizontal)
 #'
-#' @details This function plots a phylogenetic tree from an object of class 
+#' @details This function plots a phylogenetic tree from an object of class
 #' "phylo", as produced, for example, by the Canopy package.
 #'
 #' @return a ggtree object
@@ -161,10 +161,10 @@ vc_heatmap <- function(mat, prob, Config, show_legend=FALSE){
 #' This function makes use of the \code{\link{ggtree}} package:
 #'
 #' Guangchuang Yu, David Smith, Huachen Zhu, Yi Guan, Tommy Tsan-Yuk Lam.
-#' ggtree: an R package for visualization and annotation of phylogenetic trees 
-#' with their covariates and other associated data. Methods in Ecology and 
+#' ggtree: an R package for visualization and annotation of phylogenetic trees
+#' with their covariates and other associated data. Methods in Ecology and
 #' Evolution 2017, 8(1):28-36, doi:10.1111/2041-210X.12628
-#' 
+#'
 #' @examples
 #' data(example_donor)
 #' plot_tree(tree, orient = "v")
@@ -174,7 +174,7 @@ plot_tree <- function(tree, orient="h") {
     node_shown <- ncol(tree$Z)
     node_hidden <- node_total - node_shown
     if (!is.null(tree$P)) {
-        tree$tip.label[seq_len(node_shown)] = paste0("C", seq_len(node_shown), 
+        tree$tip.label[seq_len(node_shown)] = paste0("C", seq_len(node_shown),
                                 ": ", round(tree$P[, 1]*100, digits = 0), "%")
     }
 
@@ -216,19 +216,19 @@ plot_tree <- function(tree, orient="h") {
 #'
 #' @param size numeric, base font size for adapted ggplot2 theme
 #' @return a ggplot theme based on theme_classic
-#' 
+#'
 #' @details This theme modifies the \code{\link[ggplot2]{theme_classic}} theme
 #' in ggplot2.
 #'
 #' @import ggplot2
 #' @export
 #' @examples
-#' library(ggplot2) 
+#' library(ggplot2)
 #' x = sample(10)
-#' y = x + runif(10) - 0.5 
+#' y = x + runif(10) - 0.5
 #' df <- data.frame(x = x, y = y)
 #' fig <- ggplot(df, aes(x=x, y=y)) + geom_point() + pub.theme()
-#' 
+#'
 pub.theme <- function(size = 12) {
     theme_classic(base_size = size) +
         ggplot2::theme(axis.text = ggplot2::element_text(size = size),

@@ -23,7 +23,7 @@ Assign cells to clones from cardelino results
 }
 \examples{
 data(example_donor)
-assignments <- clone_id(A, D, C = tree$Z, inference = "EM")
+assignments <- clone_id(A_clone, D_clone, Config = tree$Z, inference = "EM")
 df <- assign_cells_to_clones(assignments$prob)
 head(df)
 table(df$clone)

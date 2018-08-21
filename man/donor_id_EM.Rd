@@ -58,7 +58,7 @@ lower-level function.
 }
 \examples{
 data(example_donor)
-res <- donor_id_EM(A, D, GT = tree$Z[1:nrow(A),])
+res <- donor_id_EM(A_clone, D_clone, GT = tree$Z[1:nrow(A_clone),])
 head(res$prob)
 
 }

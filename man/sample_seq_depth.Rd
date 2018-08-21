@@ -8,7 +8,7 @@ sample_seq_depth(D, n_cells = NULL, n_sites = NULL,
   missing_rate = NULL)
 }
 \arguments{
-\item{D}{A matrix (N variants x M cells), the orignal sequencing coverage, 
+\item{D}{A matrix (N variants x M cells), the orignal sequencing coverage,
 NA means missing}
 
 \item{n_cells}{A integer, the number of the cells to generate}
@@ -21,7 +21,7 @@ NA means missing}
 a n_sites by n_cells matrix sampled from input D.
 }
 \description{
-Given missing rate, the NA will be generated first. For none NA element, 
+Given missing rate, the NA will be generated first. For none NA element,
 sequencing depth with uniformly sampled from D, row wisely. Namely, the depth
 is variant specific.
 }
