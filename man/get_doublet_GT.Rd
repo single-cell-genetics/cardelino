@@ -15,3 +15,8 @@ get_doublet_GT(GT)
 \description{
 Generate genotype for doublets
 }
+\examples{
+GT <- matrix(sample(c(0,1,2), 150, replace = TRUE), nrow = 50)
+GT_doublet <- get_doublet_GT(GT)
+
+}

@@ -7,17 +7,17 @@
 \alias{cell_assign_Gibbs}
 \title{Infer clonal identity of single cells}
 \usage{
-clone_id(A, D, C, model = "binomial", inference = "sampling",
+clone_id(A, D, Config, model = "binomial", inference = "sampling",
   verbose = TRUE, ...)
 
-cell_assign_EM(A, D, C, Psi = NULL, model = "binomial",
+cell_assign_EM(A, D, Config, Psi = NULL, model = "binomial",
   Bernoulli_threshold = 1, min_iter = 10, max_iter = 1000,
   logLik_threshold = 1e-05, verbose = TRUE)
 
-cell_assign_Gibbs(A, D, C, Psi = NULL, A_germ = NULL, D_germ = NULL,
-  prior0 = c(0.3, 29.7), prior1 = c(2.25, 2.65), model = "binomial",
-  Bernoulli_threshold = 1, min_iter = 1000, max_iter = 10000,
-  wise = "variant", verbose = TRUE)
+cell_assign_Gibbs(A, D, Config, Psi = NULL, A_germ = NULL,
+  D_germ = NULL, prior0 = c(0.3, 29.7), prior1 = c(2.25, 2.65),
+  model = "binomial", Bernoulli_threshold = 1, min_iter = 1000,
+  max_iter = 10000, wise = "variant", verbose = TRUE)
 }
 \arguments{
 \item{A}{variant x cell matrix of integers; number of alternative allele
@@ -26,7 +26,7 @@ reads in variant i cell j}
 \item{D}{variant x cell matrix of integers; number of total reads covering
 variant i cell j}
 
-\item{C}{variant x clone matrix of binary values. The clone-variant
+\item{Config}{variant x clone matrix of binary values. The clone-variant
 configuration, which encodes the phylogenetic tree structure. This is the
 output Z of Canopy}
 
@@ -46,7 +46,7 @@ it runs?}
 
 \item{Psi}{A vector of float. The fractions of each clone, output P of Canopy}
 
-\item{Bernoulli_threshold}{An integer. The count threshold of alteration 
+\item{Bernoulli_threshold}{An integer. The count threshold of alteration
 reads when using Bernoulli model.}
 
 \item{min_iter}{A integer. The minimum number of iterations in the Gibbs
@@ -110,26 +110,24 @@ with and without the mutation present.
 }
 \examples{
 data(example_donor)
-assignments <- clone_id(A, D, C = tree$Z)
+assignments <- clone_id(A_clone, D_clone, Config = tree$Z)
 prob_heatmap(assignments$prob)
 
-assignments_EM <- clone_id(A, D, C = tree$Z, inference = "EM")
+assignments_EM <- clone_id(A_clone, D_clone, Config = tree$Z, inference = "EM")
 prob_heatmap(assignments_EM$prob)
 
-assignments_bern <- clone_id(A, D, C = tree$Z, model = "Bernoulli")
+assignments_bern <- clone_id(A_clone, D_clone, Config = tree$Z, model = "Bernoulli")
 prob_heatmap(assignments_bern$prob)
 
-assignments_bern_EM <- clone_id(A, D, C = tree$Z, model = "Bernoulli",
+assignments_bern_EM <- clone_id(A_clone, D_clone, Config = tree$Z, model = "Bernoulli",
                                  inference = "EM")
 prob_heatmap(assignments_bern_EM$prob)
 
-data(example_donor)
-assignments_binom <- cell_assign_EM(A, D, C = tree$Z, model = "binomial")
-assignments_bern <- cell_assign_EM(A, D, C = tree$Z, model = "Bernoulli")
+assignments_binom <- cell_assign_EM(A_clone, D_clone, Config = tree$Z, model = "binomial")
+assignments_bern <- cell_assign_EM(A_clone, D_clone, Config = tree$Z, model = "Bernoulli")
 
-data(example_donor)
-assignments_binom <- cell_assign_Gibbs(A, D, C = tree$Z, model = "binomial")
-assignments_bern <- cell_assign_Gibbs(A, D, C = tree$Z, model = "Bernoulli")
+assignments_binom <- cell_assign_Gibbs(A_clone, D_clone, Config = tree$Z, model = "binomial")
+assignments_bern <- cell_assign_Gibbs(A_clone, D_clone, Config = tree$Z, model = "Bernoulli")
 
 }
 \author{

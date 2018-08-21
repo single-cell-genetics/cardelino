@@ -225,7 +225,7 @@ donor_id <- function(cell_vcf, donor_vcf = NULL, n_donor=NULL,
 #'
 #' @examples
 #' data(example_donor)
-#' res <- donor_id_EM(A, D, GT = tree$Z[1:nrow(A),])
+#' res <- donor_id_EM(A_clone, D_clone, GT = tree$Z[1:nrow(A_clone),])
 #' head(res$prob)
 #'
 donor_id_EM <- function(A, D, GT=NULL, K=NULL, gt_singlet=c(0, 1, 2),
@@ -444,9 +444,9 @@ donor_id_EM <- function(A, D, GT=NULL, K=NULL, gt_singlet=c(0, 1, 2),
 #' @import matrixStats
 #'
 #' @export
-#' @examples 
+#' @examples
 #' data(example_donor)
-#' res <- donor_id_Gibbs(A, D, K = 4)
+#' res <- donor_id_Gibbs(A_clone, D_clone, K = 4)
 #' head(res$prob)
 #'
 donor_id_Gibbs <- function(A, D, K, gt_singlet=c(0, 1, 2), check_doublet=TRUE,
@@ -568,7 +568,7 @@ donor_id_Gibbs <- function(A, D, K, gt_singlet=c(0, 1, 2), check_doublet=TRUE,
 
         # Check convergence
         if (it >= min_iter && it %% 100 == 0) {
-            is_converged <- Geweke_Z(prob_all[1:it, 1:K1]) <= 2
+            is_converged <- Geweke_Z(prob_all[1:it, 1:(M*K1)]) <= 2
             if (verbose) {cat(sprintf("%d iterations: %.1f%% cells converged.\n",
                                      it, mean(is_converged) * 100))}
             if (sum(is_converged) >= (length(is_converged) - 1)) {break}
@@ -605,7 +605,9 @@ donor_id_Gibbs <- function(A, D, K, gt_singlet=c(0, 1, 2), check_doublet=TRUE,
 #' Generate genotype for doublets
 #' @param GT A matrix of genotype for singlets
 #' @return \code{GT_doublet}, a matrix genotype for doublets
-#' @example 
+#'
+#' @export
+#' @examples
 #' GT <- matrix(sample(c(0,1,2), 150, replace = TRUE), nrow = 50)
 #' GT_doublet <- get_doublet_GT(GT)
 #'

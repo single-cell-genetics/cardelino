@@ -15,7 +15,7 @@ example_donor
 NULL, but makes aavailable a tree object
 }
 \description{
-This tree object contains clonal tree information, inferred 
+This tree object contains clonal tree information, inferred
 from bulk exome-seq data
 }
 \author{
