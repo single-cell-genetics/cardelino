@@ -22,8 +22,8 @@
 #' fig <- prob_heatmap(assignments$prob)
 #'
 prob_heatmap <- function(prob_mat, threshold=0.5, mode="best", cell_idx=NULL){
-    cell_label <- cardelino::get_prob_label(prob_mat)
-    prob_value <- cardelino::get_prob_value(prob_mat, mode = mode)
+    cell_label <- cardelino::rowArgmax(prob_mat)
+    prob_value <- cardelino::rowMax(prob_mat, mode = mode)
     # add clone id
     colnames(prob_mat) <- paste0("C", seq_len(ncol(prob_mat)))
     for (i in seq_len(ncol(prob_mat))) {
@@ -51,7 +51,35 @@ prob_heatmap <- function(prob_mat, threshold=0.5, mode="best", cell_idx=NULL){
     fig_assign
 }
 
-
+#' Plot heatmap from a matrix
+#' 
+#' @param mat A matrix to show, column by x-axis and row by y-axis
+#' @param base_size Numeric value for the base size in theme_bw
+#' @param digits Integer value for the number of digits to show
+#' @param show_value Logical value for showing the value for each element or not
+#' @export
+heat_matrix <- function(mat, base_size=12, digits=2, show_value=FALSE){
+    df <- reshape2::melt(mat)
+    df$value <- round(df$value, digits = digits)
+    heat.plot <- ggplot(df, aes_string(x = "Var1", y = "Var2")) +
+        geom_tile(aes_string(fill = "value"), colour = "grey") +
+        scale_fill_gradient(low = "white", high = "steelblue") +
+        #theme_grey(base_size = base_size) + 
+        theme_bw(base_size = base_size) +
+        scale_x_continuous(expand = c(0, 0)) +
+        scale_y_continuous(expand = c(0, 0)) +
+        theme(legend.position = "none",
+              panel.grid.major = element_blank(),
+              panel.border = element_blank(),
+              panel.background = element_blank(),
+              axis.ticks.x = ggplot2::element_blank(),
+              axis.ticks.y = ggplot2::element_blank())
+    if (show_value) {
+        heat.plot <- heat.plot + 
+            geom_text(aes_string(label = "value"), vjust = 0.5)
+    }
+    heat.plot
+}
 
 
 #' The theme of heatmaps for prob_heatmap and sites_heatmap
@@ -113,7 +141,7 @@ vc_heatmap <- function(mat, prob, Config, show_legend=FALSE){
     row.names(anno_row) <- row.names(Config)
 
     # sort cells
-    cell_label <- cardelino::get_prob_label(prob)
+    cell_label <- cardelino::rowArgmax(prob)
     idx_col <- order(cell_label - diag(prob[, cell_label]))
     anno_col <- data.frame(Clone = as.factor(cell_label),
                            Prob = diag(prob[, cell_label]))
