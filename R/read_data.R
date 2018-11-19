@@ -191,3 +191,73 @@ get_snp_matrices <- function(vcf_cell, vcf_donor=NULL, verbose = TRUE,
     out
 }
 
+
+#' Load sparse matrices A and D from cellSNP VCF file with filtering SNPs
+#'
+#' @param vcf_file character(1), path to VCF file generated from cellSNP
+#' @param max_other_allele maximum ratio of other alleles comparing to REF and 
+#' ALT alleles
+#' @param min_count minimum count across all cells
+#' @param min_MAF minimum minor allele fraction
+#' @export
+#'
+#' @examples
+#'
+load_cellSNP_vcf <- function(vcf_file, max_other_allele=0.05, min_count=20, 
+                             min_MAF=0.1) {
+    vcf_temp <- vcfR::read.vcfR(vcf_file)
+    dp_full <- vcfR::extract.gt(vcf_temp, element = "DP", as.numeric = TRUE)
+    ad_full <- vcfR::extract.gt(vcf_temp, element = "AD", as.numeric = TRUE)
+
+    dp_sum <- vcfR::extract.info(vcf_temp, element = "DP", as.numeric=TRUE)
+    oth_sum <- vcfR::extract.info(vcf_temp, element = "OTH", as.numeric=TRUE)
+
+    fix_val <- vcfR::getFIX(vcf_temp)
+    var_ids <- paste0(fix_val[,1], "_", fix_val[,2], 
+                    "_", fix_val[,4], "_", fix_val[,5])
+    var_ids_short <- paste0(fix_val[,1], "_", fix_val[,2])
+    
+    idx <- ((oth_sum / dp_sum < max_other_allele) & 
+            rowSums(dp_full, na.rm = TRUE) >= min_count & 
+            ((rowSums(ad_full, na.rm = TRUE) / 
+              rowSums(dp_full, na.rm = TRUE)) > min_MAF))
+
+    print(paste(sum(idx), "out of", length(idx), "SNPs passed."))
+        
+    A <- ad_full[idx, ]
+    D <- dp_full[idx, ]
+    A[is.na(A)] <- 0
+    D[is.na(D)] <- 0
+    row.names(A) <- row.names(D) <- var_ids[idx]
+
+    list("A" = Matrix::Matrix(A, sparse = TRUE), 
+         "D" = Matrix::Matrix(D, sparse = TRUE))
+}
+
+
+#' Load genotype VCF into numeric values: 0, 1, or 2
+#'
+#' @param vcf_file character(1), path to VCF file for donor genotypes
+#' @export
+load_GT_vcf <- function(vcf_file) {
+    GT_vcf <- vcfR::read.vcfR(vcf_file)
+    GT <- vcfR::extract.gt(GT_vcf, element = "GT")
+
+    fix_val <- vcfR::getFIX(GT_vcf)
+    GT_ids <- paste0(fix_val[,1], "_", fix_val[,2], 
+                    "_", fix_val[,4], "_", fix_val[,5])
+    GT_ids_short <- paste0(fix_val[,1], "_", fix_val[,2])
+
+    idx0 = which(GT == "0/0" | GT == "0|0")
+    idx2 = which(GT == "1/1" | GT == "1|1")
+    idx1 = which(GT == "0/1" | GT == "1/0" |
+                GT == "0|1" | GT == "1|0" )
+    GT_num <- matrix(NA, nrow=nrow(GT), ncol=ncol(GT))
+    colnames(GT_num) <- colnames(GT) 
+    row.names(GT_num) <- GT_ids
+    GT_num[idx0] <- 0
+    GT_num[idx1] <- 1
+    GT_num[idx2] <- 2
+
+    GT_num
+}
