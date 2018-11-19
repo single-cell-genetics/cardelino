@@ -221,3 +221,84 @@ sample_tree_SNV <- function(tree, n_SNV=NULL){
     out.tree
 }
 
+# Reads simulator for donor identification
+#' @param GT Variant-by-donor matrix for genotypes
+#' @param D_seed Variant-by-cell matrix for read coverage for generating depth,
+#' which be row sample and column sample both with replacement
+#' @param donor_size Vector of float for the fractions of each donor; default 
+#' NULL means uniform
+#' @param beta_shapes A 3-by-2 matrix of beta parameters for genotypes: 0, 1, 
+#' and 2; default NULL means matrix(c(0.3, 3, 29.7, 29.7, 3, 0.3), nrow = 3)
+#' @param n_cell An integer for number of total cells
+#' @param doublet_rate A float from 0 to 1 for doublet rate; default NULL means
+#' rate n_cell / 100000
+#' @param rand_seed A integer for random number generation
+#' @param gene_ASE A logic value, if true, use gene specific allele expression 
+#' @export
+#' 
+donor_read_simulator <- function(GT, D_seed, donor_size=NULL, beta_shapes=NULL, 
+                                 n_cell=5000, doublet_rate=NULL, 
+                                 rand_seed=NULL, gene_ASE=FALSE){
+    K <- ncol(GT)  # number of clones
+    N <- nrow(GT)  # number of variants
+    if (!is.null(rand_seed)) {
+        set.seed(rand_seed)
+    }
+    if (is.null(beta_shapes)) {
+        beta_shapes <- matrix(c(0.3, 3, 29.7, 29.7, 3, 0.3), nrow = 3)
+    }
+    if (is.null(doublet_rate)) {
+        doublet_rate <- n_cell / 100000
+        print(paste("doublet rate:", doublet_rate))
+    }
+    if (is.null(donor_size)) {
+        donor_size <- rep(1 / K, K)
+    }
+
+    ## generate donor id matrix
+    n_doublet <- round(doublet_rate * n_cell)
+    I_sim <- t(rmultinom(n_cell + n_doublet, 1, prob = donor_size))
+    # I_label <- I_sim %*% seq_len(K)
+    
+    ## generate binomial parameter for each variant
+    p_sim <- matrix(NA, nrow = N, ncol = nrow(beta_shapes))
+    for (ii in seq_len(nrow(beta_shapes))) {
+        nn <- 1
+        if (gene_ASE) { nn <- N }
+        p_sim[, ii] <- stats::rbeta(nn, beta_shapes[ii, 1], beta_shapes[ii, 2])
+    }
+    
+    ## generate D
+    D_sim <- D[sample(nrow(D_seed), N, replace = TRUE),
+               sample(ncol(D_seed), nrow(I_sim), replace = TRUE)]
+    D_sim <- Matrix::Matrix(D_sim, sparse = TRUE)
+    
+    ## generate A
+    A_sim <- D_sim
+    idx <- which(as.matrix(D_sim) > 0)
+    H_sim_vec <- (GT %*% t(I_sim) + 1)[idx]
+    idx_p <- (H_sim_vec - 1) * N + ((idx - 1) %% N) + 1
+    p_sim_vec <- p_sim[idx_p]
+    A_sim[idx] <- rbinom(length(idx), D_sim[idx], p_sim_vec)
+    
+    ## pooling doublet
+    idx_doublet1 <- sample(n_cell, n_doublet)
+    idx_doublet2 <- seq(n_cell + 1, n_cell + n_doublet)
+    A_sim[, idx_doublet1] <- A_sim[, idx_doublet1] + A_sim[, idx_doublet2]
+    D_sim[, idx_doublet1] <- D_sim[, idx_doublet1] + D_sim[, idx_doublet2]
+    I_sim[idx_doublet1, ] <- I_sim[idx_doublet1, ] + I_sim[idx_doublet2, ]
+    A_sim <- A_sim[, 1:n_cell]
+    D_sim <- D_sim[, 1:n_cell]
+    I_sim <- I_sim[1:n_cell, ]
+    
+    ## output
+    colnames(I_sim) <- colnames(GT)
+    row.names(p_sim) <- row.names(A_sim) <- row.names(D_sim) <- row.names(GT)
+    cell_names <- paste0("cell", seq_len(ncol(A_sim)))
+    row.names(I_sim) <- colnames(A_sim) <- colnames(D_sim) <- cell_names
+
+    return_list <- list("A_sim" = A_sim, "D_sim" = D_sim,
+                        "I_sim" = I_sim, "p_sim" = p_sim,
+                        "GT" = GT)
+    return_list
+}
