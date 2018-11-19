@@ -2,21 +2,19 @@
 % Please edit documentation in R/donor_id.R
 \name{get_doublet_GT}
 \alias{get_doublet_GT}
-\title{Generate genotype for doublets}
+\title{Generate genotype probability for doublets}
 \usage{
-get_doublet_GT(GT)
+get_doublet_GT(GT_prob, K)
 }
 \arguments{
-\item{GT}{A matrix of genotype for singlets}
+\item{GT_prob}{A matrix of genotype for singlets}
+
+\item{K}{An integer for number of donors}
 }
 \value{
-\code{GT_doublet}, a matrix genotype for doublets
+\code{GT_both}, a matrix of genotype probability for both singlet
+and doublet donors
 }
 \description{
-Generate genotype for doublets
-}
-\examples{
-GT <- matrix(sample(c(0,1,2), 150, replace = TRUE), nrow = 50)
-GT_doublet <- get_doublet_GT(GT)
-
+Generate genotype probability for doublets
 }

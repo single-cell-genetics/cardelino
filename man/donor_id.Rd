@@ -4,49 +4,38 @@
 \alias{donor_id}
 \title{Donor deconvolution of scRNA-seq data}
 \usage{
-donor_id(cell_vcf, donor_vcf = NULL, n_donor = NULL,
-  check_doublet = TRUE, model = "EM", n_vars_threshold = 10,
-  p_threshold = 0.95, verbose = TRUE, genome = "GRCh37",
-  seq_levels_style = "Ensembl", donors = NULL, ...)
+donor_id(cell_data, donor_data = NULL, n_donor = NULL,
+  check_doublet = TRUE, n_vars_threshold = 10, s_threshold = 0.9,
+  d_threshold = 0.9, verbose = FALSE, ...)
 }
 \arguments{
-\item{cell_vcf}{either character(1), path to a VCF file containing variant
-data for cells, or a \code{\link[VariantAnnotation]{CollapsedVCF}} object}
+\item{cell_data}{either character(1), path to a VCF file containing variant
+data for cells, or a list containing A and D matrices}
 
-\item{donor_vcf}{either character(1), path to a VCF file containing genotype
-data for donors, or a \code{\link[VariantAnnotation]{CollapsedVCF}} object}
+\item{donor_data}{either character(1), path to a VCF file containing genotype
+data for donors, or a matrix for donor genotypes, matched to cell data}
 
 \item{n_donor}{integer(1), number of donors to infer if not given genotypes}
 
 \item{check_doublet}{logical(1), should the function check for doublet cells?}
 
-\item{model}{character(1), model for estimating cell donor ids: EM or Gibbs}
-
 \item{n_vars_threshold}{integer(1), if the number of variants with coverage
 in a cell is below this threshold, then the cell will be given an
 "unassigned" donor ID (default: 10)}
 
-\item{p_threshold}{numeric(1), threshold for posterior probability of
+\item{s_threshold}{numeric(1), threshold for posterior probability of
 donor assignment (must be in [0, 1]); if best posterior probability for a
 donor is greater then the threshold, then the cell is assigned to that donor
 (as long as the cell is not determined to be a doublet) and if below the
 threshold, then the cell's donor ID is "unassigned"}
 
+\item{d_threshold}{numeric(1), threshold for summarised posterior probability
+of doublet detection (must be in [0, 1]);}
+
 \item{verbose}{logical(1), should the function output verbose information
 while running?}
 
-\item{genome}{character(1), string indicating the genome build used in the
-VCF file(s) (default: "GRCh37")}
-
-\item{seq_levels_style}{character(1), string passed to
-\code{\link[GenomeInfoDb]{seqlevelsStyle}} the style to use for
-chromosome/contig names (default: "Ensembl")}
-
-\item{donors}{optional character vector providing a set of donors to use, by
-subsetting the donors present in the \code{donor_vcf_file}; if \code{NULL}
-(default) then all donors present in VCF will be used.}
-
-\item{...}{arguments passed to \code{donor_id_EM} or \code{donor_id_Gibbs}}
+\item{...}{arguments passed to \code{donor_id_VB}}
 }
 \value{
 a list with elements: \code{logLik}, log-likelihood of the fitted
