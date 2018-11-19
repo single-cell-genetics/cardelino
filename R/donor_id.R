@@ -2,32 +2,25 @@
 
 #' Donor deconvolution of scRNA-seq data
 #'
-#' @param cell_vcf either character(1), path to a VCF file containing variant
-#' data for cells, or a \code{\link[VariantAnnotation]{CollapsedVCF}} object
-#' @param donor_vcf either character(1), path to a VCF file containing genotype
-#' data for donors, or a \code{\link[VariantAnnotation]{CollapsedVCF}} object
+#' @param cell_data either character(1), path to a VCF file containing variant
+#' data for cells, or a list containing A and D matrices
+#' @param donor_data either character(1), path to a VCF file containing genotype
+#' data for donors, or a matrix for donor genotypes, matched to cell data
 #' @param n_donor integer(1), number of donors to infer if not given genotypes
-#' @param model character(1), model for estimating cell donor ids: EM or Gibbs
 #' @param check_doublet logical(1), should the function check for doublet cells?
 #' @param n_vars_threshold integer(1), if the number of variants with coverage
 #' in a cell is below this threshold, then the cell will be given an
 #' "unassigned" donor ID (default: 10)
-#' @param p_threshold numeric(1), threshold for posterior probability of
+#' @param s_threshold numeric(1), threshold for posterior probability of
 #' donor assignment (must be in [0, 1]); if best posterior probability for a
 #' donor is greater then the threshold, then the cell is assigned to that donor
 #' (as long as the cell is not determined to be a doublet) and if below the
 #' threshold, then the cell's donor ID is "unassigned"
+#' @param d_threshold numeric(1), threshold for summarised posterior probability
+#' of doublet detection (must be in [0, 1]);
 #' @param verbose logical(1), should the function output verbose information
 #' while running?
-#' @param genome character(1), string indicating the genome build used in the
-#' VCF file(s) (default: "GRCh37")
-#' @param seq_levels_style character(1), string passed to
-#' \code{\link[GenomeInfoDb]{seqlevelsStyle}} the style to use for
-#' chromosome/contig names (default: "Ensembl")
-#' @param donors optional character vector providing a set of donors to use, by
-#' subsetting the donors present in the \code{donor_vcf_file}; if \code{NULL}
-#' (default) then all donors present in VCF will be used.
-#' @param ... arguments passed to \code{donor_id_EM} or \code{donor_id_Gibbs}
+#' @param ... arguments passed to \code{donor_id_VB}
 #'
 #' @details This function reads in all elements of the provided VCF file(s) into
 #' memory, so we highly recommend filtering VCFs to the minimal appropriate set
@@ -57,51 +50,31 @@
 #'                 system.file("extdata", "donors.donorid.vcf.gz", package = "cardelino"))
 #' table(ids$assigned$donor_id)
 #'
-donor_id <- function(cell_vcf, donor_vcf = NULL, n_donor=NULL,
-                     check_doublet = TRUE, model = "EM",
-                     n_vars_threshold = 10, p_threshold = 0.95,
-                     verbose = TRUE, genome = "GRCh37",
-                     seq_levels_style = "Ensembl", donors = NULL, ...) {
-    model <- match.arg(model, c("EM", "Gibbs"))
-    if (!(class(cell_vcf) %in% c("character", "CollapsedVCF")))
-        stop("cell_vcf argument must be a character (filename) or a CollapsedVCF object from the VariantAnnotation package.")
-    if (!methods::is(cell_vcf, "CollapsedVCF"))
-        cell_vcf <- read_vcf(cell_vcf, genome = genome,
-                             seq_levels_style = seq_levels_style,
-                             verbose = verbose)
-    if (is.null(donor_vcf)) {
-        in_data <- get_snp_matrices(cell_vcf, NULL, verbose = verbose,
-                                    donors = donors)
-        if (is.null(n_donor))
-            stop("Need number of donors if not given donor genotypes.")
+donor_id <- function(cell_data, donor_data = NULL, n_donor=NULL, 
+                     check_doublet = TRUE,
+                     n_vars_threshold = 10, s_threshold = 0.9,
+                     d_threshold = 0.9, verbose = FALSE, ...) {
+    if (typeof(cell_data) == "character") {
+        in_data <- load_cellSNP_vcf(cell_data)
+    } else {
+        in_data <- cell_data
     }
-    else {
-        if (!(class(donor_vcf) %in% c("character", "CollapsedVCF")))
-            stop("cell_vcf argument must be a character (filename) or a CollapsedVCF object from the VariantAnnotation package.")
-        if (!methods::is(donor_vcf, "CollapsedVCF"))
-            donor_vcf <- read_vcf(donor_vcf, genome = genome,
-                                 seq_levels_style = seq_levels_style,
-                                 verbose = verbose)
-        in_data <- get_snp_matrices(cell_vcf, donor_vcf, verbose = verbose,
-                                    donors = donors)
-        if (ncol(in_data$GT_donors) < 2 && check_doublet) {
-            warning("Only one donor with genotypes provided, so cannot check for doublets.")
-            check_doublet <- FALSE
+    if (is.null(donor_data)) {
+        in_data[["GT_donors"]] <- NULL
+    } else{
+        if (typeof(donor_data) == "character") {
+            in_data[["GT_donors"]] <- load_GT_vcf(donor_data)
+        } else {
+            in_data[["GT_donors"]] <- donor_data
         }
     }
-    if (verbose)
+    
+    if (verbose) {
         message("Donor ID using ", nrow(in_data$A), " variants")
-    if (model == "Gibbs") {
-        if (!is.null(donor_vcf))
-            stop("If donor genotype is known, we recommend using EM model.")
-        out <- donor_id_Gibbs(in_data$A, in_data$D, K = n_donor,
-                        check_doublet = check_doublet,
-                        verbose = verbose, ...)
-    } else {
-        out <- donor_id_EM(in_data$A, in_data$D, GT = in_data$GT_donors,
-                        K = n_donor, check_doublet = check_doublet,
-                        verbose = verbose, ...)
     }
+    out <- donor_id_VB(in_data$A, in_data$D, GT = in_data$GT_donors,
+                       K = n_donor, check_doublet = check_doublet,
+                       verbose = verbose, ...)
 
     ## output data
     out$A <- in_data$A
@@ -109,102 +82,37 @@ donor_id <- function(cell_vcf, donor_vcf = NULL, n_donor=NULL,
     # out$GT <- in_data$GT_cells #out has GT output
 
     ## assign data frame
-    n_vars <- matrixStats::colSums2(!is.na(out$D))
-    assigned <- assign_cells_to_clones(out$prob, threshold = p_threshold)
+    n_vars <- Matrix::colSums(out$D)
+    assigned <- assign_cells_to_clones(out$prob, threshold = s_threshold)
     colnames(assigned) <- c("cell", "donor_id", "prob_max")
     if (check_doublet) {
         assigned$prob_doublet <- matrixStats::rowSums2(out$prob_doublet)
-        assigned$donor_id[assigned$prob_doublet > 0.05] <- "doublet"
+        assigned$donor_id[assigned$prob_doublet > (1 - s_threshold)] <- "doublet"
     } else {
         assigned$prob_doublet <- NA
     }
     assigned$n_vars <- n_vars
     assigned$donor_id[n_vars < n_vars_threshold] <- "unassigned"
+    assigned$donor_id[assigned$prob_doublet < d_threshold & 
+                      rowSums(out$prob) < s_threshold] <- "unassigned"
 
     out$assigned <- assigned
     out
 }
 
-# ## test example
-# ids <- donor_id("inst/extdata/cells.donorid.vcf.gz",
-#          "inst/extdata/donors.donorid.vcf.gz")
-# table(ids$assigned$donor_id)
-# head(ids$assigned)
-# ggplot(ids$assigned, aes(n_vars, prob_doublet, colour = donor_id)) +
-#     geom_point(size = 3, alpha = 0.5) +
-#     #ggthemes::scale_color_canva(palette = "Surf and turf")
-#     theme_bw()
-# ggplot(ids$assigned, aes(n_vars, prob_max, colour = donor_id)) +
-#     geom_point(size = 3, alpha = 0.5) +
-#     scale_x_log10() +
-#     theme_bw()
-# dplyr::filter(ids$assigned, donor_id == "doublet")
-#
-# sce <- readRDS("../hipsci-fibro/Data/processed/sce_merged_donors_cardelino_donorid_all_with_qc_labels.rds")
-# coldat <- colData(sce)
-# rm(sce)
-#
-# dplyr::filter(coldat, run_lane %in% c("22782_5", "22782_6", "22666_7")) %>%
-#     ggplot(aes(x = log10_total_counts_endogenous, y = total_features,
-#                colour = well_type)) +
-#     geom_point() +
-#     facet_wrap(~run_lane, ncol = 1)
 
-
-# ids$assigned$sample_id <- ids$assigned$cell
-# iddf <- dplyr::inner_join(ids$assigned, as.data.frame(coldat))
-# iddf %>% dplyr::filter(donor_id == "doublet") %>%
-#     dplyr::select(sample_id, well_condition, well_type, prob_max, prob_doublet) %>% as.data.frame
-#
-#
-# cell_vcf <- read_vcf("inst/extdata/cells.donorid.vcf.gz")
-# donor_vcf <- read_vcf("inst/extdata/donors.allfibro.vcf.gz")
-# ids2_sing <- donor_id(cell_vcf, donor_vcf, check_doublet = FALSE)
-# table(ids2_sing$assigned$donor_id)
-# dplyr::filter(ids2_sing$assigned, grepl("laia", donor_id))
-# ids2_doub <- donor_id(cell_vcf, donor_vcf, check_doublet = TRUE,
-#                       donors = unique(ids2_sing$assigned$donor_id))
-# table(ids2_doub$assigned$donor_id)
-# ggplot(ids2_doub$assigned, aes(n_vars, prob_doublet, colour = donor_id)) +
-#     geom_point(size = 3, alpha = 0.5) +
-#     #ggthemes::scale_color_canva(palette = "Surf and turf")
-#     theme_bw()
-# ids2_doub$assigned$sample_id <- ids2_doub$assigned$cell
-# id2df <- dplyr::inner_join(ids2_doub$assigned, as.data.frame(coldat))
-# id2df %>% dplyr::filter(donor_id %in% c("doublet", "unassigned")) %>%
-#     dplyr::select(cell, donor_id, well_condition, well_type, prob_max, prob_doublet) %>% as.data.frame
-# id2df %>% dplyr::filter(well_type %in% c("minibulk_10", "control")) %>%
-#     dplyr::select(cell, donor_id, well_condition, well_type, prob_max, prob_doublet) %>% as.data.frame
-#
-# ## ppca on cell genotypes
-# pp <- pcaMethods::ppca(t(ids2_doub$A / ids2_doub$D))
-# id2df$PPCA1 <- pp@scores[, 1]
-# id2df$PPCA2 <- pp@scores[, 2]
-# ggplot(id2df, aes(PPCA1, PPCA2, colour = donor_id)) +
-#     geom_point(size = 3, alpha = 0.5) +
-#     theme_bw()
-
-
-#' EM algorithm for donor deconvolution with or without genotypes.
+#' Variational inference for donor deconvolution with or without genotypes.
 #'
 #' @param A A matrix of integers. Number of alteration reads in SNP i cell j
 #' @param D A matrix of integers. Number of reads depth in SNP i cell j
 #' @param GT A matrix of integers for genotypes. The donor-SNP configuration.
 #' @param K An integer. The number of donors to infer if not given GT.
-#' @param gt_singlet A vector of integers. The candidate elements of GT. Default
-#' is c(0, 1, 2); but can be others. Note, gt will be averaged for doublet.
-#' When GT is given, gt_singlet will be adapted to GT.
-#' @param check_doublet logical(1), if TRUE, check doublet, otherwise ignore.
-#' @param min_iter A integer. The minimum number of iterations in EM algorithm.
-#' @param max_iter A integer. The maximum number of iterations in EM algorithm.
-#' The real iteration may finish earlier.
+#' @param K_extend A float. The extension ratio of donor number in the first run
 #' @param n_init A integer. The number of random initializations for EM
 #' algorithm, which can be useful to avoid local optima if not given genotypes.
 #' Default: 1 if given GT, 5 if not given GT.
-#' @param logLik_threshold A float. The threshold of logLikelihood increase for
-#' detecting convergence.
-#' @param verbose logical(1), If TRUE, output verbose information when running.
-#'
+#' @param n_proc An integer. The number of processors to use. 
+#' @param ... arguments passed to \code{run_VB}
 #' @details Users should typically use \code{\link{donor_id}} rather than this
 #' lower-level function.
 #'
@@ -225,15 +133,18 @@ donor_id <- function(cell_vcf, donor_vcf = NULL, n_donor=NULL,
 #'
 #' @examples
 #' data(example_donor)
-#' res <- donor_id_EM(A_clone, D_clone, GT = tree$Z[1:nrow(A_clone),])
+#' res <- donor_id_VB(A_clone, D_clone, GT = tree$Z[1:nrow(A_clone),])
 #' head(res$prob)
 #'
-donor_id_EM <- function(A, D, GT=NULL, K=NULL, gt_singlet=c(0, 1, 2),
-                        check_doublet=TRUE, min_iter=10, max_iter=200,
-                        n_init=NULL, logLik_threshold=1e-5, verbose=TRUE) {
-    ## TODO: use multiple cores for multiple initializations
-
+donor_id_VB <- function(A, D, K=NULL, K_extend=1.5, GT=NULL, GT_prior=NULL, 
+                        n_init=NULL, n_proc=4, random_seed=NULL, ...) {
+    start_time <- Sys.time()
+    if (!is.null(random_seed)) {set.seed(random_seed)}
+    
     ## Check input data
+    if (is.null(GT) && is.null(K)) {
+        stop("GT and K cannot both be NULL.")
+    }
     if (nrow(A) != nrow(D) || ncol(A) != ncol(D)) {
         stop("A and D must have the same size.")
     }
@@ -242,382 +153,435 @@ donor_id_EM <- function(A, D, GT=NULL, K=NULL, gt_singlet=c(0, 1, 2),
             stop("nrow(A) and nrow(GT) must be the same.")
         }
     }
-
-    ## preprocessing
-    N <- nrow(A)        # number of SNPs
-    M <- ncol(A)        # number of cells
-    A[which(is.na(A))] <- 0
-    D[which(is.na(D))] <- 0
-    B <- D - A
-    W_log <- sum(lchoose(D, A), na.rm = TRUE)  #log binomial coefficients
-    GT_in <- GT # keep the input GT
-
-    ## multiple initializations
+    
+    A[is.na(A)] <- 0
+    D[is.na(D)] <- 0
+    idx <- which(as.matrix((A > 0) & (A != D)))    
+    logLik_coeff <- sum(lchoose(c(D[idx]), c(A[idx])), na.rm = TRUE)
+    
+    A <- Matrix::Matrix(A, sparse = TRUE)
+    D <- Matrix::Matrix(D, sparse = TRUE)
+    
+    if (is.null(K_extend) || K_extend < 1) { 
+        K_run1 <- K
+    } else {
+        K_run1 <- ceiling(K_extend * K)
+    }
+    
+    ## Multiple initializations
     if (is.null(n_init)) {
-        if (is.null(GT)) {n_init <- 3}
+        if (is.null(GT)) {n_init <- 4}
         else {n_init <- 2}
     }
-    if (verbose) {cat(paste0(n_init, " random initializations is running.\n"))}
-    GT_list <- theta_list <- prob_mat_list <- logLik_list <- list()
-    for (i_init in seq_len(n_init)) {
-        # foreach::foreach (i_init = seq_len(n_init)) %dopar% {
-
-        # generate default values
-        if (is.null(GT_in)) {
-            if (is.null(K)) {
-                stop("GT and K cannot both be NULL.")
-            }
-            GT <- matrix(sample(gt_singlet, size = N * K, prob = NULL,
-                                replace = TRUE), nrow = N, ncol = K)
-            update_GT <- TRUE
-        } else {
-            GT <- GT_in
-            update_GT <- FALSE
-            K <- ncol(GT) # number of donors
-            gt_singlet <- sort(unique(c(GT)))
+    cat(paste("run1:", n_init, "random initializations...\n")) 
+        
+    if (is.null(n_proc) || n_proc == 1) {
+        res_VB_list <- list()
+        for (ii in seq_len(n_init)) {
+            res_VB_list[[ii]] <- 
+            run_VB(A, D, K = K_run1, GT = GT, GT_prior = GT_prior, ...)
         }
-        if (is.null(colnames(GT))) {colnames(GT) <- paste0("donor", seq_len(K))}
-
-        # check doublet;
-        if (check_doublet) {
-            K1 <- K             # K1: number of singlet donors
-            GT <- cbind(GT, get_doublet_GT(GT))
-            K2 <- ncol(GT)      # K2: number of singlet and doublet donors
-
-            gt_pair <- colMeans(utils::combn(gt_singlet, 2))
-            gt_uniq <- c(gt_singlet, subset(gt_pair, !(gt_pair %in% gt_singlet)))
-        }else{
-            K2 <- K1 <- K
-            gt_uniq <- gt_singlet
+    } else{
+        library(foreach)
+        doMC::registerDoMC(n_proc)
+        res_VB_list <- foreach::foreach(i = 1:n_init) %dopar% {
+            run_VB(A, D, K = K_run1, GT = GT, GT_prior = GT_prior, ...)
         }
-
-        S1 <- S2 <- SS <- list()
-        for (ig in seq_len(length(gt_uniq))) {
-            S1[[ig]] <- t(A) %*% (GT == gt_uniq[ig])
-            SS[[ig]] <- t(D) %*% (GT == gt_uniq[ig])
-            S2[[ig]] <- SS[[ig]] - S1[[ig]]
-        }
-
-        ## random initialization for EM
-        theta <- matrix(0.98 * gt_uniq / max(gt_uniq) + 0.01, ncol = 1)
-        row.names(theta) <- paste0("GT=", gt_uniq)
-        logLik <- 0
-        logLik_new <- logLik + logLik_threshold * 2
-
-        ## EM iterations
-        for (it in seq_len(max_iter)) {
-            # Check convergence
-            if (it > min_iter) {
-                if (is.na(logLik_new) || (logLik_new == -Inf)) {break}
-                if ((logLik_new - logLik) < logLik_threshold) {break}
-            }
-            logLik <- logLik_new
-
-            # E-step: update assignment posterior probability
-            logLik_mat <- matrix(0, nrow = M, ncol = K2)
-            for (ig in seq_len(length(gt_uniq))) {
-                logLik_mat <- (logLik_mat + S1[[ig]] * log(theta[ig]) +
-                                   S2[[ig]] * log(1 - theta[ig]))
-            }
-
-            logLik_vec <- rep(NA, nrow(logLik_mat))
-            for (i in seq_len(nrow(logLik_mat))) {
-                logLik_vec[i] <- matrixStats::logSumExp(logLik_mat[i,],
-                                                        na.rm = TRUE)
-            }
-            logLik_new <- sum(logLik_vec, na.rm = TRUE) + W_log
-            logLik_mat_amplify <- logLik_mat - matrixStats::rowMaxs(logLik_mat)
-            prob_mat <- exp(logLik_mat_amplify) / rowSums(exp(logLik_mat_amplify))
-
-            # M-step: maximumize the likelihood with theta and GT
-            # update theta, but use the default for longer initialization
-            if (it > min_iter / 2) {
-                for (ig in seq_len(length(gt_uniq))) {
-                    if (!is.na(sum(prob_mat * SS[[ig]])) &&
-                        sum(prob_mat * SS[[ig]]) > 0) {
-                        theta[ig] <- (sum(prob_mat * S1[[ig]]) /
-                                          sum(prob_mat * SS[[ig]]))
-                        if (theta[ig] < 0.01)
-                            theta[ig] <- 0.01
-                        if (theta[ig] > 0.98)
-                            theta[ig] <- 0.98
-                    }
-                }
-            }
-
-            # update GT
-            if (update_GT) {
-                S1_gt <- A %*% prob_mat[, 1:K1, drop = FALSE]
-                S2_gt <- B %*% prob_mat[, 1:K1, drop = FALSE]
-                GT_prob <- matrix(0, nrow = N * K1, ncol = length(gt_singlet))
-                for (ig in seq_len(ncol(GT_prob))) {
-                    GT_prob[, ig] <- S1_gt * log(theta[ig]) +
-                        S2_gt * log(1 - theta[ig])
-                }
-                for (ik in seq_len(length(GT[, 1:K1]))) {
-                    GT[ik] <- gt_uniq[which.max(GT_prob[ik,, drop = FALSE])]
-                }
-                if (check_doublet) {GT[, (K1 + 1):K2] <-
-                    get_doublet_GT(GT[, 1:K1, drop = FALSE])}
-
-                for (ig in seq_len(length(gt_uniq))) {
-                    S1[[ig]] <- t(A) %*% (GT == gt_uniq[ig])
-                    SS[[ig]] <- t(D) %*% (GT == gt_uniq[ig])
-                    S2[[ig]] <- SS[[ig]] - S1[[ig]]
-                }
-            }
-        }
-
-        if (verbose)
-            cat(sprintf("Total iterations: %d; logLik: %.2f\n", it, logLik))
-
-        GT_list[[i_init]] <- GT
-        theta_list[[i_init]] <- theta
-        logLik_list[[i_init]] <- logLik
-        prob_mat_list[[i_init]] <- prob_mat
     }
-
-    ## choose the initialization with highest logLik
-    max_idx <- which.max(logLik_list)
-    GT <- GT_list[[max_idx]]
-    theta <- theta_list[[max_idx]]
-    logLik <- logLik_list[[max_idx]]
-    prob_mat <- prob_mat_list[[max_idx]]
-
-    ## return values
-    prob_singlet <- prob_mat[, 1:K1, drop = FALSE]
-    prob_doublet <- GT_doublet <- NULL
-    if (check_doublet) {
-        prob_doublet <- prob_mat[, (K1 + 1):K2, drop = FALSE]
-        GT_doublet <- GT[, (K1 + 1):K2, drop = FALSE]
+    
+    ## Only keep the initialization with highest lower bound
+    VB_info <- matrix(0, nrow = n_init, ncol = 2)
+    colnames(VB_info) <- c("n_iter", "LBound")
+    for (ii in seq_len(n_init)) {
+        VB_info[ii, 1] <- res_VB_list[[ii]]$n_iter
+        VB_info[ii, 2] <- res_VB_list[[ii]]$LBound
     }
-
-    return_list <- list("logLik" = logLik,
-                        "theta" = theta,
-                        "GT" = GT[, 1:K1, drop = FALSE],
-                        "GT_doublet" = GT_doublet,
-                        "prob" = prob_singlet,
-                        "prob_doublet" = prob_doublet)
-    return_list
+    print(t(VB_info))
+    
+    res_VB_best <- res_VB_list[[which.max(VB_info[, "LBound"])]]
+    
+    ## for second run if there are extra components
+    if (is.null(GT) && K_run1 > K) {
+        sum_cell <- colSums(res_VB_best$prob)
+        idx_don <- order(sum_cell, decreasing = TRUE)
+        cat("Donor size in run1:\n")
+        print(t(sum_cell[idx_don]))
+        cat("Now, run2:\n")
+        if (sum_cell[idx_don[K]] / sum_cell[idx_don[K + 1]] < 2) {
+            message(paste("The difference between K_th and K+1_th",
+                          "donor is too small.\n Best to run again with",
+                          "more initializations to reach the global optima."))
+        }
+        GT_idx <- c()
+        for (ii in idx_don[1:K]) {
+            GT_idx <- c(GT_idx, (ii - 1) * nrow(D) + seq_len(nrow(D)))
+        }
+        GT_prior <- res_VB_best$GT_prob[GT_idx, ]
+        
+        res_VB_best <- run_VB(A, D, K = K, GT = GT, GT_prior = GT_prior, ...)
+    }
+    
+    cat(paste("Finished in", Sys.time() - start_time, "sec.\n"))
+    res_VB_best
 }
 
-
-
-#' Gibbs sampler for donor deconvolution without genotypes.
+#' Variational inference with a single run
 #'
 #' @param A A matrix of integers. Number of alteration reads in SNP i cell j
 #' @param D A matrix of integers. Number of reads depth in SNP i cell j
 #' @param K An integer. The number of donors to infer if not given GT.
-#' @param gt_singlet A vector of integers. The candidate elements of GT. Default
-#' is c(0, 1, 2); but can be others. Note, gt will be averaged for doublet.
+#' @param GT A matrix of integers for genotypes. The donor-SNP configuration.
+#' @param GT_prior A Matrix of genotype prior probability.
 #' @param check_doublet logical(1), if TRUE, check doublet, otherwise ignore.
-#' @param min_iter A integer. The minimum number of iterations in the Gibbs
-#' sampling. The real iteration may be longer utile the convergence.
-#' @param max_iter A integer. The maximum number of iterations in the Gibbs
-#' sampling, even haven't passed the convergence diagnosis
-#' @param buin_in A float between 0 and 1. The fraction for buil-in in MCMC
-#' samplers.
-#' @param EM_initial logical(1), if TRUE, use the EM estimate for a warm
-#' initialization on GT and theta; otherwise random GT.
+#' @param min_iter A integer. The minimum number of iterations in EM algorithm.
+#' @param max_iter A integer. The maximum number of iterations in EM algorithm.
+#' The real iteration may finish earlier.
+#' @param epsilon_conv A float. The threshold of lower bound increase for
+#' detecting convergence.
 #' @param verbose logical(1), If TRUE, output verbose information when running.
-#' @param ... arguments passed to \code{donor_id_EM}
 #'
 #' @details Users should typically use \code{\link{donor_id}} rather than this
 #' lower-level function.
 #'
 #' @return a list containing
-#' \code{logLik_samples}, the log likelihood for all samples.
-#' \code{theta}, a vector denoting the binomial parameters for each genotype;
-#' mean of all samples in \code{theta_samples}.
-#' \code{theta_samples}, all samples of theta vector.
+#' \code{logLik}, the log likelihood.
+#' \code{theta}, a vector denoting the binomial parameters for each genotype.
 #' \code{prob}, a matrix of posterior probability of cell assignment to donors.
 #' The summary may less than 1, as there are some probabilities go to doublets.
 #' \code{prob_doublet}, a matrix of posterior probability of cell assignment to
 #' each inter-donor doublet.
-#' \code{prob_samples}, all samples of singlet probability and doublet
-#' probability. Each column should be reshaped into a M by K2 matrix.
-#' \code{GT_prob}, the posterior distribution of genotypes for each donors.
-#' It has size of (N*K, length(gt_singlet)); each row should be reshaped into
-#' a N by K matrix via matrix(GT_prob[, t], nrow = N, ncol = K).
-#' \code{GT_samples}, all samples of donor genotype configuration matrices.
-#'
-#' @import matrixStats
-#'
-#' @export
-#' @examples
-#' data(example_donor)
-#' res <- donor_id_Gibbs(A_clone, D_clone, K = 4)
-#' head(res$prob)
-#'
-donor_id_Gibbs <- function(A, D, K, gt_singlet=c(0, 1, 2), check_doublet=TRUE,
-                           min_iter=400, max_iter=1000, buin_in=0.25,
-                           EM_initial=TRUE, verbose=TRUE, ...) {
-    ##TODO: 1) BF seems not practically suitable; sparse matrix may be useful;
-    ## future: support informative prior, e.g., bulk RNA-seq for donor genotype,
-    ## and imputed genotype.
-
-    ## Check input data
-    if (nrow(A) != nrow(D) || ncol(A) != ncol(D)) {
-        stop("A and D must have the same size.")
-    }
+#' \code{GT}, the input GT or a point estimate of genotype of donors. Note,
+#' this may be not very accurate, especially for lowly expressed SNPs.
+#' \code{GT_doublet}, the pair-wise doublet genotype based on GT.
+run_VB <- function(A, D, K=NULL, GT=NULL, GT_prior=NULL, 
+                   theta_prior=NULL, learn_theta=TRUE, 
+                   check_doublet=TRUE, doublet_prior=NULL, 
+                   check_doublet_iterative=FALSE,
+                   binary_GT=FALSE, min_iter=20, max_iter=200, 
+                   epsilon_conv=1e-2, verbose=FALSE) {
     ## preprocessing
-    N <- nrow(A)        # number of SNPs
-    M <- ncol(A)        # number of cells
-    A[which(is.na(A))] <- 0
-    D[which(is.na(D))] <- 0
+    N <- nrow(D)    # number of SNPs 
+    M <- ncol(D)    # number of cells
+    
     B <- D - A
-    W_log <- sum(lchoose(D, A), na.rm = TRUE)  #log binomial coefficients
+    D_idx <- which(as.matrix(D) != 0) ## index of non-zero elements in D
+    A_vec <- as.matrix(A)[D_idx]      ## non-zero element as a vector
+    #B_vec <- as.matrix(B)[D_idx]
+    D_vec <- as.matrix(D)[D_idx]
+    W_vec <- lchoose(D_vec, A_vec)
 
-    ## generate default values and check doublet
-    if (EM_initial) {
-        if (verbose) {cat("Running donor_id_EM for warm initialization.\n")}
-        res_EM <- donor_id_EM(A, D, GT = NULL, K = K, gt_singlet = gt_singlet,
-                        check_doublet = check_doublet, verbose = verbose, ...)
-        GT <- res_EM$GT[, 1:K]
-        theta_default <- res_EM$theta
-    } else {
-        GT <- matrix(sample(gt_singlet, size = N * K, prob = NULL,
-                            replace = TRUE), nrow = N, ncol = K)
-        theta_default <- NULL
+    ## initializate theta
+    gt_singlet <- c(0, 1, 2)
+    gt_doublet <- c(0.5, 1.5)
+    n_gt <- length(gt_singlet)
+    if (is.null(theta_prior)) {        
+        theta_prior <- matrix(c(0.3, 3, 29.7, 29.7,  3, 0.3), nrow = 3)
+        row.names(theta_prior) <- paste0("GT=", c("0", "1", "2"))
+        colnames(theta_prior) <- c("beta_shape1", "beta_shape2")
     }
-    ## check doubet or not
-    if (check_doublet) {
-        K1 <- K
-        GT <- cbind(GT, get_doublet_GT(GT))
-        K2 <- ncol(GT)
-
-        gt_pair <- colMeans(utils::combn(gt_singlet, 2))
-        gt_uniq <- c(gt_singlet, subset(gt_pair, !(gt_pair %in% gt_singlet)))
-    } else {
-        K2 <- K1 <- K
-        gt_uniq <- gt_singlet
-    }
-    prior1 = rep(1, length(gt_uniq))
-    prior2 = rep(1, length(gt_uniq))
-    if (is.null(theta_default)) {
-        theta_default <- 0.98 * gt_uniq / max(gt_uniq) + 0.01
-    }
-
-    S1 <- S2 <- SS <- list()
-    for (ig in seq_len(length(gt_uniq))) {
-        S1[[ig]] <- t(A) %*% (GT == gt_uniq[ig])
-        SS[[ig]] <- t(D) %*% (GT == gt_uniq[ig])
-        S2[[ig]] <- SS[[ig]] - S1[[ig]]
-    }
-
-    ## variables to sample
-    GT_all <- matrix(0, nrow = max_iter, ncol = N * K1)
-    prob_all <- matrix(0, nrow = max_iter, ncol = M * K2)
-    logLik_all <- matrix(0, nrow = max_iter, ncol = 1)
-    theta_all <- matrix(theta_default, nrow = max_iter, ncol = length(gt_uniq),
-                        byrow = TRUE)
-
-    ## Gibbs sampling
-    if (verbose) {cat("Gibbs sampling starts.\n")}
-    for (it in 2:max_iter) {
-        # Sample assignment
-        logLik_mat <- matrix(0, nrow = M, ncol = K2)
-        for (ig in seq_len(length(gt_uniq))) {
-            logLik_mat <- (logLik_mat + S1[[ig]] * log(theta_all[it, ig]) +
-                            S2[[ig]] * log(1 - theta_all[it, ig]))
+    theta_shapes <- theta_prior
+        
+    ## initialize GT
+    if (is.null(GT)) {
+        update_GT <- TRUE
+        if (is.null(GT_prior)) {
+            GT_prior <- matrix(1 / length(gt_singlet), nrow = N * K, 
+                               ncol = length(gt_singlet))
+            GT_prob <- matrix(0, nrow = N * K, ncol = length(gt_singlet))
+            for (ii in seq_len(N * K)) {
+                GT_prob[ii, ] <- t(rmultinom(1, size = 1, GT_prior[ii, ]))
+            }
+        } else{
+            GT_prob <- GT_prior
+            GT_prior[GT_prior > 0.999999] <- 0.999999
+            GT_prior[GT_prior < 10^-8] <- 10^-8
+            GT_prior <- GT_prior / rowSums(GT_prior)
         }
-
-        logLik_vec <- rep(NA, nrow(logLik_mat))
-        for (i in seq_len(nrow(logLik_mat))) {
-            logLik_vec[i] <- matrixStats::logSumExp(logLik_mat[i,],
-                                                    na.rm = TRUE)
+    } else {
+        K <- ncol(GT)   ## number of singlet donors
+        update_GT <- FALSE
+        GT_prob <- GT_to_prob(GT, gt_singlet)
+    }
+    
+    ## setting Psi, the donor prevalence
+    K2 <- K + (K - 1) * K / 2 # singlet and doublet donors
+    if (is.null(doublet_prior) || doublet_prior == "uniform") { 
+        doublet_prior <- (K2 - K) / K2
+    } else if (!is.na(as.numeric(doublet_prior))) {
+        doublet_prior <- as.numeric(doublet_prior)
+        if (doublet_prior > 1 || doublet_prior < 0) {
+            warning("doublet_prior > 1 or <0!\n")
+            doublet_prior <- (K2 - K) / K2
         }
-        logLik_all[it] <- sum(logLik_vec, na.rm = TRUE) + W_log
-        logLik_mat_amplify <- logLik_mat - matrixStats::rowMaxs(logLik_mat)
-        prob_mat <- exp(logLik_mat_amplify) / rowSums(exp(logLik_mat_amplify))
-        prob_all[it, ] <- prob_mat
-
-        # Sample thetas
-        if (it > 10) {
-            for (ig in seq_len(length(gt_uniq))) {
-                S1_theta = sum(prob_mat * S1[[ig]])
-                S2_theta = sum(prob_mat * S2[[ig]])
-                theta_all[it, ig] <- stats::rbeta(1, prior1[ig] + S1_theta,
-                                                      prior2[ig] + S2_theta)
+    } else {#including auto
+        doublet_prior <- ncol(D) / 100000
+    }
+    Psi <- c(rep((1 - doublet_prior) / K, K),
+             rep(doublet_prior / (K2 - K), (K2 - K)))
+    
+    ## VB iterations
+    LB <- rep(0, max_iter)
+    logLik <- logLik_new <- 0
+    for (it in seq_len(max_iter)) {
+        ## update theta
+        if (learn_theta && it > max(min_iter - 5, min_iter * 2 / 3) ) {
+            theta_shapes <- theta_prior
+            for (ig in seq_len(ncol(GT_prob))) {
+                GT_prob_ig <- matrix(GT_prob[, ig], nrow = N)
+                theta_shapes[ig, 1] <- theta_prior[ig, 1] + sum(S1_gt * GT_prob_ig)
+                theta_shapes[ig, 2] <- theta_prior[ig, 2] + sum(S2_gt * GT_prob_ig)
             }
         }
-
-        # Sample genotype configuration
-        S1_gt <- A %*% prob_mat[, 1:K1]
-        S2_gt <- B %*% prob_mat[, 1:K1]
-        GT_prob <- matrix(0, nrow = N * K1, ncol = length(gt_singlet))
-        for (ig in seq_len(ncol(GT_prob))) {
-            GT_prob[, ig] <- S1_gt * log(theta_all[it,ig]) +
-                             S2_gt * log(1 - theta_all[it,ig])
+        
+        ## update donor ID
+        if (check_doublet  && check_doublet_iterative && 
+            it > max(min_iter - 5, min_iter * 2 / 3)) {
+            GT_both <- get_doublet_GT(GT_prob, K)
+            theta_both <- get_doublet_theta(theta_shapes)
+            ID_prob_res <- get_ID_prob(A, D, GT_both, theta_both, Psi) 
+        } else{
+            ID_prob_res <- get_ID_prob(A, D, GT_prob, theta_shapes, Psi) 
+        }        
+        ID_prob <- ID_prob_res$ID_prob
+        logLik_new <- ID_prob_res$logLik
+        
+        S1_gt <- as.matrix(A %*% ID_prob[, seq_len(K)])
+        SS_gt <- as.matrix(D %*% ID_prob[, seq_len(K)])
+        S2_gt <- SS_gt - S1_gt
+        
+        
+        logLik_GT <- matrix(0, nrow = length(SS_gt), ncol = n_gt)
+        for (ig in seq_len(ncol(logLik_GT))) {
+            logLik_GT[, ig] <- (S1_gt * digamma(theta_shapes[ig, 1]) + 
+                                S2_gt * digamma(theta_shapes[ig, 2]) - 
+                                SS_gt * digamma(sum(theta_shapes[ig, ])))
         }
-        GT_prob <- GT_prob - matrixStats::rowMaxs(GT_prob)
-        GT_prob <- exp(GT_prob) / rowSums(exp(GT_prob))
-        for (ik in seq_len(nrow(GT_prob))) {
-            GT_all[it, ik] <- sample(gt_singlet, size = 1, prob = GT_prob[ik, ])
+        
+        ## update GT
+        if (update_GT) {
+            log_GT_post <- logLik_GT + log(GT_prior)
+            log_GT_post <- log_GT_post - matrixStats::rowMaxs(log_GT_post)
+            GT_prob <- exp(log_GT_post) / rowSums(exp(log_GT_post))
+            if (binary_GT) {
+                for (ik in seq_len(nrow(logLik_GT))) {
+                    idx_max <- which.max(logLik_GT[ik, ])
+                    GT_prob[ik, ] <- 0
+                    GT_prob[ik, idx_max] <- 1            
+                }
+            }
         }
-        GT[, 1:K1] <- matrix(GT_all[it, ], nrow = N, ncol = K1)
-        colnames(GT)[1:K1] <- paste0("donor", seq_len(K1))
-        if (check_doublet) {GT <- cbind(GT[, 1:K1], get_doublet_GT(GT[, 1:K1]))}
-        # if (check_doublet) {GT[, (K1+1) : K2] <- get_doublet_GT(GT[, 1:K1])}
-
-        for (ig in seq_len(length(gt_uniq))) {
-            S1[[ig]] <- t(A) %*% (GT == gt_uniq[ig])
-            SS[[ig]] <- t(D) %*% (GT == gt_uniq[ig])
-            S2[[ig]] <- SS[[ig]] - S1[[ig]]
-        }
-
+                
         # Check convergence
-        if (it >= min_iter && it %% 100 == 0) {
-            is_converged <- Geweke_Z(prob_all[1:it, 1:(M*K1)]) <= 2
-            if (verbose) {cat(sprintf("%d iterations: %.1f%% cells converged.\n",
-                                     it, mean(is_converged) * 100))}
-            if (sum(is_converged) >= (length(is_converged) - 1)) {break}
+        LB_p <- sum(logLik_GT * GT_prob) + sum(W_vec)
+        LB_p_ID <- sum(t(ID_prob) * log(Psi[1:K] / sum(Psi[1:K])))
+        LB_q_ID <- sum(ID_prob[, 1:K] * log(ID_prob[, 1:K]), na.rm = TRUE)
+        if (update_GT) {
+            LB_p_GT <- sum(GT_prob * log(GT_prior))
+            LB_q_GT <- sum(GT_prob * log(GT_prob), na.rm = TRUE)
+        } else {
+            LB_p_GT <- LB_q_GT <- 0
+        } 
+        if (learn_theta) {
+            LB_p_theta <- nega_beta_entropy(theta_shapes, theta_prior)
+            LB_q_theta <- nega_beta_entropy(theta_shapes)
+        } else{
+            LB_p_theta <- LB_q_theta <- 0
+        }
+        
+        # print(c(LB_p_ID, LB_p_GT, LB_p_theta, LB_p,
+        #         LB_q_ID, LB_q_GT, LB_q_theta))
+        
+        LB[it] <- (LB_p_ID + LB_p_GT + LB_p_theta + LB_p -
+                   LB_q_ID - LB_q_GT - LB_q_theta)  
+        
+        if (verbose) { cat("It: ", it, " LB: ", LB[it], 
+                           " LB_diff: ", LB[it] - LB[it - 1], "\n")} 
+        
+        if (it > min_iter) {
+            if (is.na(LB[it]) || (LB[it] == -Inf)) { break }
+            if (LB[it] < LB[it - 1]) { message("Lower bound decreases!\n")}
+            if (it == max_iter) {warning("VB did not converge!\n")}
+            if (LB[it] - LB[it - 1] < epsilon_conv) { break }
+        }
+        
+        # print(paste(it, logLik_new + sum(W_vec), LB_p, sum(logLik_ID) + sum(W_vec) ))
+        # if (it > min_iter) {
+        #     if (abs(logLik_new - logLik) < epsilon_conv) { break }
+        # }
+        logLik <- logLik_new
+    }
+       
+    ## post doublet check
+    if (check_doublet && (!check_doublet_iterative)) {
+        GT_both <- get_doublet_GT(GT_prob, K)
+        theta_both <- get_doublet_theta(theta_shapes)
+        
+        ID_prob_res <- ID_prob_res <- get_ID_prob(A, D, GT_both, theta_both, Psi)        
+        ID_prob <- ID_prob_res$ID_prob
+        logLik <- ID_prob_res$logLik
+            
+        ## update GT
+        if (update_GT) {
+            S1_gt <- as.matrix(A %*% ID_prob[, seq_len(K)])
+            SS_gt <- as.matrix(D %*% ID_prob[, seq_len(K)])
+            S2_gt <- SS_gt - S1_gt
+            logLik_GT <- matrix(0, nrow = length(SS_gt), ncol = n_gt)
+            for (ig in seq_len(ncol(logLik_GT))) {
+                logLik_GT[, ig] <- (S1_gt * digamma(theta_shapes[ig, 1]) + 
+                                    S2_gt * digamma(theta_shapes[ig, 2]) - 
+                                    SS_gt * digamma(sum(theta_shapes[ig, ])))
+            }
+            
+            log_GT_post <- logLik_GT + log(GT_prior)
+            log_GT_post <- log_GT_post - matrixStats::rowMaxs(log_GT_post)
+            GT_prob <- exp(log_GT_post) / rowSums(exp(log_GT_post))
+            if (binary_GT) {
+                for (ik in seq_len(nrow(logLik_GT))) {
+                    idx_max <- which.max(logLik_GT[ik, ])
+                    GT_prob[ik, ] <- 0
+                    GT_prob[ik, idx_max] <- 1            
+                }
+            }
         }
     }
-
-    ## return values
-    n_buin = ceiling(it * buin_in)
-    prob_mat <- matrix(colMeans(prob_all[n_buin:it, ]), nrow = M, ncol = K2)
-    row.names(prob_mat) <- colnames(A)
-    colnames(prob_mat) <- colnames(GT)
-    colnames(theta_all) <- paste0("GT=", gt_uniq)
-    theta <- colMeans(theta_all[n_buin:it, ])
-
-    GT_prob <- matrix(0, nrow = N * K1, ncol = length(gt_singlet))
-    for (ig in seq_len(ncol(GT_prob))) {
-        GT_prob[, ig] <- colMeans(GT_all[n_buin:it, ] == gt_singlet[ig])
+        
+    ## Print log info
+    if (verbose && check_doublet) {
+        cat(sprintf("Total iterations for doublet: %d; LBound: %.2f\n", 
+                    it, logLik))
+    } else if (verbose) {
+        cat(sprintf("Total iterations: %d; LBound: %.2f\n", 
+                    it, logLik))
     }
-    prob_singlet <- prob_mat[, 1:K1]
+    
+    ## Return values
+    donor_names <- paste0("donor", seq_len(K))
+    if (check_doublet) {
+        combn_idx <- utils::combn(K, 2)
+        donor_names <- c(donor_names, paste0(donor_names[combn_idx[1,]], ",",  
+                                             donor_names[combn_idx[2,]]))
+    }
+    row.names(ID_prob) <- colnames(D)
+    colnames(ID_prob) <- donor_names
+    prob_singlet <- ID_prob[, 1:K, drop = FALSE]
     prob_doublet <- NULL
-    if (check_doublet) {prob_doublet <- prob_mat[, (K1 + 1):K2]}
-
-    return_list <- list("prob" = prob_singlet,
-                        "prob_doublet" = prob_doublet,
-                        "prob_samples" = prob_all,
-                        "theta" = theta,
-                        "theta_samples" = theta_all[1:it, ],
-                        "GT_prob" = GT_prob[1:(N * K1), ],
-                        "GT_samples" = GT_all[1:it, ],
-                        "logLik_samples" = logLik_all[1:it])
+    if (check_doublet) {
+        prob_doublet <- ID_prob[, (K + 1):K2, drop = FALSE]
+    }
+    
+    # if (is.null(colnames(GT))) { 
+    #     colnames(GT) <- paste0("donor", seq_len(ncol(GT)))
+    # }
+    
+    return_list <- list("LBound" = LB[it], "LBound_all" = LB[1:it], 
+                        "n_iter" = it, "theta" = theta_shapes, 
+                        "Psi" = Psi, "GT_prob" = GT_prob, 
+                        "prob" = prob_singlet,
+                        "prob_doublet" = prob_doublet)
     return_list
 }
 
-#' Generate genotype for doublets
-#' @param GT A matrix of genotype for singlets
-#' @return \code{GT_doublet}, a matrix genotype for doublets
-#'
-#' @export
-#' @examples
-#' GT <- matrix(sample(c(0,1,2), 150, replace = TRUE), nrow = 50)
-#' GT_doublet <- get_doublet_GT(GT)
-#'
-get_doublet_GT <- function(GT) {
-    donor_ids <- colnames(GT)
-    if (is.null(donor_ids)) { donor_ids <- paste0("donor", seq_len(ncol(GT))) }
+# Negative entropy value for beta distribution
+nega_beta_entropy <- function(theta_shapes, theta_prior=NULL) {
+    if (is.null(theta_prior)) {theta_prior <- theta_shapes}
+    out_val <- 0
+    for (ii in seq_len(nrow(theta_shapes))) {
+        out_val <- (out_val - lbeta(theta_prior[ii, 1], theta_prior[ii, 2]) +
+                    (theta_prior[ii, 1] - 1) * digamma(theta_shapes[ii, 1]) +
+                    (theta_prior[ii, 2] - 1) * digamma(theta_shapes[ii, 2]) -
+                    (sum(theta_prior[ii, ]) - 2) * digamma(sum(theta_shapes[ii, ])))
+    }
+    out_val
+}
 
-    combn_idx <- utils::combn(ncol(GT), 2)
-    GT_doublet <- (GT[,combn_idx[1,]] + GT[,combn_idx[2,]]) / 2
-    colnames(GT_doublet) <- paste0(donor_ids[combn_idx[1,]], ",",
-                                   donor_ids[combn_idx[2,]])
-    GT_doublet
+# Internal function to update cell assignement probability
+#' @return A list containing \code{logLik} and \code{ID_prob}
+get_ID_prob <- function(A, D, GT_prob, theta_shapes, Psi) {    
+    M <- ncol(A)
+    N <- nrow(A)
+    K <- nrow(GT_prob) / N
+    logLik_ID <- matrix(0, nrow = M, ncol = K)
+    for (ig in seq_len(ncol(GT_prob))) {
+        S1 <- Matrix::t(A) %*% matrix(GT_prob[, ig], nrow = N)
+        SS <- Matrix::t(D) %*% matrix(GT_prob[, ig], nrow = N)
+        S2 <- SS - S1
+        logLik_ID <- logLik_ID + as.matrix(S1 * digamma(theta_shapes[ig, 1]) + 
+                                           S2 * digamma(theta_shapes[ig, 2]) - 
+                                           SS * digamma(sum(theta_shapes[ig, ])))
+    }    
+    logLik_ID <- t(t(logLik_ID) + log(Psi[1:K]/sum(Psi[1:K])))
+    logLik_ID_amplify <- logLik_ID - matrixStats::rowMaxs(logLik_ID)
+    ID_prob <- exp(logLik_ID_amplify) / rowSums(exp(logLik_ID_amplify))
+    
+    logLik_vec <- rep(NA, nrow(logLik_ID))
+    for (i in seq_len(nrow(logLik_ID))) {
+        logLik_vec[i] <- matrixStats::logSumExp(logLik_ID[i,], na.rm = TRUE)
+    }
+    logLik_val <- sum(logLik_vec, na.rm = TRUE)
+        
+    list("logLik" = logLik_val, "ID_prob" = ID_prob)
+}
+
+#' Generate theta parameters for doublet genotype
+#' @param theta_shapes A 3-by-2 matrix of beta paramters for genotype 0, 1, 2
+#' @return a 5-by-2 matrix of beta paramters for genotype 0, 1, 2, 0.5, 1.5
+get_doublet_theta <- function(theta_shapes) {
+    theta_shapes2 <- matrix(0, nrow = 2, ncol = 2)
+    row.names(theta_shapes2) <- paste0("GT=", c("0_1", "1_2"))
+    
+    for (ii in seq_len(2)) {
+        theta_input <- theta_shapes[ii:(ii + 1), ]
+        
+        theta_mean <- mean(theta_input[1:2, 1] / rowSums(theta_input[1:2,]))
+        shape_sum <- sqrt(sum(theta_input[1, ]) * sum(theta_input[2, ]))
+        theta_shapes2[ii, 1] <- theta_mean * shape_sum
+        theta_shapes2[ii, 2] <- (1 - theta_mean) * shape_sum
+    }
+    rbind(theta_shapes, theta_shapes2)
+}
+
+#' Generate genotype probability for doublets
+#' @param GT_prob A matrix of genotype for singlets
+#' @param K An integer for number of donors
+#' @return \code{GT_both}, a matrix of genotype probability for both singlet
+#' and doublet donors
+get_doublet_GT <- function(GT_prob, K) {
+    N <- nrow(GT_prob) / K
+    cb_idx <- utils::combn(K, 2) ## column wise
+    
+    GT_prob2 <- matrix(0, nrow = N * ncol(cb_idx), 5)
+    for (ik in seq_len(ncol(cb_idx))) {
+        idx1 = seq_len(N) + (cb_idx[1, ik] - 1) * N
+        idx2 = seq_len(N) + (cb_idx[2, ik] - 1) * N
+        idx3 = seq_len(N) + (ik - 1) * N
+        
+        GT_prob2[idx3, 1] <- (GT_prob[idx1, 1] * GT_prob[idx2, 1])
+        GT_prob2[idx3, 2] <- (GT_prob[idx1, 2] * GT_prob[idx2, 2] +
+                              GT_prob[idx1, 1] * GT_prob[idx2, 3] +
+                              GT_prob[idx1, 3] * GT_prob[idx2, 1])
+        GT_prob2[idx3, 3] <- (GT_prob[idx1, 3] * GT_prob[idx2, 3])
+        GT_prob2[idx3, 4] <- (GT_prob[idx1, 1] * GT_prob[idx2, 2] +
+                              GT_prob[idx1, 2] * GT_prob[idx2, 1])
+        GT_prob2[idx3, 5] <- (GT_prob[idx1, 2] * GT_prob[idx2, 3] +
+                              GT_prob[idx1, 3] * GT_prob[idx2, 2])
+    }
+    GT_prob2 <- GT_prob2 / rowSums(GT_prob2)
+    
+    GT_zero <- matrix(0, nrow = nrow(GT_prob), 
+                      ncol = (ncol(GT_prob2) - ncol(GT_prob)))
+    GT_both <- rbind(cbind(GT_prob, GT_zero), GT_prob2)
+    GT_both
+}
+
+# Convert genotype matrix to genotype probability matrix
+#' @param GT A matrix of genotype
+#' @param gt_singlet A list of singlet genotyoe
+GT_to_prob <- function(GT, gt_singlet=c(0, 1, 2)) {
+  GT_prob <- matrix(0, nrow = length(GT), ncol = length(gt_singlet))
+  colnames(GT_prob) <- paste0("GT=", gt_singlet)
+  for (ig in seq_len(length(gt_singlet))) {
+    GT_prob[which(GT == gt_singlet[ig]), ig] <- 1
+  }
+  
+  GT_prob
 }
