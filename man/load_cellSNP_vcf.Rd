@@ -5,7 +5,7 @@
 \title{Load sparse matrices A and D from cellSNP VCF file with filtering SNPs}
 \usage{
 load_cellSNP_vcf(vcf_file, max_other_allele = 0.05, min_count = 20,
-  min_MAF = 0.1)
+  min_MAF = 0.1, rowname_format = "full")
 }
 \arguments{
 \item{vcf_file}{character(1), path to VCF file generated from cellSNP}
@@ -16,6 +16,9 @@ ALT alleles}
 \item{min_count}{minimum count across all cells}
 
 \item{min_MAF}{minimum minor allele fraction}
+
+\item{rowname_format}{the format of rowname: NULL is the default from vcfR, 
+short is CHROM_POS, and full is CHROM_POS_REF_ALT}
 }
 \description{
 Load sparse matrices A and D from cellSNP VCF file with filtering SNPs
