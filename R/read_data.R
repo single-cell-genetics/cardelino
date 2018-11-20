@@ -199,28 +199,27 @@ get_snp_matrices <- function(vcf_cell, vcf_donor=NULL, verbose = TRUE,
 #' ALT alleles
 #' @param min_count minimum count across all cells
 #' @param min_MAF minimum minor allele fraction
+#' @param rowname_format the format of rowname: NULL is the default from vcfR, 
+#' short is CHROM_POS, and full is CHROM_POS_REF_ALT
 #' @export
 #'
 #' @examples
 #'
 load_cellSNP_vcf <- function(vcf_file, max_other_allele=0.05, min_count=20, 
-                             min_MAF=0.1) {
+                             min_MAF=0.1, rowname_format="full") {
     vcf_temp <- vcfR::read.vcfR(vcf_file)
     dp_full <- vcfR::extract.gt(vcf_temp, element = "DP", as.numeric = TRUE)
     ad_full <- vcfR::extract.gt(vcf_temp, element = "AD", as.numeric = TRUE)
 
-    dp_sum <- vcfR::extract.info(vcf_temp, element = "DP", as.numeric=TRUE)
-    oth_sum <- vcfR::extract.info(vcf_temp, element = "OTH", as.numeric=TRUE)
-
-    fix_val <- vcfR::getFIX(vcf_temp)
-    var_ids <- paste0(fix_val[,1], "_", fix_val[,2], 
-                    "_", fix_val[,4], "_", fix_val[,5])
-    var_ids_short <- paste0(fix_val[,1], "_", fix_val[,2])
-    
-    idx <- ((oth_sum / dp_sum < max_other_allele) & 
-            rowSums(dp_full, na.rm = TRUE) >= min_count & 
+    idx <- (rowSums(dp_full, na.rm = TRUE) >= min_count & 
             ((rowSums(ad_full, na.rm = TRUE) / 
-              rowSums(dp_full, na.rm = TRUE)) > min_MAF))
+              rowSums(dp_full, na.rm = TRUE)) >= min_MAF))
+
+    if (!is.null(max_other_allele)) {
+        dp_sum <- vcfR::extract.info(vcf_temp, element = "DP", as.numeric=TRUE)
+        oth_sum <- vcfR::extract.info(vcf_temp, element = "OTH", as.numeric=TRUE)
+        idx <- idx & (oth_sum / dp_sum < max_other_allele)
+    }
 
     print(paste(sum(idx), "out of", length(idx), "SNPs passed."))
         
@@ -228,7 +227,18 @@ load_cellSNP_vcf <- function(vcf_file, max_other_allele=0.05, min_count=20,
     D <- dp_full[idx, ]
     A[is.na(A)] <- 0
     D[is.na(D)] <- 0
-    row.names(A) <- row.names(D) <- var_ids[idx]
+
+    if (!is.null(rowname_format)) {
+        fix_val <- vcfR::getFIX(vcf_temp)
+        var_ids <- paste0(fix_val[,1], "_", fix_val[,2], 
+                        "_", fix_val[,4], "_", fix_val[,5])
+        var_ids_short <- paste0(fix_val[,1], "_", fix_val[,2])
+        if (rowname_format == "short") {
+            row.names(A) <- row.names(D) <- var_ids_short[idx]
+        } else {
+            row.names(A) <- row.names(D) <- var_ids[idx]
+        }
+    }
 
     list("A" = Matrix::Matrix(A, sparse = TRUE), 
          "D" = Matrix::Matrix(D, sparse = TRUE))
