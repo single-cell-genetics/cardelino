@@ -263,10 +263,12 @@ pub.theme <- function(size = 12) {
                        axis.title = ggplot2::element_text(
                            face = "bold", size = size),
                        plot.title = ggplot2::element_text(
-                           face = "bold", size = size * 1.3, hjust = 0.5),
+                           face = "bold", size = size * 1.2, hjust = 0.5),
                        legend.title = ggplot2::element_text(size = size*1.1),
                        legend.text = ggplot2::element_text(size = size),
                        panel.grid.major = ggplot2::element_line(
-                           size = 0.1, colour = "#d3d3d3")
-        )
+                           size = 0.1, colour = "#d3d3d3"),
+                       panel.grid.major = ggplot2::element_line(
+                           size = 0.05, colour = "#d3d3d3")
+                       )
 }
