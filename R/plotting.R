@@ -268,7 +268,7 @@ pub.theme <- function(size = 12) {
                        legend.text = ggplot2::element_text(size = size),
                        panel.grid.major = ggplot2::element_line(
                            size = 0.1, colour = "#d3d3d3"),
-                       panel.grid.major = ggplot2::element_line(
+                       panel.grid.minor = ggplot2::element_line(
                            size = 0.05, colour = "#d3d3d3")
                        )
 }
