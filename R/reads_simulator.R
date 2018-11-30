@@ -236,7 +236,8 @@ sample_tree_SNV <- function(tree, n_SNV=NULL){
 #' @param gene_ASE A logic value, if true, use gene specific allele expression 
 #' @export
 #' 
-donor_read_simulator <- function(GT, D_seed, donor_size=NULL, beta_shapes=NULL, 
+donor_read_simulator <- function(GT, D_seed, sample_variants=FALSE, 
+                                 donor_size=NULL, beta_shapes=NULL, 
                                  n_cell=5000, doublet_rate=NULL, 
                                  rand_seed=NULL, gene_ASE=FALSE){
     K <- ncol(GT)  # number of clones
@@ -269,8 +270,12 @@ donor_read_simulator <- function(GT, D_seed, donor_size=NULL, beta_shapes=NULL,
     }
     
     ## generate D
-    D_sim <- D[sample(nrow(D_seed), N, replace = TRUE),
-               sample(ncol(D_seed), nrow(I_sim), replace = TRUE)]
+    if (sample_variants) {
+        D_sim <- D_seed[sample(nrow(D_seed), N, replace = TRUE), ]
+    } else {
+        D_sim <- D_seed
+    }
+    D_sim <- D_sim[, sample(ncol(D_sim), nrow(I_sim), replace = TRUE)]
     D_sim <- Matrix::Matrix(D_sim, sparse = TRUE)
     
     ## generate A
@@ -297,7 +302,7 @@ donor_read_simulator <- function(GT, D_seed, donor_size=NULL, beta_shapes=NULL,
     cell_names <- paste0("cell", seq_len(ncol(A_sim)))
     row.names(I_sim) <- colnames(A_sim) <- colnames(D_sim) <- cell_names
 
-    return_list <- list("A_sim" = A_sim, "D_sim" = D_sim,
+    return_list <- list("A" = A_sim, "D" = D_sim,
                         "I_sim" = I_sim, "p_sim" = p_sim,
                         "GT" = GT)
     return_list
