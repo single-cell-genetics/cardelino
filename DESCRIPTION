@@ -13,8 +13,8 @@ Description: Methods to infer clonal structure for a population of cells using
     between clones.
 License: GPL (>= 3)
 Depends: R (>= 3.4), stats
-Imports: ggplot2, ggtree, matrixStats, pheatmap, doMC, Matrix
-Suggests: BiocStyle, knitr, pcaMethods, testthat
+Imports: ggplot2, matrixStats, pheatmap, doMC, Matrix, vcfR
+Suggests: ggtree, BiocStyle, knitr, pcaMethods, testthat
 VignetteBuilder: knitr
 LazyData: true
 biocViews: SingleCell, RNASeq, Visualization, Transcriptomics, GeneExpression, 
