@@ -4,7 +4,7 @@
 \alias{donor_id_VB}
 \title{Variational inference for donor deconvolution with or without genotypes.}
 \usage{
-donor_id_VB(A, D, K = NULL, K_extend = 1.5, GT = NULL,
+donor_id_VB(A, D, K = NULL, K_amplify = 1.5, GT = NULL,
   GT_prior = NULL, n_init = NULL, n_proc = 4, random_seed = NULL,
   ...)
 }
@@ -13,15 +13,12 @@ donor_id_VB(A, D, K = NULL, K_extend = 1.5, GT = NULL,
 
 \item{D}{A matrix of integers. Number of reads depth in SNP i cell j}
 
-\item{K}{An integer. The number of donors to infer if not given GT.}
+\item{K}{An integer. The number of donors to infer if GT is not given nor 
+complete.}
 
-\item{K_extend}{A float. The extension ratio of donor number in the first run}
+\item{K_amplify}{A float. The amplify ratio of donor number in the first run}
 
 \item{GT}{A matrix of integers for genotypes. The donor-SNP configuration.}
-
-\item{n_init}{A integer. The number of random initializations for EM
-algorithm, which can be useful to avoid local optima if not given genotypes.
-Default: 1 if given GT, 5 if not given GT.}
 
 \item{n_proc}{An integer. The number of processors to use.}
 
