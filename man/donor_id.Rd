@@ -5,8 +5,9 @@
 \title{Donor deconvolution of scRNA-seq data}
 \usage{
 donor_id(cell_data, donor_data = NULL, n_donor = NULL,
-  check_doublet = TRUE, n_vars_threshold = 10, s_threshold = 0.9,
-  d_threshold = 0.9, verbose = FALSE, ...)
+  check_doublet = TRUE, n_init = NULL, n_vars_threshold = 10,
+  singlet_threshold = 0.9, doublet_threshold = 0.9, verbose = FALSE,
+  ...)
 }
 \arguments{
 \item{cell_data}{either character(1), path to a VCF file containing variant
@@ -19,18 +20,22 @@ data for donors, or a matrix for donor genotypes, matched to cell data}
 
 \item{check_doublet}{logical(1), should the function check for doublet cells?}
 
+\item{n_init}{A integer. The number of random initializations for variational
+inference, which can be useful to avoid local optima if not given genotypes.
+Default: 1 if given GT, 5 if not given GT.}
+
 \item{n_vars_threshold}{integer(1), if the number of variants with coverage
 in a cell is below this threshold, then the cell will be given an
 "unassigned" donor ID (default: 10)}
 
-\item{s_threshold}{numeric(1), threshold for posterior probability of
+\item{singlet_threshold}{numeric(1), threshold for posterior probability of
 donor assignment (must be in [0, 1]); if best posterior probability for a
 donor is greater then the threshold, then the cell is assigned to that donor
 (as long as the cell is not determined to be a doublet) and if below the
 threshold, then the cell's donor ID is "unassigned"}
 
-\item{d_threshold}{numeric(1), threshold for summarised posterior probability
-of doublet detection (must be in [0, 1]);}
+\item{doublet_threshold}{numeric(1), threshold for summarised posterior 
+probability of doublet detection (must be in [0, 1]);}
 
 \item{verbose}{logical(1), should the function output verbose information
 while running?}
@@ -68,5 +73,5 @@ table(ids$assigned$donor_id)
 
 }
 \author{
-Davis McCarthy and Yuanhua Huang
+Yuanhua Huang and Davis McCarthy
 }
