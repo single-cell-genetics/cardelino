@@ -8,16 +8,19 @@
 #' data for donors, or a matrix for donor genotypes, matched to cell data
 #' @param n_donor integer(1), number of donors to infer if not given genotypes
 #' @param check_doublet logical(1), should the function check for doublet cells?
+#' @param n_init A integer. The number of random initializations for variational
+#' inference, which can be useful to avoid local optima if not given genotypes.
+#' Default: 1 if given GT, 5 if not given GT.
 #' @param n_vars_threshold integer(1), if the number of variants with coverage
 #' in a cell is below this threshold, then the cell will be given an
 #' "unassigned" donor ID (default: 10)
-#' @param s_threshold numeric(1), threshold for posterior probability of
+#' @param singlet_threshold numeric(1), threshold for posterior probability of
 #' donor assignment (must be in [0, 1]); if best posterior probability for a
 #' donor is greater then the threshold, then the cell is assigned to that donor
 #' (as long as the cell is not determined to be a doublet) and if below the
 #' threshold, then the cell's donor ID is "unassigned"
-#' @param d_threshold numeric(1), threshold for summarised posterior probability
-#' of doublet detection (must be in [0, 1]);
+#' @param doublet_threshold numeric(1), threshold for summarised posterior 
+#' probability of doublet detection (must be in [0, 1]);
 #' @param verbose logical(1), should the function output verbose information
 #' while running?
 #' @param ... arguments passed to \code{donor_id_VB}
@@ -41,7 +44,7 @@
 #' "prob_doublet" (the probability that the cell is a doublet), "n_vars" (the
 #' number of variants with non-zero read depth used for assignment).
 #'
-#' @author Davis McCarthy and Yuanhua Huang
+#' @author Yuanhua Huang and Davis McCarthy
 #'
 #' @export
 #'
@@ -51,9 +54,9 @@
 #' table(ids$assigned$donor_id)
 #'
 donor_id <- function(cell_data, donor_data = NULL, n_donor=NULL, 
-                     check_doublet = TRUE,
-                     n_vars_threshold = 10, s_threshold = 0.9,
-                     d_threshold = 0.9, verbose = FALSE, ...) {
+                     check_doublet = TRUE, n_init=NULL,
+                     n_vars_threshold = 10, singlet_threshold = 0.9,
+                     doublet_threshold = 0.9, verbose = FALSE, ...) {
     if (typeof(cell_data) == "character") {
         in_data <- load_cellSNP_vcf(cell_data)
     } else {
@@ -74,7 +77,7 @@ donor_id <- function(cell_data, donor_data = NULL, n_donor=NULL,
     }
     out <- donor_id_VB(in_data$A, in_data$D, GT = in_data$GT_donors,
                        K = n_donor, check_doublet = check_doublet,
-                       verbose = verbose, ...)
+                       n_init=n_init, verbose = verbose, ...)
 
     ## output data
     out$A <- in_data$A
@@ -83,18 +86,19 @@ donor_id <- function(cell_data, donor_data = NULL, n_donor=NULL,
 
     ## assign data frame
     n_vars <- Matrix::colSums(out$D)
-    assigned <- assign_cells_to_clones(out$prob, threshold = s_threshold)
+    assigned <- assign_cells_to_clones(out$prob, threshold = singlet_threshold)
     colnames(assigned) <- c("cell", "donor_id", "prob_max")
     if (check_doublet) {
         assigned$prob_doublet <- matrixStats::rowSums2(out$prob_doublet)
-        assigned$donor_id[assigned$prob_doublet > (1 - s_threshold)] <- "doublet"
+        assigned$donor_id[assigned$prob_doublet > 
+                          (1 - singlet_threshold)] <- "doublet"
     } else {
         assigned$prob_doublet <- NA
     }
     assigned$n_vars <- n_vars
     assigned$donor_id[n_vars < n_vars_threshold] <- "unassigned"
-    assigned$donor_id[assigned$prob_doublet < d_threshold & 
-                      rowSums(out$prob) < s_threshold] <- "unassigned"
+    assigned$donor_id[assigned$prob_doublet < doublet_threshold & 
+                      rowSums(out$prob) < singlet_threshold] <- "unassigned"
 
     out$assigned <- assigned
     out
@@ -106,11 +110,9 @@ donor_id <- function(cell_data, donor_data = NULL, n_donor=NULL,
 #' @param A A matrix of integers. Number of alteration reads in SNP i cell j
 #' @param D A matrix of integers. Number of reads depth in SNP i cell j
 #' @param GT A matrix of integers for genotypes. The donor-SNP configuration.
-#' @param K An integer. The number of donors to infer if not given GT.
-#' @param K_extend A float. The extension ratio of donor number in the first run
-#' @param n_init A integer. The number of random initializations for EM
-#' algorithm, which can be useful to avoid local optima if not given genotypes.
-#' Default: 1 if given GT, 5 if not given GT.
+#' @param K An integer. The number of donors to infer if GT is not given nor 
+#' complete.
+#' @param K_amplify A float. The amplify ratio of donor number in the first run
 #' @param n_proc An integer. The number of processors to use. 
 #' @param ... arguments passed to \code{run_VB}
 #' @details Users should typically use \code{\link{donor_id}} rather than this
@@ -136,7 +138,7 @@ donor_id <- function(cell_data, donor_data = NULL, n_donor=NULL,
 #' res <- donor_id_VB(A_clone, D_clone, GT = tree$Z[1:nrow(A_clone),])
 #' head(res$prob)
 #'
-donor_id_VB <- function(A, D, K=NULL, K_extend=1.5, GT=NULL, GT_prior=NULL, 
+donor_id_VB <- function(A, D, K=NULL, K_amplify=1.5, GT=NULL, GT_prior=NULL, 
                         n_init=NULL, n_proc=4, random_seed=NULL, ...) {
     start_time <- Sys.time()
     if (!is.null(random_seed)) {set.seed(random_seed)}
@@ -144,14 +146,20 @@ donor_id_VB <- function(A, D, K=NULL, K_extend=1.5, GT=NULL, GT_prior=NULL,
     ## Check input data
     if (is.null(GT) && is.null(K)) {
         stop("GT and K cannot both be NULL.")
+    } 
+    if (!is.null(GT)) {
+        if (nrow(A) != nrow(GT)) {
+            stop("nrow(A) and nrow(GT) must be the same and aligned.")
+        }
+    }
+    if (!is.null(GT) && !is.null(K) && ncol(GT) < K) {
+        GT_part_prob <- transpose_GT_prob(GT_to_prob(GT), ncol(GT))
+        GT <- NULL
+    } else {
+        GT_part_prob <- NULL
     }
     if (nrow(A) != nrow(D) || ncol(A) != ncol(D)) {
         stop("A and D must have the same size.")
-    }
-    if (!is.null(GT)) {
-        if (nrow(A) != nrow(GT)) {
-            stop("nrow(A) and nrow(GT) must be the same.")
-        }
     }
     
     A[is.na(A)] <- 0
@@ -162,10 +170,10 @@ donor_id_VB <- function(A, D, K=NULL, K_extend=1.5, GT=NULL, GT_prior=NULL,
     A <- Matrix::Matrix(A, sparse = TRUE)
     D <- Matrix::Matrix(D, sparse = TRUE)
     
-    if (is.null(K_extend) || K_extend < 1) { 
+    if (is.null(K_amplify) || K_amplify < 1) { 
         K_run1 <- K
     } else {
-        K_run1 <- ceiling(K_extend * K)
+        K_run1 <- ceiling(K_amplify * K)
     }
     
     ## Multiple initializations
@@ -173,7 +181,7 @@ donor_id_VB <- function(A, D, K=NULL, K_extend=1.5, GT=NULL, GT_prior=NULL,
         if (is.null(GT)) {n_init <- 4}
         else {n_init <- 2}
     }
-    cat(paste("run1:", n_init, "random initializations...\n")) 
+    cat(paste("Run1:", n_init, "random initializations...\n")) 
         
     if (is.null(n_proc) || n_proc == 1) {
         res_VB_list <- list()
@@ -201,23 +209,39 @@ donor_id_VB <- function(A, D, K=NULL, K_extend=1.5, GT=NULL, GT_prior=NULL,
     res_VB_best <- res_VB_list[[which.max(VB_info[, "LBound"])]]
     
     ## for second run if there are extra components
-    if (is.null(GT) && K_run1 > K) {
+    if (!is.null(GT_part_prob) || (is.null(GT) && K_run1 > K)) {
         sum_cell <- colSums(res_VB_best$prob)
         idx_don <- order(sum_cell, decreasing = TRUE)
-        cat("Donor size in run1:\n")
+        cat(paste("Run1 with", K_run1, "donors; estimated sizes:\n"))
         print(t(sum_cell[idx_don]))
-        cat("Now, run2:\n")
         if (sum_cell[idx_don[K]] / sum_cell[idx_don[K + 1]] < 2) {
             message(paste("The difference between K_th and K+1_th",
-                          "donor is too small.\n Best to run again with",
-                          "more initializations to reach the global optima."))
+                          "donor is too small.\n Try a bigger value for",
+                          "n_init to reach global optima."))
         }
-        GT_idx <- c()
-        for (ii in idx_don[1:K]) {
-            GT_idx <- c(GT_idx, (ii - 1) * nrow(D) + seq_len(nrow(D)))
+        cat("Run2 with Genotype prior estimated from run1:\n")
+
+        GT_prob_trans <- transpose_GT_prob(res_VB_best$GT_prob, K_run1)
+        GT_prob_trans <- GT_prob_trans[, idx_don]
+        if (!is.null(GT_part_prob)) {
+            col_idx <- cardelino::colMatch(GT_part_prob, GT_prob_trans)
+            if (max(col_idx) > K) {
+                warning("Input genotypes don't all match top K donors!")
+            }
+            if (length(unique(col_idx)) != length(col_idx)) {
+                warning(paste("Some input donors are missed! Try a bigger",
+                              "value for n_init to reach global optima."))
+            }
+            don_use <- seq_len(K_run1)[!seq_len(K_run1) %in% col_idx]
+            # print(col_idx)
+            # print(don_use)
+            don_use <- c(col_idx, don_use)[1:K]
+            
+            GT_prob_trans[, col_idx] <- GT_part_prob
+            GT_prior <- transpose_GT_prob(GT_prob_trans[, don_use], 3)
+        } else {
+            GT_prior <- transpose_GT_prob(GT_prob_trans[, 1:K], 3)
         }
-        GT_prior <- res_VB_best$GT_prob[GT_idx, ]
-        
         res_VB_best <- run_VB(A, D, K = K, GT = GT, GT_prior = GT_prior, ...)
     }
     
@@ -293,8 +317,10 @@ run_VB <- function(A, D, K=NULL, GT=NULL, GT_prior=NULL,
             }
         } else{
             GT_prob <- GT_prior
-            GT_prior[GT_prior > 0.999999] <- 0.999999
-            GT_prior[GT_prior < 10^-8] <- 10^-8
+            # GT_prior[GT_prior > 0.999999] <- 0.999999
+            # GT_prior[GT_prior < 10^-8] <- 10^-8
+            GT_prior[GT_prior > 0.95] <- 0.95
+            GT_prior[GT_prior < 0.05] <- 0.05
             GT_prior <- GT_prior / rowSums(GT_prior)
         }
     } else {
@@ -584,4 +610,18 @@ GT_to_prob <- function(GT, gt_singlet=c(0, 1, 2)) {
   }
   
   GT_prob
+}
+
+# Transpose genotype probability matrix
+#' @param GT_prob A N*K-by-T matrix of genotype probability
+#' @param K An integer
+#' @return A N*T-by-K matrix of genotype probability
+transpose_GT_prob <- function(GT_prob, K) {
+    N <- nrow(GT_prob) / K
+    T <- ncol(GT_prob)
+    GT_prob_new <- matrix(0, N * T, K)
+    for (ii in seq_len(K)) {
+        GT_prob_new[, ii] <- GT_prob[((ii - 1) * N + 1):(ii * N), ]
+    }
+    GT_prob_new
 }
