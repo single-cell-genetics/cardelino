@@ -82,7 +82,7 @@ donor_id <- function(cell_data, donor_data = NULL, n_donor=NULL,
     ## output data
     out$A <- in_data$A
     out$D <- in_data$D
-    # out$GT <- in_data$GT_cells #out has GT output
+    # out$GT <- in_data$GT_cells #out has estimated GT output
 
     ## assign data frame
     n_vars <- Matrix::colSums(out$D)
@@ -90,15 +90,13 @@ donor_id <- function(cell_data, donor_data = NULL, n_donor=NULL,
     colnames(assigned) <- c("cell", "donor_id", "prob_max")
     if (check_doublet) {
         assigned$prob_doublet <- matrixStats::rowSums2(out$prob_doublet)
-        assigned$donor_id[assigned$prob_doublet > 
-                          (1 - singlet_threshold)] <- "doublet"
     } else {
         assigned$prob_doublet <- NA
     }
     assigned$n_vars <- n_vars
+    assigned$donor_id[assigned$prob_max < singlet_threshold] <- "unassigned"
+    assigned$donor_id[assigned$prob_doublet >= doublet_threshold] <- "doublet"
     assigned$donor_id[n_vars < n_vars_threshold] <- "unassigned"
-    assigned$donor_id[assigned$prob_doublet < doublet_threshold & 
-                      rowSums(out$prob) < singlet_threshold] <- "unassigned"
 
     out$assigned <- assigned
     out
@@ -375,7 +373,6 @@ run_VB <- function(A, D, K=NULL, GT=NULL, GT_prior=NULL,
         SS_gt <- as.matrix(D %*% ID_prob[, seq_len(K)])
         S2_gt <- SS_gt - S1_gt
         
-        
         logLik_GT <- matrix(0, nrow = length(SS_gt), ncol = n_gt)
         for (ig in seq_len(ncol(logLik_GT))) {
             logLik_GT[, ig] <- (S1_gt * digamma(theta_shapes[ig, 1]) + 
@@ -481,7 +478,12 @@ run_VB <- function(A, D, K=NULL, GT=NULL, GT_prior=NULL,
     }
     
     ## Return values
-    donor_names <- paste0("donor", seq_len(K))
+    if (is.null(GT) || is.null(colnames(GT))) {
+        donor_names <- paste0("donor", seq_len(K))
+    } else {
+        donor_names <- colnames(GT)
+    }
+    
     if (check_doublet) {
         combn_idx <- utils::combn(K, 2)
         donor_names <- c(donor_names, paste0(donor_names[combn_idx[1,]], ",",  
@@ -494,15 +496,17 @@ run_VB <- function(A, D, K=NULL, GT=NULL, GT_prior=NULL,
     if (check_doublet) {
         prob_doublet <- ID_prob[, (K + 1):K2, drop = FALSE]
     }
-    
-    # if (is.null(colnames(GT))) { 
-    #     colnames(GT) <- paste0("donor", seq_len(ncol(GT)))
-    # }
+
+    if (is.null(GT)) {
+        GT <- matrix(gt_singlet[rowArgmax(GT_prob)], nrow = N)
+        row.names(GT) <- row.names(D)
+        colnames(GT) <- colnames(prob_singlet)
+    }
     
     return_list <- list("LBound" = LB[it], "LBound_all" = LB[1:it], 
                         "n_iter" = it, "theta" = theta_shapes, 
                         "Psi" = Psi, "GT_prob" = GT_prob, 
-                        "prob" = prob_singlet,
+                        "GT" = GT, "prob" = prob_singlet,
                         "prob_doublet" = prob_doublet)
     return_list
 }
