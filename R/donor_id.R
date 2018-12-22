@@ -1,5 +1,11 @@
 ## Donor deconvolution in multiplexed scRNA-seq.
 
+#' @export
+donor_id <- function(...) {
+    message("donor_id is an alias function, please use vireo in future.")
+    vireo(...)
+}
+
 #' Donor deconvolution of scRNA-seq data
 #'
 #' @param cell_data either character(1), path to a VCF file containing variant
@@ -23,7 +29,7 @@
 #' probability of doublet detection (must be in [0, 1]);
 #' @param verbose logical(1), should the function output verbose information
 #' while running?
-#' @param ... arguments passed to \code{donor_id_VB}
+#' @param ... arguments passed to \code{vireo_flock}
 #'
 #' @details This function reads in all elements of the provided VCF file(s) into
 #' memory, so we highly recommend filtering VCFs to the minimal appropriate set
@@ -49,14 +55,14 @@
 #' @export
 #'
 #' @examples
-#' ids <- donor_id(system.file("extdata", "cells.donorid.vcf.gz", package = "cardelino"),
-#'                 system.file("extdata", "donors.donorid.vcf.gz", package = "cardelino"))
+#' ids <- vireo(system.file("extdata", "cells.donorid.vcf.gz", package = "cardelino"),
+#'              system.file("extdata", "donors.donorid.vcf.gz", package = "cardelino"))
 #' table(ids$assigned$donor_id)
 #'
-donor_id <- function(cell_data, donor_data = NULL, n_donor=NULL, 
-                     check_doublet = TRUE, n_init=NULL,
-                     n_vars_threshold = 10, singlet_threshold = 0.9,
-                     doublet_threshold = 0.9, verbose = FALSE, ...) {
+vireo <- function(cell_data, donor_data = NULL, n_donor=NULL, 
+                  check_doublet = TRUE, n_init=NULL,
+                  n_vars_threshold = 10, singlet_threshold = 0.9,
+                  doublet_threshold = 0.9, verbose = FALSE, ...) {
     if (typeof(cell_data) == "character") {
         in_data <- load_cellSNP_vcf(cell_data)
     } else {
@@ -75,7 +81,7 @@ donor_id <- function(cell_data, donor_data = NULL, n_donor=NULL,
     if (verbose) {
         message("Donor ID using ", nrow(in_data$A), " variants")
     }
-    out <- donor_id_VB(in_data$A, in_data$D, GT = in_data$GT_donors,
+    out <- vireo_flock(in_data$A, in_data$D, GT = in_data$GT_donors,
                        K = n_donor, check_doublet = check_doublet,
                        n_init=n_init, verbose = verbose, ...)
 
@@ -85,7 +91,7 @@ donor_id <- function(cell_data, donor_data = NULL, n_donor=NULL,
     # out$GT <- in_data$GT_cells #out has estimated GT output
 
     ## assign data frame
-    n_vars <- Matrix::colSums(out$D)
+    n_vars <- Matrix::colSums(out$D > 0)
     assigned <- assign_cells_to_clones(out$prob, threshold = singlet_threshold)
     colnames(assigned) <- c("cell", "donor_id", "prob_max")
     if (check_doublet) {
@@ -112,8 +118,8 @@ donor_id <- function(cell_data, donor_data = NULL, n_donor=NULL,
 #' complete.
 #' @param K_amplify A float. The amplify ratio of donor number in the first run
 #' @param n_proc An integer. The number of processors to use. 
-#' @param ... arguments passed to \code{run_VB}
-#' @details Users should typically use \code{\link{donor_id}} rather than this
+#' @param ... arguments passed to \code{vireo_core}
+#' @details Users should typically use \code{\link{vireo}} rather than this
 #' lower-level function.
 #'
 #' @return a list containing
@@ -133,10 +139,10 @@ donor_id <- function(cell_data, donor_data = NULL, n_donor=NULL,
 #'
 #' @examples
 #' data(example_donor)
-#' res <- donor_id_VB(A_clone, D_clone, GT = tree$Z[1:nrow(A_clone),])
+#' res <- vireo_flock(A_clone, D_clone, GT = tree$Z[1:nrow(A_clone),])
 #' head(res$prob)
 #'
-donor_id_VB <- function(A, D, K=NULL, K_amplify=1.5, GT=NULL, GT_prior=NULL, 
+vireo_flock <- function(A, D, K=NULL, K_amplify=1.5, GT=NULL, GT_prior=NULL, 
                         n_init=NULL, n_proc=4, random_seed=NULL, ...) {
     start_time <- Sys.time()
     if (!is.null(random_seed)) {set.seed(random_seed)}
@@ -179,19 +185,19 @@ donor_id_VB <- function(A, D, K=NULL, K_amplify=1.5, GT=NULL, GT_prior=NULL,
         if (is.null(GT)) {n_init <- 4}
         else {n_init <- 2}
     }
-    cat(paste("Run1:", n_init, "random initializations...\n")) 
+    cat(paste("RUN1:", n_init, "random initializations...\n")) 
         
     if (is.null(n_proc) || n_proc == 1) {
         res_VB_list <- list()
         for (ii in seq_len(n_init)) {
             res_VB_list[[ii]] <- 
-            run_VB(A, D, K = K_run1, GT = GT, GT_prior = GT_prior, ...)
+            vireo_core(A, D, K = K_run1, GT = GT, GT_prior = GT_prior, ...)
         }
     } else{
         library(foreach)
         doMC::registerDoMC(n_proc)
         res_VB_list <- foreach::foreach(i = 1:n_init) %dopar% {
-            run_VB(A, D, K = K_run1, GT = GT, GT_prior = GT_prior, ...)
+            vireo_core(A, D, K = K_run1, GT = GT, GT_prior = GT_prior, ...)
         }
     }
     
@@ -208,17 +214,18 @@ donor_id_VB <- function(A, D, K=NULL, K_amplify=1.5, GT=NULL, GT_prior=NULL,
     
     ## for second run if there are extra components
     if (!is.null(GT_part_prob) || (is.null(GT) && K_run1 > K)) {
-        sum_cell <- colSums(res_VB_best$prob)
+        sum_cell <- round(colSums(res_VB_best$prob), 1)
         idx_don <- order(sum_cell, decreasing = TRUE)
-        cat(paste("Run1 with", K_run1, "donors; estimated sizes:\n"))
+        cat(paste("RUN1: Search in", K_run1, "donors. Estimated sizes:\n"))
         print(t(sum_cell[idx_don]))
         if (sum_cell[idx_don[K]] / sum_cell[idx_don[K + 1]] < 2) {
             message(paste("The difference between K_th and K+1_th",
                           "donor is too small.\n Try a bigger value for",
                           "n_init to reach global optima."))
         }
-        cat("Run2 with Genotype prior estimated from run1:\n")
-
+        cat(paste("RUN2: Tuning the largest", K, "donors with genotype prior",
+                  "estimated from RUN1.\n"))
+        
         GT_prob_trans <- transpose_GT_prob(res_VB_best$GT_prob, K_run1)
         GT_prob_trans <- GT_prob_trans[, idx_don]
         if (!is.null(GT_part_prob)) {
@@ -231,8 +238,6 @@ donor_id_VB <- function(A, D, K=NULL, K_amplify=1.5, GT=NULL, GT_prior=NULL,
                               "value for n_init to reach global optima."))
             }
             don_use <- seq_len(K_run1)[!seq_len(K_run1) %in% col_idx]
-            # print(col_idx)
-            # print(don_use)
             don_use <- c(col_idx, don_use)[1:K]
             
             GT_prob_trans[, col_idx] <- GT_part_prob
@@ -240,10 +245,10 @@ donor_id_VB <- function(A, D, K=NULL, K_amplify=1.5, GT=NULL, GT_prior=NULL,
         } else {
             GT_prior <- transpose_GT_prob(GT_prob_trans[, 1:K], 3)
         }
-        res_VB_best <- run_VB(A, D, K = K, GT = GT, GT_prior = GT_prior, ...)
+        res_VB_best <- vireo_core(A, D, K = K, GT = GT, GT_prior = GT_prior, ...)
     }
     
-    cat(paste("Finished in", Sys.time() - start_time, "sec.\n"))
+    cat(paste("Finished in", round(Sys.time() - start_time, 2), "sec.\n"))
     res_VB_best
 }
 
@@ -262,7 +267,7 @@ donor_id_VB <- function(A, D, K=NULL, K_amplify=1.5, GT=NULL, GT_prior=NULL,
 #' detecting convergence.
 #' @param verbose logical(1), If TRUE, output verbose information when running.
 #'
-#' @details Users should typically use \code{\link{donor_id}} rather than this
+#' @details Users should typically use \code{\link{vireo}} rather than this
 #' lower-level function.
 #'
 #' @return a list containing
@@ -275,12 +280,12 @@ donor_id_VB <- function(A, D, K=NULL, K_amplify=1.5, GT=NULL, GT_prior=NULL,
 #' \code{GT}, the input GT or a point estimate of genotype of donors. Note,
 #' this may be not very accurate, especially for lowly expressed SNPs.
 #' \code{GT_doublet}, the pair-wise doublet genotype based on GT.
-run_VB <- function(A, D, K=NULL, GT=NULL, GT_prior=NULL, 
-                   theta_prior=NULL, learn_theta=TRUE, 
-                   check_doublet=TRUE, doublet_prior=NULL, 
-                   check_doublet_iterative=FALSE,
-                   binary_GT=FALSE, min_iter=20, max_iter=200, 
-                   epsilon_conv=1e-2, verbose=FALSE) {
+vireo_core <- function(A, D, K=NULL, GT=NULL, GT_prior=NULL, 
+                       theta_prior=NULL, learn_theta=TRUE, 
+                       check_doublet=TRUE, doublet_prior=NULL, 
+                       check_doublet_iterative=FALSE,
+                       binary_GT=FALSE, min_iter=20, max_iter=200, 
+                       epsilon_conv=1e-2, verbose=FALSE) {
     ## preprocessing
     N <- nrow(D)    # number of SNPs 
     M <- ncol(D)    # number of cells
@@ -427,7 +432,8 @@ run_VB <- function(A, D, K=NULL, GT=NULL, GT_prior=NULL,
             if (LB[it] - LB[it - 1] < epsilon_conv) { break }
         }
         
-        # print(paste(it, logLik_new + sum(W_vec), LB_p, sum(logLik_ID) + sum(W_vec) ))
+        # print(paste(it, logLik_new + sum(W_vec), LB_p, 
+        #             sum(logLik_ID) + sum(W_vec) ))
         # if (it > min_iter) {
         #     if (abs(logLik_new - logLik) < epsilon_conv) { break }
         # }
