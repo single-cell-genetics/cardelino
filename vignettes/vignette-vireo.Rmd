@@ -1,0 +1,246 @@
+---
+title: "Vireo: demultiplex without genotype"
+author:
+- name: "Yuanhua Huang"
+  affiliation:
+  - EMBL-EBI, Hinxton, UK
+- name: "Davis McCarthy"
+  affiliation: 
+  - EMBL-EBI, Hinxton, UK
+  - St Vincent's Institute of Medical Research, Melbourne, Australia
+package: cardelino
+output:
+    BiocStyle::html_document
+vignette: >
+  %\VignetteIndexEntry{Clone ID with cardelino}
+  %\VignetteEngine{knitr::rmarkdown}
+  %VignetteEncoding{UTF-8}
+---
+
+
+```{r knitr-options, echo=FALSE, message=FALSE, warning=FALSE}
+## To render an HTML version that works nicely with github and web pages, do:
+## rmarkdown::render("vignettes/vignette.Rmd", "all")
+library(knitr)
+opts_chunk$set(fig.align = 'center', fig.width = 6, fig.height = 5, dev = 'png',
+    warning = FALSE, error = FALSE, message = FALSE)
+library(ggplot2)
+library(ggpubr)
+library(BiocStyle)
+theme_set(theme_bw(12))
+```
+
+# Introduction
+
+This document gives an introduction and usage manual of `Vireo` (Variational 
+inference for reconstructing origins of cells in multiplexed scRNA-seq data), a
+Bayesian method to demultiplex pooled scRNA-seq data without genotype reference.
+
+Many single-cell genomics studies can be enhanced by multiplexing donors, where 
+cells from multiple genetically distinct individuals ("donors") are assayed 
+together in a mixed population. Such experimental designs can be powerful for 
+reducing cost of studies assaying cells from many donors and for enabling 
+robustness to inevitable batch effects. 
+
+When cells from multiple donors are mixed together, the donors that each cell 
+origins are unknown at the time of sequencing. However, natural genetic 
+variation (specifically, single nucleotide polymorphisms, SNP) act as natural 
+barcodes capturing the donor identity of each cell. Appropriate computational 
+methods, such as `Vireo` here, can infer the donor identity for each cell and 
+thus "demultiplex" a population of cells from multiple donors in preparation of 
+the dataset for further downstream analysis. 
+
+`Vireo` can use variant information extracted from single-cell RNA-seq data, 
+which can be most platforms, including droplet, 10X genomics, smart-seq, to probabilistically assign single-cell transcriptomes to specific donor 
+individuals, and to detect doublets that are from two different donors. 
+Crucially, Vireo does not require any genotype reference for input donors to 
+demultiplex, but keeps a flexibility to use the genotype information 
+if it is available in any sub set or all donors.
+
+Briefly, Vireo is a Bayesian hierarchical model, where the donor identity of 
+each cell and the genotype of each donor is unknown variables. In addition, 
+binomial base model is applied to model the minor allele reads distribution, 
+which also accounts for the sequencing errors. A mean field variational 
+inference is employed here approximate the joint posterior distribution of cell 
+identity, donor genotype, and the minor allele rates.
+
+The input data are two matrices, `A` and `D` for ALT and depth (i.e. ALT + REF), 
+respectively, and the size in a typical experiment is 10,000 common SNPs across 
+10,000 cells. Computation on this size won't be fast, however, this data set is 
+highly sparse (~99% missing values). Our impeletation of Vireo takes the 
+benefits of sparse matrix in R, hence largely saves memory space and computing 
+time. `Vireo` is implemented as R functions in package `r Biocpkg("cardelino")`.
+
+
+# Demultiplexing without genotype reference
+
+In many biomedical studies, biological replications are important to eliminate 
+unwanted variations, e.g., genetic variations, and often the genetic variation 
+is not the main focus, and genotype reference is probably not available.
+
+For Vireo, known genotype reference is not necessary to enjoy the benefits of 
+multiplexed scRNA-seq. The only requirement is a **cell VCF file** and the 
+number of pooled donors (actually Vireo can detect the latter automatically).
+
+* cell VCF file: a variant call format (VCF) file from which we can extract 
+the variant x cell matrices of integer count of the number of reads supporting
+the alternative allele for each variant in each cell and the total number of 
+reads overlapping each variant in each cell. This file can be piled up from bam
+file on a list of common SNPs by the multifaceted
+[`bcftools`](http://www.htslib.org/doc/bcftools.html) or our tailored designed 
+[`cellSNP`](https://github.com/huangyh09/cellSNP), Python package based on pysam.
+
+Here, we demonstrate the use of `Vireo` to assign 384 cells to 3 donors by 2,171 
+SNPs, which can be loaded from `r Biocpkg("cardelino")` package directly, via a 
+function `load_cellSNP_vcf` based on `r Biocpkg("vcfR")`.
+
+
+```{r load-pkg}
+library(cardelino)
+cell_vcf_file <- system.file("extdata", "cells.donorid.vcf.gz",
+                             package = "cardelino")
+cell_data <- load_cellSNP_vcf(cell_vcf_file, 
+                              max_other_allele = NULL, 
+                              min_count = 0, min_MAF = 0)
+summary(cell_data)
+```
+
+In this particular example with reasonable small size and proper coverage, we 
+can run probabilistic principal component analysis (PPCA) on the raw minor 
+allele frequency and can get a feel for the grouping of cells by donor. Note, 
+this takes much longer time for bigger size, e.g., 10,000 cells.
+
+```{r ppca-raw, fig.height=4, fig.width=6}
+AF_tmp <- cell_data$A / cell_data$D
+
+pp <- pcaMethods::ppca(t(as.matrix(AF_tmp)))
+df <- data.frame(PPCA1 <- pp@scores[, 1], PPCA2 <- pp@scores[, 2])
+ggplot(df, aes(PPCA1, PPCA2)) +
+  geom_point(alpha = 0.5) + theme_bw()
+```
+
+Here, there are 3 donors, hence we set n_donor=3. If this value is unknown, a 
+list of numbers can be tried, e.g., 2 to 10, and usually the genuine n_donor 
+will peak out by achieving highest lower bound. Addition, `check_doublet = TRUE`
+is used by default, however can be turned off if doublet detection is not needed. 
+The `vireo` function returns a list of outputs, one of which is the `assigned` data.frame with inferred donor ID (either a donor ID, "doublet" or "unassigned").
+
+```{r vireo without GT}
+ids <- vireo(cell_data = cell_data, n_donor = 3)
+table(ids$assigned$donor_id)
+```
+
+When we map our donor ID back onto the PPCA plot we see that the clusters 
+evident originally indeed correspond to the individual donors. Here, PPCA 
+component 1 clearly separates the donors, while PPCA component 2 appears to 
+reflect coverage of variants (unassigned cells with low coverage appear at low 
+values in PPCA2).
+
+```{r ppca-ids}
+df$donor_id <- ids$assigned$donor_id
+ggplot(df, aes(PPCA1, PPCA2, colour = donor_id)) +
+  geom_point(alpha = 0.5) + theme_bw()
+```
+
+
+# Demultiplexing with genotype reference
+
+In some other case, the genetic variation is indeed the focus of the study and 
+the genotype reference is often available already, even for part of the samples.
+That is, donors have been genotyped using a SNP chip platform, exome sequencing 
+or similar. In such cases, we recommend to use the available genotype reference, 
+for which a **donor VCF file**. 
+
+* donor VCF file: a VCF file containing genotypes for each of the multiplexed
+donors.
+
+Now we load the donor VCF file `load_GT_vcf` from `r Biocpkg("cardelino")` based
+on `r Biocpkg("vcfR")` again. Note, the variants needed be matched between cell
+and donor data before sent to `vireo`, which can be achieved as follows.
+
+```{r load GT data}
+donor_GT <- load_GT_vcf(system.file("extdata", "donors.donorid.vcf.gz", 
+                                    package = "cardelino"))
+row.names(donor_GT) <- paste0("chr", row.names(donor_GT)) #not always necessary
+head(donor_GT)
+
+cell_data_mm <- list()
+mm <- match(row.names(cell_data$D), row.names(donor_GT))
+cell_data_mm$D <- cell_data$D[!is.na(mm), ]
+cell_data_mm$A <- cell_data$A[!is.na(mm), ]
+Geno_data <- donor_GT[mm[!is.na(mm)], ]
+t(dim(cell_data_mm$D))
+```
+
+
+Now, we can run `vireo` again but with known genotype this time. Should the 
+genotype is only for a subset of the input donors, please provide `n_donor` the
+true number of donors.
+
+```{r vireo with GT}
+ids_GT <- vireo(cell_data = cell_data_mm, donor_data = Geno_data)
+table(ids_GT$assigned$donor_id)
+
+df$donor_id_GT <- ids_GT$assigned$donor_id
+ggplot(df, aes(PPCA1, PPCA2, colour = donor_id_GT)) +
+  geom_point(alpha = 0.5) + theme_bw()
+```
+
+
+# Glimpse of output and quick comparison
+
+The `assigned` data.frame contains the key information from the donor 
+assignment, including the highest posterior probability value across the donors
+(`prob_max`), the posterior doublet probability (`prob_doublet`) and the 
+number of variants with non-zero read coverage for the cell (`n_vars`). By 
+default, if `n_vars` is less than 10, we expect that donor ID is unlikely to be
+accurate and return donor ID as "unassigned" for these cells. This threshold 
+can be adjusted with the `n_vars_threshold` argument.
+
+```{r head-assigned}
+head(ids$assigned)
+```
+
+We can see that doublets tend to be inferred for "cells" with fewer variants 
+with coverage (that is for cells with less donor information). In this case, 
+reassuringly, the inferred doublets include known "minibulk" wells (10 cells 
+from multiple donors processed as one "cell") and positive control wells 
+(details not shown).
+
+```{r plot-doublet, fig.height=4, fig.width=6}
+fig_part1 <- ggplot(ids$assigned, aes(n_vars, prob_doublet, colour = donor_id)) +
+  geom_point(alpha = 0.5) + scale_x_log10() + 
+  ggtitle("Without Genotype") + theme_bw()
+fig_part2 <- ggplot(ids_GT$assigned, aes(n_vars, prob_doublet, colour = donor_id)) +
+  geom_point(alpha = 0.5) + scale_x_log10() + 
+  ggtitle("With Genotype") + theme_bw()
+
+ggpubr::ggarrange(fig_part1, fig_part2, nrow = 2, align = "v")
+```
+
+For most cells, the `vireo` model is very confident about donor assignment
+(posterior probability of 1 for best-matching donor). Once there are more than
+about 30 variants with read coverage we can assign cells to donors with very 
+high confidence.
+
+```{r plot-postprob, fig.height=4, fig.width=6}
+fig_part1 <- ggplot(ids$assigned, aes(n_vars, prob_max, colour = donor_id)) +
+  geom_point(alpha = 0.5) + scale_x_log10() + 
+  ggtitle("Without Genotype") + theme_bw()
+fig_part2 <- ggplot(ids_GT$assigned, aes(n_vars, prob_max, colour = donor_id)) +
+  geom_point(alpha = 0.5) + scale_x_log10() + 
+  ggtitle("With Genotype") + theme_bw()
+
+ggpubr::ggarrange(fig_part1, fig_part2, nrow = 2, align = "v")
+```
+
+With donor identity now inferred for these cells, the donor identities can be
+linked back to the expression profiles for the cells for downstream analysis.
+
+
+
+# Session information {.unnumbered}
+
+```{r}
+sessionInfo()
+```

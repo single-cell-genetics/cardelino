@@ -209,7 +209,7 @@ assign_scores <- function(prob, I_sim, cutoff=seq(0, 1, 0.001)) {
                        cutoff = cutoff)
     ass_sg$AUC
     
-    ass_db <- binaryPRC(rowMax(prob), rowSums(I_sim > 0) > 1,
+    ass_db <- binaryPRC(rowSums(prob), rowSums(I_sim > 0) > 1,
                         cut_direction = "<=", cutoff = cutoff)
     ass_db$AUC
     
