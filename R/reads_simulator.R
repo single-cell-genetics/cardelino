@@ -221,10 +221,12 @@ sample_tree_SNV <- function(tree, n_SNV=NULL){
     out.tree
 }
 
-# Reads simulator for donor identification
+#' Reads simulator for donor identification
 #' @param GT Variant-by-donor matrix for genotypes
 #' @param D_seed Variant-by-cell matrix for read coverage for generating depth,
 #' which be row sample and column sample both with replacement
+#' @param sample_variants logical(1), if TRUE, sample variants with replacement 
+#' to the same size, otherwise not
 #' @param donor_size Vector of float for the fractions of each donor; default 
 #' NULL means uniform
 #' @param beta_shapes A 3-by-2 matrix of beta parameters for genotypes: 0, 1, 

@@ -1,5 +1,7 @@
 ## Donor deconvolution in multiplexed scRNA-seq.
 
+#' Donor deconvolution of scRNA-seq data, replaced by function vireo
+#' @param ... arguments passed to \code{vireo}
 #' @export
 donor_id <- function(...) {
     message("donor_id is an alias function, please use vireo in future.")
@@ -17,6 +19,7 @@ donor_id <- function(...) {
 #' @param n_init A integer. The number of random initializations for variational
 #' inference, which can be useful to avoid local optima if not given genotypes.
 #' Default: 1 if given GT, 5 if not given GT.
+#' @param n_proc An integer. The number of processors to use.
 #' @param n_vars_threshold integer(1), if the number of variants with coverage
 #' in a cell is below this threshold, then the cell will be given an
 #' "unassigned" donor ID (default: 10)
@@ -54,13 +57,8 @@ donor_id <- function(...) {
 #'
 #' @export
 #'
-#' @examples
-#' ids <- vireo(system.file("extdata", "cells.donorid.vcf.gz", package = "cardelino"),
-#'              system.file("extdata", "donors.donorid.vcf.gz", package = "cardelino"))
-#' table(ids$assigned$donor_id)
-#'
 vireo <- function(cell_data, donor_data = NULL, n_donor=NULL, 
-                  check_doublet = TRUE, n_init=NULL,
+                  check_doublet = TRUE, n_init=NULL, n_proc=1, 
                   n_vars_threshold = 10, singlet_threshold = 0.9,
                   doublet_threshold = 0.9, verbose = FALSE, ...) {
     if (typeof(cell_data) == "character") {
@@ -76,6 +74,16 @@ vireo <- function(cell_data, donor_data = NULL, n_donor=NULL,
         } else {
             in_data[["GT_donors"]] <- donor_data
         }
+        mm <- match(row.names(in_data$D), row.names(in_data$GT_donors))
+        if (sum(!is.na(mm)) == 0) {
+            stop("Error: No row names matched between cell_data and donor_data!")
+        } else if (sum(is.na(mm)) > 0) {
+            message(paste(sum(is.na(mm)), "out of", length(mm), "SNPs in",
+                          "cell_data can't match donor_data."))
+        }
+        in_data$D <- in_data$D[!is.na(mm), ]
+        in_data$A <- in_data$A[!is.na(mm), ]
+        in_data$GT_donors <- in_data$GT_donors[mm[!is.na(mm)], ]
     }
     
     if (verbose) {
@@ -83,7 +91,7 @@ vireo <- function(cell_data, donor_data = NULL, n_donor=NULL,
     }
     out <- vireo_flock(in_data$A, in_data$D, GT = in_data$GT_donors,
                        K = n_donor, check_doublet = check_doublet,
-                       n_init=n_init, verbose = verbose, ...)
+                       n_init = n_init, n_proc = n_proc, verbose = verbose, ...)
 
     ## output data
     out$A <- in_data$A
@@ -117,7 +125,13 @@ vireo <- function(cell_data, donor_data = NULL, n_donor=NULL,
 #' @param K An integer. The number of donors to infer if GT is not given nor 
 #' complete.
 #' @param K_amplify A float. The amplify ratio of donor number in the first run
-#' @param n_proc An integer. The number of processors to use. 
+#' @param n_init A integer. The number of random initializations for variational
+#' inference, which can be useful to avoid local optima if not given genotypes.
+#' Default: 1 if given GT, 5 if not given GT.
+#' @param n_proc An integer. The number of processors to use.
+#' @param random_seed An integer. The seed for random initialization.
+#' @param GT_prior A matix of float, with the same size of GT_prob output, i.e.,
+#' N*K-by-3 if there are 3 genotypes.
 #' @param ... arguments passed to \code{vireo_core}
 #' @details Users should typically use \code{\link{vireo}} rather than this
 #' lower-level function.
@@ -134,16 +148,10 @@ vireo <- function(cell_data, donor_data = NULL, n_donor=NULL,
 #' \code{GT_doublet}, the pair-wise doublet genotype based on GT.
 #'
 #' @import stats
-#'
 #' @export
 #'
-#' @examples
-#' data(example_donor)
-#' res <- vireo_flock(A_clone, D_clone, GT = tree$Z[1:nrow(A_clone),])
-#' head(res$prob)
-#'
 vireo_flock <- function(A, D, K=NULL, K_amplify=1.5, GT=NULL, GT_prior=NULL, 
-                        n_init=NULL, n_proc=4, random_seed=NULL, ...) {
+                        n_init=NULL, n_proc=1, random_seed=NULL, ...) {
     start_time <- Sys.time()
     if (!is.null(random_seed)) {set.seed(random_seed)}
     
@@ -258,10 +266,23 @@ vireo_flock <- function(A, D, K=NULL, K_amplify=1.5, GT=NULL, GT_prior=NULL,
 #' @param D A matrix of integers. Number of reads depth in SNP i cell j
 #' @param K An integer. The number of donors to infer if not given GT.
 #' @param GT A matrix of integers for genotypes. The donor-SNP configuration.
-#' @param GT_prior A Matrix of genotype prior probability.
+#' @param GT_prior A matix of float, with the same size of GT_prob output, i.e.,
+#' N*K-by-3 if there are 3 genotypes.
 #' @param check_doublet logical(1), if TRUE, check doublet, otherwise ignore.
-#' @param min_iter A integer. The minimum number of iterations in EM algorithm.
-#' @param max_iter A integer. The maximum number of iterations in EM algorithm.
+#' @param check_doublet_iterative logical(1), if TRUE, check doublet iteratively, 
+#' otherwise only check once VB algorithm finishes.
+#' @param theta_prior A matrix of float with size 3-by-2. The beta prior for 
+#' binomial parameters. If NULL as default, 
+#' theta_prior = matrix(c(0.3, 3, 29.7, 29.7,  3, 0.3), nrow = 3)
+#' @param learn_theta logical(1), if TRUE, update theat, otherwise use default.
+#' @param doublet_prior A float or string. The mode or fraction of doublet_prior:
+#' NULL and uniform will give uniform weight to all singlet donor and doublet 
+#' donors. Auto or other string will use doublet_prior = N_cell / 100000. Float
+#' between 0 and 1 will give doublet_prior as doublet_prior.
+#' @param binary_GT logical(1), if TRUE, use categorical GT, otherwise use GT 
+#' probability.
+#' @param min_iter A integer. The minimum number of iterations in VB algorithm.
+#' @param max_iter A integer. The maximum number of iterations in VB algorithm.
 #' The real iteration may finish earlier.
 #' @param epsilon_conv A float. The threshold of lower bound increase for
 #' detecting convergence.
@@ -517,7 +538,13 @@ vireo_core <- function(A, D, K=NULL, GT=NULL, GT_prior=NULL,
     return_list
 }
 
-# Negative entropy value for beta distribution
+#' Negative entropy value for beta distribution
+#' @param theta_shapes A matrix of float with size T-by-2. Each row has 
+#' beta parameters [shape1, shape2].
+#' @param theta_prior A matrix of float with size T-by-2. Each row has 
+#' beta parameters [shape1, shape2]. If theta_prior is NULL, then the entropy
+#' is calculated based on theta_shapes itself, otherwise based on theta_prior.
+#' @return A list of T negative entropy values.
 nega_beta_entropy <- function(theta_shapes, theta_prior=NULL) {
     if (is.null(theta_prior)) {theta_prior <- theta_shapes}
     out_val <- 0
@@ -530,7 +557,14 @@ nega_beta_entropy <- function(theta_shapes, theta_prior=NULL) {
     out_val
 }
 
-# Internal function to update cell assignement probability
+#' Internal function to update cell assignement probability
+#' @param A A matrix of integers. Number of alteration reads in SNP i cell j
+#' @param D A matrix of integers. Number of reads depth in SNP i cell j
+#' @param GT_prob A matix of float, with the size of N*K-by-3 if there are 3 
+#' genotypes.
+#' @param theta_shapes A matrix of float with size 3-by-2. Each row is the beta
+#' prior distribution parameters of the according genotype
+#' @param Psi A voctor of float. The fraction of each donor.
 #' @return A list containing \code{logLik} and \code{ID_prob}
 get_ID_prob <- function(A, D, GT_prob, theta_shapes, Psi) {    
     M <- ncol(A)
@@ -609,7 +643,7 @@ get_doublet_GT <- function(GT_prob, K) {
     GT_both
 }
 
-# Convert genotype matrix to genotype probability matrix
+#' Convert genotype matrix to genotype probability matrix
 #' @param GT A matrix of genotype
 #' @param gt_singlet A list of singlet genotyoe
 GT_to_prob <- function(GT, gt_singlet=c(0, 1, 2)) {
@@ -622,7 +656,7 @@ GT_to_prob <- function(GT, gt_singlet=c(0, 1, 2)) {
   GT_prob
 }
 
-# Transpose genotype probability matrix
+#' Transpose genotype probability matrix
 #' @param GT_prob A N*K-by-T matrix of genotype probability
 #' @param K An integer
 #' @return A N*T-by-K matrix of genotype probability

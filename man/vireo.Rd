@@ -5,9 +5,9 @@
 \title{Donor deconvolution of scRNA-seq data}
 \usage{
 vireo(cell_data, donor_data = NULL, n_donor = NULL,
-  check_doublet = TRUE, n_init = NULL, n_vars_threshold = 10,
-  singlet_threshold = 0.9, doublet_threshold = 0.9, verbose = FALSE,
-  ...)
+  check_doublet = TRUE, n_init = NULL, n_proc = 1,
+  n_vars_threshold = 10, singlet_threshold = 0.9,
+  doublet_threshold = 0.9, verbose = FALSE, ...)
 }
 \arguments{
 \item{cell_data}{either character(1), path to a VCF file containing variant
@@ -23,6 +23,8 @@ data for donors, or a matrix for donor genotypes, matched to cell data}
 \item{n_init}{A integer. The number of random initializations for variational
 inference, which can be useful to avoid local optima if not given genotypes.
 Default: 1 if given GT, 5 if not given GT.}
+
+\item{n_proc}{An integer. The number of processors to use.}
 
 \item{n_vars_threshold}{integer(1), if the number of variants with coverage
 in a cell is below this threshold, then the cell will be given an
@@ -65,12 +67,6 @@ This function reads in all elements of the provided VCF file(s) into
 memory, so we highly recommend filtering VCFs to the minimal appropriate set
 of variants (e.g. with the bcftools software) before applying them to this
 function.
-}
-\examples{
-ids <- vireo(system.file("extdata", "cells.donorid.vcf.gz", package = "cardelino"),
-             system.file("extdata", "donors.donorid.vcf.gz", package = "cardelino"))
-table(ids$assigned$donor_id)
-
 }
 \author{
 Yuanhua Huang and Davis McCarthy
