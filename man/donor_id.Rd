@@ -6,6 +6,9 @@
 \usage{
 donor_id(...)
 }
+\arguments{
+\item{...}{arguments passed to \code{vireo}}
+}
 \description{
 Donor deconvolution of scRNA-seq data, replaced by function vireo
 }

@@ -17,6 +17,3 @@ returned.
 \description{
 Column index of the maximum value for each row in a matrix
 }
-\examples{
-
-}
