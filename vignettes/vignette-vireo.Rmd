@@ -12,7 +12,7 @@ package: cardelino
 output:
     BiocStyle::html_document
 vignette: >
-  %\VignetteIndexEntry{Clone ID with cardelino}
+  %\VignetteIndexEntry{Donor ID with vireo}
   %\VignetteEngine{knitr::rmarkdown}
   %VignetteEncoding{UTF-8}
 ---
