@@ -4,10 +4,13 @@
 \alias{load_GT_vcf}
 \title{Load genotype VCF into numeric values: 0, 1, or 2}
 \usage{
-load_GT_vcf(vcf_file)
+load_GT_vcf(vcf_file, rowname_format = "full")
 }
 \arguments{
 \item{vcf_file}{character(1), path to VCF file for donor genotypes}
+
+\item{rowname_format}{the format of rowname: NULL is the default from vcfR, 
+short is CHROM_POS, and full is CHROM_POS_REF_ALT}
 }
 \description{
 Load genotype VCF into numeric values: 0, 1, or 2

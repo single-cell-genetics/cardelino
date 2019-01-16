@@ -19,13 +19,31 @@ vireo_core(A, D, K = NULL, GT = NULL, GT_prior = NULL,
 
 \item{GT}{A matrix of integers for genotypes. The donor-SNP configuration.}
 
-\item{GT_prior}{A Matrix of genotype prior probability.}
+\item{GT_prior}{A matix of float, with the same size of GT_prob output, i.e.,
+N*K-by-3 if there are 3 genotypes.}
+
+\item{theta_prior}{A matrix of float with size 3-by-2. The beta prior for 
+binomial parameters. If NULL as default, 
+theta_prior = matrix(c(0.3, 3, 29.7, 29.7,  3, 0.3), nrow = 3)}
+
+\item{learn_theta}{logical(1), if TRUE, update theat, otherwise use default.}
 
 \item{check_doublet}{logical(1), if TRUE, check doublet, otherwise ignore.}
 
-\item{min_iter}{A integer. The minimum number of iterations in EM algorithm.}
+\item{doublet_prior}{A float or string. The mode or fraction of doublet_prior:
+NULL and uniform will give uniform weight to all singlet donor and doublet 
+donors. Auto or other string will use doublet_prior = N_cell / 100000. Float
+between 0 and 1 will give doublet_prior as doublet_prior.}
 
-\item{max_iter}{A integer. The maximum number of iterations in EM algorithm.
+\item{check_doublet_iterative}{logical(1), if TRUE, check doublet iteratively, 
+otherwise only check once VB algorithm finishes.}
+
+\item{binary_GT}{logical(1), if TRUE, use categorical GT, otherwise use GT 
+probability.}
+
+\item{min_iter}{A integer. The minimum number of iterations in VB algorithm.}
+
+\item{max_iter}{A integer. The maximum number of iterations in VB algorithm.
 The real iteration may finish earlier.}
 
 \item{epsilon_conv}{A float. The threshold of lower bound increase for
