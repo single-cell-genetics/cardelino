@@ -2,50 +2,35 @@
 # library(cardelino); library(testthat); source("test-donor_id.R")
 
 context("test donor ID")
-
-data(example_donor, package = "cardelino")
-
 cell_vcf <- system.file("extdata", "cells.donorid.vcf.gz",
                         package = "cardelino")
-GT_vcf <- system.file("extdata", "donors.donorid.vcf.gz", package = "cardelino")
+donor_vcf <- system.file("extdata", "donors.donorid.vcf.gz", 
+                         package = "cardelino")
 
-test_that("default donor_id works as expected", {
-    expect_warning(ids1 <- donor_id(cell_vcf, donor_vcf = GT_vcf),
-                   regexp = "non-diploid")
+cell_data <- load_cellSNP_vcf(cell_vcf, 
+                              max_other_allele = NULL, 
+                              min_count = 0, min_MAF = 0)
+donor_GT <- load_GT_vcf(donor_vcf)
+row.names(donor_GT) <- paste0("chr", row.names(donor_GT)) #not always necessary
+
+test_that("load_cellSNP_vcf works as expected", {
+    expect_is(cell_data$A, "dgCMatrix")
+    expect_is(cell_data$D, "dgCMatrix")
+    expect_identical(dim(cell_data$D), dim(cell_data$A))
+})
+
+test_that("load_GT_vcf works as expected", {
+    expect_is(donor_GT, "matrix")
+})
+
+test_that("vireo without known donor GT works as expected", {
+    ids1 <- vireo(cell_data = cell_data, n_donor = 3, n_init = 2)
+    print(table(ids1$assigned$donor_id))
     expect_is(ids1, "list")
 })
 
-test_that("donor_id without doublet detection works as expected", {
-    expect_warning(ids2 <- donor_id(cell_vcf, donor_vcf = GT_vcf,
-                                    check_doublet = FALSE),
-                   regexp = "non-diploid")
+test_that("vireo with known donor GT works as expected", {
+    ids2 <- vireo(cell_data = cell_data, donor_data = donor_GT)
+    print(table(ids2$assigned$donor_id))
     expect_is(ids2, "list")
-})
-
-test_that("donor_id without genotypes works as expected", {
-    expect_warning(ids3 <- donor_id(cell_vcf, n_donor = 3),
-                   regexp = "non-diploid")
-    expect_is(ids3, "list")
-})
-
-test_that("donor_id without genotypes and without doublet detection works as expected",
-{
-    expect_warning(ids4 <- donor_id(cell_vcf, n_donor = 3,
-                                    check_doublet = FALSE),
-                   regexp = "non-diploid")
-    expect_is(ids4, "list")
-})
-
-test_that("donor_id_Gibbs without genotypes works as expected", {
-    expect_warning(ids5 <- donor_id(cell_vcf, n_donor = 3, model = "Gibbs"),
-                   regexp = "non-diploid")
-    expect_is(ids5, "list")
-})
-
-test_that("donor_id_Gibbs without genotypes or doublet detection works as expected",
-{
-    expect_warning(ids6 <- donor_id(cell_vcf, n_donor = 3,
-                                    check_doublet = FALSE, model = "Gibbs"),
-                   regexp = "non-diploid")
-    expect_is(ids6, "list")
 })

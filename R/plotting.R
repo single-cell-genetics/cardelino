@@ -59,7 +59,7 @@ prob_heatmap <- function(prob_mat, threshold=0.5, mode="best", cell_idx=NULL){
 #' @param show_value Logical value for showing the value for each element or not
 #' @export
 heat_matrix <- function(mat, base_size=12, digits=2, show_value=FALSE){
-    df <- reshape2::melt(mat)
+    df <- mtx_to_df(mat)
     df$value <- round(df$value, digits = digits)
     heat.plot <- ggplot(df, aes_string(x = "Var1", y = "Var2")) +
         geom_tile(aes_string(fill = "value"), colour = "grey") +

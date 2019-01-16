@@ -21,7 +21,3 @@ on the mode used.
 \description{
 Maximum value for each row in a matrix
 }
-\examples{
-set.seed(0)
-
-}
