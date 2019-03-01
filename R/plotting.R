@@ -76,7 +76,8 @@ heat_matrix <- function(mat, base_size=12, digits=2, show_value=FALSE){
               axis.ticks.y = ggplot2::element_blank())
     if (show_value) {
         heat.plot <- heat.plot + 
-            geom_text(aes_string(label = "value"), vjust = 0.5)
+            geom_text(aes_string(label = "value"), 
+                      vjust = 0.5, size=base_size*0.25)
     }
     heat.plot
 }
@@ -263,7 +264,7 @@ pub.theme <- function(size = 12) {
                        axis.title = ggplot2::element_text(
                            face = "bold", size = size),
                        plot.title = ggplot2::element_text(
-                           face = "bold", size = size * 1.2, hjust = 0.5),
+                           size = size * 1.2, hjust = 0.5),
                        legend.title = ggplot2::element_text(size = size*1.1),
                        legend.text = ggplot2::element_text(size = size),
                        panel.grid.major = ggplot2::element_line(

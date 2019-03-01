@@ -21,7 +21,7 @@ to the same size, otherwise not}
 NULL means uniform}
 
 \item{beta_shapes}{A 3-by-2 matrix of beta parameters for genotypes: 0, 1, 
-and 2; default NULL means matrix(c(0.3, 3, 29.7, 29.7, 3, 0.3), nrow = 3)}
+and 2; default NULL means matrix(c(0.2, 0.5, 99.8, 99.8, 0.5, 0.2), nrow = 3)}
 
 \item{n_cell}{An integer for number of total cells}
 
