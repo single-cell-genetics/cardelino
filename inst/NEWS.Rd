@@ -1,6 +1,17 @@
 \name{NEWS}
 \title{News for Package \pkg{cardelino}}
 
+\section{Changes in version 0.3.0}{
+  \itemize{
+    \item cell_assign_Gibbs supports updating clone Configuration now. Set 
+          relax_Config between 0 and 1.
+    \item change the default parameters for beta prior to better represent 
+          allelic dropout and imblance in scRNA-seq data. It involves fucntions:
+          sim_read_count, donor_read_simulator, and cell_assign_Gibbs
+    \item minor change of pub.theme: title will be plain rather than bold.
+  }
+}
+
 \section{Changes in version 0.2.7}{
   \itemize{
     \item vireo supports match SNP from donor_data to cel_data; change default
