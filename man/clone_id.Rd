@@ -17,7 +17,7 @@ cell_assign_EM(A, D, Config, Psi = NULL, model = "binomial",
 cell_assign_Gibbs(A, D, Config, Psi = NULL, A_germ = NULL,
   D_germ = NULL, relax_Config = NULL, prior0 = c(0.2, 99.8),
   prior1 = c(0.45, 0.55), model = "binomial",
-  Bernoulli_threshold = 1, min_iter = 1000, max_iter = 10000,
+  Bernoulli_threshold = 1, min_iter = 3000, max_iter = 10000,
   wise = "variant", verbose = TRUE)
 }
 \arguments{

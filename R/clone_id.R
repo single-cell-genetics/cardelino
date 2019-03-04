@@ -271,7 +271,7 @@ cell_assign_Gibbs <- function(A, D, Config, Psi=NULL, A_germ=NULL, D_germ=NULL,
                               relax_Config=NULL,
                               prior0 = c(0.2, 99.8), prior1 = c(0.45, 0.55),
                               model="binomial", Bernoulli_threshold=1,
-                              min_iter=1000, max_iter=10000, wise="variant",
+                              min_iter=3000, max_iter=10000, wise="variant",
                               verbose=TRUE) {
     if (is.null(Psi)) {Psi <- rep(1/ncol(Config), ncol(Config))}
     if (dim(A)[1] != dim(D)[1] || dim(A)[2] != dim(D)[2] ||
@@ -427,7 +427,7 @@ cell_assign_Gibbs <- function(A, D, Config, Psi=NULL, A_germ=NULL, D_germ=NULL,
             oddR_log[which(oddR_log < -50)] <- -50
             Conf_prob <- exp(oddR_log) / (exp(oddR_log) + 1)
             
-            Config <- matrix(stats::rbinom(N*K, size = 1, Conf_prob), nrow = N)
+            Config[,]<- stats::rbinom(N*K, size = 1, Conf_prob)
             Config_all[it, ] <- Config
 
             for (k in seq_len(K)) {
