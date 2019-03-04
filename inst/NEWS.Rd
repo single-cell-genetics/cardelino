@@ -1,6 +1,13 @@
 \name{NEWS}
 \title{News for Package \pkg{cardelino}}
 
+\section{Changes in version 0.3.1}{
+  \itemize{
+    \item fix the clone id missing for prob_mat.
+    \item change the default the sampling iteration to 3000.
+  }
+}
+
 \section{Changes in version 0.3.0}{
   \itemize{
     \item cell_assign_Gibbs supports updating clone Configuration now. Set 
