@@ -15,8 +15,8 @@ cell_assign_EM(A, D, Config, Psi = NULL, model = "binomial",
   logLik_threshold = 1e-05, verbose = TRUE)
 
 cell_assign_Gibbs(A, D, Config, Psi = NULL, A_germ = NULL,
-  D_germ = NULL, relax_Config = NULL, prior0 = c(0.2, 99.8),
-  prior1 = c(0.45, 0.55), model = "binomial",
+  D_germ = NULL, relax_Config = FALSE, relax_prior = c(1, 9),
+  prior0 = c(0.2, 99.8), prior1 = c(0.45, 0.55), model = "binomial",
   Bernoulli_threshold = 1, min_iter = 3000, max_iter = 10000,
   wise = "variant", verbose = TRUE)
 }
@@ -65,10 +65,11 @@ heterozygous site for variant i cell j}
 \item{D_germ}{A matrix of integers. Number of reads depth in germline
 heterozygous site for variant i cell j}
 
-\item{relax_Config}{numeric(1), relaxing the Clone Configuration by changing
-it from fixed value to prior. The prior probability will be relax_Config and
-(1 - relax_Config) respectively for values 0 and 1 in original Config matrix.
-If it is relax_Config=NULL or <0 or >1, this utility will turned off.}
+\item{relax_Config}{bool(1), If TRUE, relaxing the Clone Configuration by 
+changing it from fixed value to act as a prior Config with a relax rate.}
+
+\item{relax_prior}{numeric(2), the two parameters of beta prior distribution
+on the relax rate for relaxing the clone Configuration.}
 
 \item{prior0}{numeric(2), alpha and beta parameters for the Beta prior
 distribution on the inferred false positive rate.}
