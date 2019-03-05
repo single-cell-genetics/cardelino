@@ -249,10 +249,10 @@ cell_assign_EM <- function(A, D, Config, Psi=NULL, model="binomial",
 #' distribution on the inferred false positive rate.
 #' @param prior1 numeric(2), alpha and beta parameters for the Beta prior
 #' distribution on the inferred (1 - false negative) rate.
-#' @param relax_Config numeric(1), relaxing the Clone Configuration by changing
-#' it from fixed value to prior. The prior probability will be relax_Config and
-#' (1 - relax_Config) respectively for values 0 and 1 in original Config matrix.
-#' If it is relax_Config=NULL or <0 or >1, this utility will turned off.
+#' @param relax_Config bool(1), If TRUE, relaxing the Clone Configuration by 
+#' changing it from fixed value to act as a prior Config with a relax rate.
+#' @param relax_prior numeric(2), the two parameters of beta prior distribution
+#' on the relax rate for relaxing the clone Configuration.
 #' @param Bernoulli_threshold An integer. The count threshold of alteration
 #' reads when using Bernoulli model.
 #' @param wise A string, the wise of parameters for theta1: global, variant,
@@ -268,8 +268,8 @@ cell_assign_EM <- function(A, D, Config, Psi=NULL, model="binomial",
 #' assignments_bern <- cell_assign_Gibbs(A_clone, D_clone, Config = tree$Z, model = "Bernoulli")
 #'
 cell_assign_Gibbs <- function(A, D, Config, Psi=NULL, A_germ=NULL, D_germ=NULL,
-                              relax_Config=NULL,
-                              prior0 = c(0.2, 99.8), prior1 = c(0.45, 0.55),
+                              relax_Config=FALSE, relax_prior=c(1, 9),
+                              prior0=c(0.2, 99.8), prior1=c(0.45, 0.55),
                               model="binomial", Bernoulli_threshold=1,
                               min_iter=3000, max_iter=10000, wise="variant",
                               verbose=TRUE) {
@@ -367,10 +367,18 @@ cell_assign_Gibbs <- function(A, D, Config, Psi=NULL, A_germ=NULL, D_germ=NULL,
     theta0_all <- matrix(0, nrow = max_iter, ncol = 1)
     theta1_all <- matrix(0, nrow = max_iter, ncol = n_element)
     Config_all <- matrix(0, nrow = max_iter, ncol = N*K)
-    if (!is.null(relax_Config) && relax_Config > 0 && relax_Config < 1) {
+    config_relax_all <- matrix(0, nrow = max_iter, ncol = 1)
+    if (!is.null(relax_Config) && relax_Config != FALSE) {
+        if (!is.null(relax_prior)) {
+            config_relax <- relax_prior[1] / (relax_prior[1] + relax_prior[2])
+        } else {
+            config_relax <- 0.1
+        }
+        
+        Config_new <- Config
         Config_prior <- Config
-        Config_prior[Config == 1] <- 1 - relax_Config
-        Config_prior[Config == 0] <- relax_Config
+        Config_prior[Config == 1] <- 1 - config_relax
+        Config_prior[Config == 0] <- config_relax
         Config_prior[, 1] <- Config[, 1] ## Keep the base clone
         Config_prior_oddlog <- log(Config_prior) - log(1-Config_prior)
         Iden_mat <- matrix(0, nrow = M, ncol = K)
@@ -412,7 +420,21 @@ cell_assign_Gibbs <- function(A, D, Config, Psi=NULL, A_germ=NULL, D_germ=NULL,
 
         ## Update Config
         if (it > (0.1 * min_iter) && !is.null(relax_Config) && 
-            relax_Config > 0 && relax_Config < 1) {
+                  relax_Config != FALSE) {
+            if (it > (0.1 * min_iter + 5) && !is.null(relax_prior)) {
+                diff0 <- sum((Config == Config_new)[, 2:ncol(Config)])
+                diff1 <- sum((Config != Config_new)[, 2:ncol(Config)])
+                config_relax <- stats::rbeta(1, relax_prior[1] + diff1, 
+                                             relax_prior[2] + diff0)
+                config_relax_all[it] <- config_relax
+                
+                Config_prior <- Config
+                Config_prior[Config == 1] <- 1 - config_relax
+                Config_prior[Config == 0] <- config_relax
+                Config_prior[, 1] <- Config[, 1] ## Keep the base clone
+                Config_prior_oddlog <- log(Config_prior) - log(1-Config_prior)
+            }
+            
             Iden_mat[,] <- 0
             for (j in seq_len(M)) {
                 Iden_mat[j, assign_all[it,j]] <- 1 }
@@ -427,8 +449,8 @@ cell_assign_Gibbs <- function(A, D, Config, Psi=NULL, A_germ=NULL, D_germ=NULL,
             oddR_log[which(oddR_log < -50)] <- -50
             Conf_prob <- exp(oddR_log) / (exp(oddR_log) + 1)
             
-            Config[,]<- stats::rbinom(N*K, size = 1, Conf_prob)
-            Config_all[it, ] <- Config
+            Config_new[,]<- stats::rbinom(N*K, size = 1, Conf_prob)
+            Config_all[it, ] <- Config_new
 
             for (k in seq_len(K)) {
                 S1_list[[k]] <- A1 * (1 - Config[,k])
@@ -505,7 +527,8 @@ cell_assign_Gibbs <- function(A, D, Config, Psi=NULL, A_germ=NULL, D_germ=NULL,
                         "element" = idx_mat, "logLik" = logLik_all[1:it],
                         "prob_all" = prob_all[1:it,],
                         "prob" = prob_mat, "prob_variant" = prob_variant,
-                        "Config_all"=Config_all[1:it,])
+                        "Config_all"=Config_all[1:it,], 
+                        "config_relax_all"=config_relax_all[1:it])
     return_list
 }
 

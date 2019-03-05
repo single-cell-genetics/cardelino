@@ -3,6 +3,13 @@
 
 \section{Changes in version 0.3.1}{
   \itemize{
+    \item Supporting learning the relax rate on clone configuration 
+          automatically
+  }
+}
+
+\section{Changes in version 0.3.1}{
+  \itemize{
     \item fix the clone id missing for prob_mat.
     \item change the default the sampling iteration to 3000.
   }
