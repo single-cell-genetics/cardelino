@@ -1,5 +1,22 @@
 # A few basic functions for assessment
 
+#' Convert a matrix to data frame
+#' @param X A matrix of values
+#' @export
+#' @example 
+#' mtx_to_df(matrix(seq(12), nrow=3))
+mtx_to_df <- function(X) {
+  if (is.null(row.names(X))) {
+    row.names(X) <- seq(nrow(X))
+  }
+  if (is.null(colnames(X))) {
+    colnames(X) <- seq(ncol(X))
+  }
+  data.frame(Var1 = rep(row.names(X), ncol(X)),
+             Var2 = rep(colnames(X), each = nrow(X)),
+             value = c(X))
+}
+
 #' Maximum value for each row in a matrix
 #'
 #' @param X A matrix of floats. 
@@ -11,8 +28,6 @@
 #' on the mode used.
 #'
 #' @export
-#' @examples
-#' set.seed(0)
 #'
 rowMax <- get_prob_value <- function(X, mode = "best") {
     max_val <- rep(0, nrow(X))
@@ -38,7 +53,6 @@ rowMax <- get_prob_value <- function(X, mode = "best") {
 #' returned.
 #'
 #' @export
-#' @examples
 #'
 rowArgmax <- get_prob_label <- function(X){
     max_idx <- rep(0, nrow(X))
@@ -72,7 +86,7 @@ colMatch <- function(A, B) {
 }
 
 
-# Precision-recall curve for binary label prediction
+#' Precision-recall curve for binary label prediction
 #' @param scores Prediction score for each sample
 #' @param labels True labels for each sample, e.g., from simulation
 #' @param cutoff A list of cutoff; if NULL use all unique scores
@@ -127,7 +141,7 @@ binaryPRC <- function(scores, labels, cutoff=NULL, cut_direction=">=",
 }
 
 
-# Precision-recall curve for multi-class prediction
+#' Precision-recall curve for multi-class prediction
 #' @param prob_mat Probability matrix for each cell to each component
 #' @param simu_mat The true identity of assignment from simulation
 #' @param marginal_mode A string for the mode to marginalize the column: best, 
@@ -195,7 +209,7 @@ multiPRC <- function(prob_mat, simu_mat, marginal_mode="best",
     list("df" = df, "AUC" = AUC)
 }
 
-# Scoring the simulation in assignment of singlets and doublets
+#' Scoring the simulation in assignment of singlets and doublets
 #' @param prob Probability matrix for each cell to each component
 #' @param I_sim The true identity of assignment from simulation
 #' @param cutoff A list of cutoff from 0 to 1

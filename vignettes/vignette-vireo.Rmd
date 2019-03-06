@@ -12,7 +12,7 @@ package: cardelino
 output:
     BiocStyle::html_document
 vignette: >
-  %\VignetteIndexEntry{Clone ID with cardelino}
+  %\VignetteIndexEntry{Donor ID with vireo}
   %\VignetteEngine{knitr::rmarkdown}
   %VignetteEncoding{UTF-8}
 ---
@@ -126,7 +126,7 @@ is used by default, however can be turned off if doublet detection is not needed
 The `vireo` function returns a list of outputs, one of which is the `assigned` data.frame with inferred donor ID (either a donor ID, "doublet" or "unassigned").
 
 ```{r vireo without GT}
-ids <- vireo(cell_data = cell_data, n_donor = 3)
+ids <- vireo(cell_data = cell_data, n_donor = 3, n_proc = 1, n_init = 2)
 table(ids$assigned$donor_id)
 ```
 
@@ -163,13 +163,6 @@ donor_GT <- load_GT_vcf(system.file("extdata", "donors.donorid.vcf.gz",
                                     package = "cardelino"))
 row.names(donor_GT) <- paste0("chr", row.names(donor_GT)) #not always necessary
 head(donor_GT)
-
-cell_data_mm <- list()
-mm <- match(row.names(cell_data$D), row.names(donor_GT))
-cell_data_mm$D <- cell_data$D[!is.na(mm), ]
-cell_data_mm$A <- cell_data$A[!is.na(mm), ]
-Geno_data <- donor_GT[mm[!is.na(mm)], ]
-t(dim(cell_data_mm$D))
 ```
 
 
@@ -178,7 +171,7 @@ genotype is only for a subset of the input donors, please provide `n_donor` the
 true number of donors.
 
 ```{r vireo with GT}
-ids_GT <- vireo(cell_data = cell_data_mm, donor_data = Geno_data)
+ids_GT <- vireo(cell_data = cell_data, donor_data = donor_GT, n_proc = 1)
 table(ids_GT$assigned$donor_id)
 
 df$donor_id_GT <- ids_GT$assigned$donor_id

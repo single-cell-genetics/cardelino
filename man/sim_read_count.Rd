@@ -4,8 +4,8 @@
 \alias{sim_read_count}
 \title{Sythetic reads generator for genetic variants}
 \usage{
-sim_read_count(Config, D, Psi = NULL, means = c(0.01, 0.47),
-  vars = c(30, 4.8), wise0 = "element", wise1 = "variant",
+sim_read_count(Config, D, Psi = NULL, means = c(0.002, 0.45),
+  vars = c(100, 1), wise0 = "element", wise1 = "variant",
   cell_num = 300, permute_D = FALSE, doublet = 0)
 }
 \arguments{
