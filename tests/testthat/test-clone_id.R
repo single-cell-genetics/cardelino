@@ -14,15 +14,15 @@ test_that("binomial EM inference works as expected", {
     expect_is(assignments_EM, "list")
 })
 
-test_that("Bernoulli Gibbs inference works as expected", {
-    assignments_bern <- clone_id(A_clone, D_clone, Config = tree$Z,
-                                 model = "Bernoulli")
-    expect_is(assignments_bern, "list")
-})
-
-test_that("Bernoulli EM inference works as expected", {
-    assignments_bern_EM <- clone_id(A_clone, D_clone, Config = tree$Z,
-                                    model = "Bernoulli", inference = "EM")
-    expect_is(assignments_bern_EM, "list")
-})
+# test_that("Bernoulli Gibbs inference works as expected", {
+#     assignments_bern <- clone_id(A_clone, D_clone, Config = tree$Z,
+#                                  model = "Bernoulli")
+#     expect_is(assignments_bern, "list")
+# })
+# 
+# test_that("Bernoulli EM inference works as expected", {
+#     assignments_bern_EM <- clone_id(A_clone, D_clone, Config = tree$Z,
+#                                     model = "Bernoulli", inference = "EM")
+#     expect_is(assignments_bern_EM, "list")
+# })
 

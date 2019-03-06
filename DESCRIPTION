@@ -1,8 +1,8 @@
 Package: cardelino
 Type: Package
 Title: Clone and Donor Identification from Single Cell Data
-Version: 0.2.6
-Date: 2018-01-14
+Version: 0.3.2
+Date: 2019-03-05
 Authors@R: c(person("Davis", "McCarthy", role=c("aut", "cre"),
         email="davis@ebi.ac.uk"), person("Yuanhua", "Huang", 
         role=c("aut"), email="yuanhua@ebi.ac.uk"))
@@ -13,13 +13,15 @@ Description: Methods to infer clonal structure for a population of cells using
     between clones.
 License: GPL (>= 3)
 Depends: R (>= 3.4), stats
-Imports: ggplot2, matrixStats, pheatmap, doMC, Matrix, VariantAnnotation, vcfR, snpStats
-Suggests: ggtree, BiocStyle, knitr, pcaMethods, testthat
+Imports: ggplot2, ggpubr, ggtree, pheatmap, matrixStats, Matrix, doMC, foreach,
+    vcfR, GenomeInfoDb, GenomicRanges, methods, snpStats, S4Vectors, 
+    VariantAnnotation
+Suggests: BiocStyle, knitr, pcaMethods, testthat
 VignetteBuilder: knitr
 LazyData: true
 biocViews: SingleCell, RNASeq, Visualization, Transcriptomics, GeneExpression, 
     Sequencing, Software
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1
 NeedsCompilation: yes
 URL: https://github.com/PMBio/cardelino
 BugReports: https://github.com/PMBio/cardelino/issues

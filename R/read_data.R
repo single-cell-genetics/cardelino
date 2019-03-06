@@ -196,17 +196,15 @@ get_snp_matrices <- function(vcf_cell, vcf_donor=NULL, verbose = TRUE,
 #'
 #' @param vcf_file character(1), path to VCF file generated from cellSNP
 #' @param max_other_allele maximum ratio of other alleles comparing to REF and 
-#' ALT alleles
-#' @param min_count minimum count across all cells
-#' @param min_MAF minimum minor allele fraction
+#' ALT alleles; for cellSNP vcf, we recommend 0.05
+#' @param min_count minimum count across all cells, e.g., 20
+#' @param min_MAF minimum minor allele fraction, e.g., 0.1
 #' @param rowname_format the format of rowname: NULL is the default from vcfR, 
 #' short is CHROM_POS, and full is CHROM_POS_REF_ALT
 #' @export
 #'
-#' @examples
-#'
-load_cellSNP_vcf <- function(vcf_file, max_other_allele=0.05, min_count=20, 
-                             min_MAF=0.1, rowname_format="full") {
+load_cellSNP_vcf <- function(vcf_file, min_count=0, min_MAF=0, 
+                             max_other_allele=NULL, rowname_format="full") {
     vcf_temp <- vcfR::read.vcfR(vcf_file)
     dp_full <- vcfR::extract.gt(vcf_temp, element = "DP", as.numeric = TRUE)
     ad_full <- vcfR::extract.gt(vcf_temp, element = "AD", as.numeric = TRUE)
@@ -216,8 +214,10 @@ load_cellSNP_vcf <- function(vcf_file, max_other_allele=0.05, min_count=20,
               rowSums(dp_full, na.rm = TRUE)) >= min_MAF))
 
     if (!is.null(max_other_allele)) {
-        dp_sum <- vcfR::extract.info(vcf_temp, element = "DP", as.numeric=TRUE)
-        oth_sum <- vcfR::extract.info(vcf_temp, element = "OTH", as.numeric=TRUE)
+        dp_sum <- vcfR::extract.info(vcf_temp, element = "DP", 
+                                     as.numeric = TRUE)
+        oth_sum <- vcfR::extract.info(vcf_temp, element = "OTH", 
+                                      as.numeric = TRUE)
         idx <- idx & (oth_sum / dp_sum < max_other_allele)
     }
 
@@ -248,26 +248,35 @@ load_cellSNP_vcf <- function(vcf_file, max_other_allele=0.05, min_count=20,
 #' Load genotype VCF into numeric values: 0, 1, or 2
 #'
 #' @param vcf_file character(1), path to VCF file for donor genotypes
+#' @param rowname_format the format of rowname: NULL is the default from vcfR, 
+#' short is CHROM_POS, and full is CHROM_POS_REF_ALT
 #' @export
-load_GT_vcf <- function(vcf_file) {
+load_GT_vcf <- function(vcf_file, rowname_format="full") {
     GT_vcf <- vcfR::read.vcfR(vcf_file)
     GT <- vcfR::extract.gt(GT_vcf, element = "GT")
-
-    fix_val <- vcfR::getFIX(GT_vcf)
-    GT_ids <- paste0(fix_val[,1], "_", fix_val[,2], 
-                    "_", fix_val[,4], "_", fix_val[,5])
-    GT_ids_short <- paste0(fix_val[,1], "_", fix_val[,2])
-
+    
+    GT_num <- matrix(NA, nrow = nrow(GT), ncol = ncol(GT))
+    colnames(GT_num) <- colnames(GT) 
+    row.names(GT_num) <- row.names(GT)
+    
     idx0 = which(GT == "0/0" | GT == "0|0")
     idx2 = which(GT == "1/1" | GT == "1|1")
     idx1 = which(GT == "0/1" | GT == "1/0" |
-                GT == "0|1" | GT == "1|0" )
-    GT_num <- matrix(NA, nrow=nrow(GT), ncol=ncol(GT))
-    colnames(GT_num) <- colnames(GT) 
-    row.names(GT_num) <- GT_ids
+                 GT == "0|1" | GT == "1|0" )
+    
     GT_num[idx0] <- 0
     GT_num[idx1] <- 1
     GT_num[idx2] <- 2
-
+    
+    if (!is.null(rowname_format)) {
+      fix_val <- vcfR::getFIX(GT_vcf)
+      if (rowname_format == "short") {
+        row.names(GT_num) <- paste0(fix_val[,1], "_", fix_val[,2])
+      } else {
+        row.names(GT_num) <- paste0(fix_val[,1], "_", fix_val[,2], 
+                                    "_", fix_val[,4], "_", fix_val[,5])
+      }
+    }
+    
     GT_num
 }

@@ -5,7 +5,7 @@
 \title{Variational inference for donor deconvolution with or without genotypes.}
 \usage{
 vireo_flock(A, D, K = NULL, K_amplify = 1.5, GT = NULL,
-  GT_prior = NULL, n_init = NULL, n_proc = 4, random_seed = NULL,
+  GT_prior = NULL, n_init = NULL, n_proc = 1, random_seed = NULL,
   ...)
 }
 \arguments{
@@ -20,7 +20,16 @@ complete.}
 
 \item{GT}{A matrix of integers for genotypes. The donor-SNP configuration.}
 
+\item{GT_prior}{A matix of float, with the same size of GT_prob output, i.e.,
+N*K-by-3 if there are 3 genotypes.}
+
+\item{n_init}{A integer. The number of random initializations for variational
+inference, which can be useful to avoid local optima if not given genotypes.
+Default: 1 if given GT, 5 if not given GT.}
+
 \item{n_proc}{An integer. The number of processors to use.}
+
+\item{random_seed}{An integer. The seed for random initialization.}
 
 \item{...}{arguments passed to \code{vireo_core}}
 }
@@ -42,10 +51,4 @@ Variational inference for donor deconvolution with or without genotypes.
 \details{
 Users should typically use \code{\link{vireo}} rather than this
 lower-level function.
-}
-\examples{
-data(example_donor)
-res <- vireo_flock(A_clone, D_clone, GT = tree$Z[1:nrow(A_clone),])
-head(res$prob)
-
 }
