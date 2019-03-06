@@ -453,10 +453,10 @@ cell_assign_Gibbs <- function(A, D, Config, Psi=NULL, A_germ=NULL, D_germ=NULL,
             Config_all[it, ] <- Config_new
 
             for (k in seq_len(K)) {
-                S1_list[[k]] <- A1 * (1 - Config[,k])
-                S2_list[[k]] <- B1 * (1 - Config[,k])
-                S3_list[[k]] <- A1 * Config[,k] + A2
-                S4_list[[k]] <- B1 * Config[,k] + B2
+                S1_list[[k]] <- A1 * (1 - Config_new[,k])
+                S2_list[[k]] <- B1 * (1 - Config_new[,k])
+                S3_list[[k]] <- A1 * Config_new[,k] + A2
+                S4_list[[k]] <- B1 * Config_new[,k] + B2
             }
         }
 
