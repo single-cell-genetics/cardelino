@@ -51,7 +51,7 @@
 #' simu <- sim_read_count(tree_4clone$Z, D2, Psi=NULL, cell_num=500)
 #'
 sim_read_count <- function(Config, D, Psi=NULL,
-                           means=c(0.01, 0.47), vars=c(30, 4.8),
+                           means=c(0.002, 0.45), vars=c(100, 1),
                            wise0="element", wise1="variant",
                            cell_num=300, permute_D=FALSE, doublet=0.0){
     M <- cell_num      #number of cells
@@ -221,14 +221,16 @@ sample_tree_SNV <- function(tree, n_SNV=NULL){
     out.tree
 }
 
-# Reads simulator for donor identification
+#' Reads simulator for donor identification
 #' @param GT Variant-by-donor matrix for genotypes
 #' @param D_seed Variant-by-cell matrix for read coverage for generating depth,
 #' which be row sample and column sample both with replacement
+#' @param sample_variants logical(1), if TRUE, sample variants with replacement 
+#' to the same size, otherwise not
 #' @param donor_size Vector of float for the fractions of each donor; default 
 #' NULL means uniform
 #' @param beta_shapes A 3-by-2 matrix of beta parameters for genotypes: 0, 1, 
-#' and 2; default NULL means matrix(c(0.3, 3, 29.7, 29.7, 3, 0.3), nrow = 3)
+#' and 2; default NULL means matrix(c(0.2, 0.5, 99.8, 99.8, 0.5, 0.2), nrow = 3)
 #' @param n_cell An integer for number of total cells
 #' @param doublet_rate A float from 0 to 1 for doublet rate; default NULL means
 #' rate n_cell / 100000
@@ -246,7 +248,8 @@ donor_read_simulator <- function(GT, D_seed, sample_variants=FALSE,
         set.seed(rand_seed)
     }
     if (is.null(beta_shapes)) {
-        beta_shapes <- matrix(c(0.3, 3, 29.7, 29.7, 3, 0.3), nrow = 3)
+        #beta_shapes <- matrix(c(0.3, 3, 29.7, 29.7, 3, 0.3), nrow = 3)
+        beta_shapes <- matrix(c(0.2, 0.5, 99.8, 99.8, 0.5, 0.2), nrow = 3)
     }
     if (is.null(doublet_rate)) {
         doublet_rate <- n_cell / 100000
