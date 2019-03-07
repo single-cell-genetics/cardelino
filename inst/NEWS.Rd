@@ -5,6 +5,7 @@
   \itemize{
     \item Add averaged `Config_prob` and `relax_rate` in cell_assign_Gibbs 
           outputs
+    \item Add `force` option in colMatch function to force one-to-one match
   }
 }
 
