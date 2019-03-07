@@ -65,7 +65,7 @@ rowArgmax <- get_prob_label <- function(X){
 #' Column match between two matrices by the minimum mean abosolute difference
 #' @param A The first matrix which will be matched
 #' @param B The second matrix, the return index will be used on
-#' @param force, bool(1), If TRUE, force it to one-to-one match, which uses the
+#' @param force bool(1), If TRUE, force it to one-to-one match, which uses the
 #' best match in all possible permutation of columns
 #' @return \code{idx}, the column index of B to be matched to A
 #' @export
