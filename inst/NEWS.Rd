@@ -1,6 +1,13 @@
 \name{NEWS}
 \title{News for Package \pkg{cardelino}}
 
+\section{Changes in version 0.3.4}{
+  \itemize{
+    \item Add averaged `Config_prob` and `relax_rate` in cell_assign_Gibbs 
+          outputs
+  }
+}
+
 \section{Changes in version 0.3.3}{
   \itemize{
     \item Fix the bug in inferring the relax_rate in cell_assign_Gibbs

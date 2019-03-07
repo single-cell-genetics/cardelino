@@ -518,6 +518,9 @@ cell_assign_Gibbs <- function(A, D, Config, Psi=NULL, A_germ=NULL, D_germ=NULL,
     row.names(prob_mat) <- colnames(A)
     colnames(prob_mat) <- colnames(Config)
 
+    Config_prob = Config
+    Config_prob[,] <- colMeans(Config_all[n_buin:it,])
+
     theta0 <- mean(theta0_all[n_buin:it,])
     theta1[idx_mat] <- colMeans(as.matrix(theta1_all[n_buin:it,]))
 
@@ -527,6 +530,8 @@ cell_assign_Gibbs <- function(A, D, Config, Psi=NULL, A_germ=NULL, D_germ=NULL,
                         "element" = idx_mat, "logLik" = logLik_all[1:it],
                         "prob_all" = prob_all[1:it,],
                         "prob" = prob_mat, "prob_variant" = prob_variant,
+                        "relax_rate" = mean(config_relax_all[n_buin:it]),
+                        "Config_prob" = Config_prob, 
                         "Config_all"=Config_all[1:it,], 
                         "config_relax_all"=config_relax_all[1:it])
     return_list
