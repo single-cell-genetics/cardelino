@@ -11,7 +11,7 @@ colMatch(A, B, force = FALSE)
 
 \item{B}{The second matrix, the return index will be used on}
 
-\item{force, }{bool(1), If TRUE, force it to one-to-one match, which uses the
+\item{force}{bool(1), If TRUE, force it to one-to-one match, which uses the
 best match in all possible permutation of columns}
 }
 \value{
