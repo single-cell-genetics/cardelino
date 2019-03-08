@@ -65,23 +65,38 @@ rowArgmax <- get_prob_label <- function(X){
 #' Column match between two matrices by the minimum mean abosolute difference
 #' @param A The first matrix which will be matched
 #' @param B The second matrix, the return index will be used on
+#' @param force bool(1), If TRUE, force it to one-to-one match, which uses the
+#' best match in all possible permutation of columns
 #' @return \code{idx}, the column index of B to be matched to A
 #' @export
 #' 
-colMatch <- function(A, B) {
+colMatch <- function(A, B, force=FALSE) {
     if (nrow(A) != nrow(B)) {
         stop("Error: A and B have different rows.")
     }
-    ncol_A <- ncol(A)
-    ncol_B <- ncol(B)
-    idx <- rep(NA, ncol_A)
-    MAE <- rep(NA, ncol_B)
-    for (i in seq_len(ncol_A)) {
-        for (j in seq_len(ncol_B)) {
-            MAE[j] <- mean(abs(A[, i] - B[, j]))
+    if (force == TRUE) {
+        if (ncol(A) != ncol(B)) {
+            stop("Error: force mode requires A and B have same n_col.")
         }
-        idx[i] <- order(MAE)[1]
+        idx_list <- combinat::permn(ncol(A))
+        MAE_list <- rep(NA, length(idx_list))
+        for (ii in seq_len(length(idx_list))) {
+            MAE_list[ii] <- mean(abs(A - B[, idx_list[[ii]]]))
+        }
+        idx_list[[which.min(MAE_list)]]
+    } else {
+        ncol_A <- ncol(A)
+        ncol_B <- ncol(B)
+        idx <- rep(NA, ncol_A)
+        MAE <- rep(NA, ncol_B)
+        for (i in seq_len(ncol_A)) {
+            for (j in seq_len(ncol_B)) {
+                MAE[j] <- mean(abs(A[, i] - B[, j]))
+            }
+            idx[i] <- order(MAE)[1]
+        }
     }
+    
     idx
 }
 
