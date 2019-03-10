@@ -572,8 +572,9 @@ get_ID_prob <- function(A, D, GT_prob, theta_shapes, Psi) {
     K <- nrow(GT_prob) / N
     logLik_ID <- matrix(0, nrow = M, ncol = K)
     for (ig in seq_len(ncol(GT_prob))) {
-        S1 <- Matrix::t(A) %*% matrix(GT_prob[, ig], nrow = N)
-        SS <- Matrix::t(D) %*% matrix(GT_prob[, ig], nrow = N)
+        GT_prob_ig <- matrix(GT_prob[, ig], nrow = N)
+        S1 <- Matrix::crossprod(A, GT_prob_ig)
+        SS <- Matrix::crossprod(D, GT_prob_ig)
         S2 <- SS - S1
         logLik_ID <- logLik_ID + as.matrix(S1 * digamma(theta_shapes[ig, 1]) + 
                                            S2 * digamma(theta_shapes[ig, 2]) - 
