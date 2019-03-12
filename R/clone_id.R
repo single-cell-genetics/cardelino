@@ -249,7 +249,7 @@ cell_assign_EM <- function(A, D, Config, Psi=NULL, model="binomial",
 #' distribution on the inferred false positive rate.
 #' @param prior1 numeric(2), alpha and beta parameters for the Beta prior
 #' distribution on the inferred (1 - false negative) rate.
-#' @param relax_Config bool(1), If TRUE, relaxing the Clone Configuration by 
+#' @param relax_Config bool(1), If TRUE, relaxing the Clone Configuration by
 #' changing it from fixed value to act as a prior Config with a relax rate.
 #' @param relax_prior numeric(2), the two parameters of beta prior distribution
 #' on the relax rate for relaxing the clone Configuration.
@@ -374,13 +374,13 @@ cell_assign_Gibbs <- function(A, D, Config, Psi=NULL, A_germ=NULL, D_germ=NULL,
         } else {
             config_relax <- 0.1
         }
-        
+
         Config_new <- Config
         Config_prior <- Config
         Config_prior[Config == 1] <- 1 - config_relax
         Config_prior[Config == 0] <- config_relax
         Config_prior[, 1] <- Config[, 1] ## Keep the base clone
-        Config_prior_oddlog <- log(Config_prior) - log(1-Config_prior)
+        Config_prior_oddlog <- log(Config_prior) - log(1 - Config_prior)
         Iden_mat <- matrix(0, nrow = M, ncol = K)
     }
 
@@ -419,22 +419,22 @@ cell_assign_Gibbs <- function(A, D, Config, Psi=NULL, A_germ=NULL, D_germ=NULL,
         }
 
         ## Update Config
-        if (it > (0.1 * min_iter) && !is.null(relax_Config) && 
+        if (it > (0.1 * min_iter) && !is.null(relax_Config) &&
                   relax_Config != FALSE) {
             if (it > (0.1 * min_iter + 5) && !is.null(relax_prior)) {
                 diff0 <- sum((Config == Config_new)[, 2:ncol(Config)])
                 diff1 <- sum((Config != Config_new)[, 2:ncol(Config)])
-                config_relax <- stats::rbeta(1, relax_prior[1] + diff1, 
+                config_relax <- stats::rbeta(1, relax_prior[1] + diff1,
                                              relax_prior[2] + diff0)
                 config_relax_all[it] <- config_relax
-                
+
                 Config_prior <- Config
                 Config_prior[Config == 1] <- 1 - config_relax
                 Config_prior[Config == 0] <- config_relax
                 Config_prior[, 1] <- Config[, 1] ## Keep the base clone
-                Config_prior_oddlog <- log(Config_prior) - log(1-Config_prior)
+                Config_prior_oddlog <- log(Config_prior) - log(1 - Config_prior)
             }
-            
+
             Iden_mat[,] <- 0
             for (j in seq_len(M)) {
                 Iden_mat[j, assign_all[it,j]] <- 1 }
@@ -442,14 +442,14 @@ cell_assign_Gibbs <- function(A, D, Config, Psi=NULL, A_germ=NULL, D_germ=NULL,
             # calculate log_probability matrix with genotype 0 and 1
             P0_mat <- A1 * log(theta0) + B1 * log(1 - theta0) + W_log
             P1_mat <- A1 * log(theta1) + B1 * log(1 - theta1) + W_log
-            
+
             oddR_log <- P1_mat %*% Iden_mat - P0_mat %*% Iden_mat
             oddR_log <- oddR_log + Config_prior_oddlog
             oddR_log[which(oddR_log > 50)] <- 50
             oddR_log[which(oddR_log < -50)] <- -50
             Conf_prob <- exp(oddR_log) / (exp(oddR_log) + 1)
-            
-            Config_new[,]<- stats::rbinom(N*K, size = 1, Conf_prob)
+
+            Config_new[,] <- stats::rbinom(N*K, size = 1, Conf_prob)
             Config_all[it, ] <- Config_new
 
             for (k in seq_len(K)) {
@@ -518,7 +518,7 @@ cell_assign_Gibbs <- function(A, D, Config, Psi=NULL, A_germ=NULL, D_germ=NULL,
     row.names(prob_mat) <- colnames(A)
     colnames(prob_mat) <- colnames(Config)
 
-    Config_prob = Config
+    Config_prob <- Config
     Config_prob[,] <- colMeans(Config_all[n_buin:it,])
 
     theta0 <- mean(theta0_all[n_buin:it,])
@@ -531,9 +531,9 @@ cell_assign_Gibbs <- function(A, D, Config, Psi=NULL, A_germ=NULL, D_germ=NULL,
                         "prob_all" = prob_all[1:it,],
                         "prob" = prob_mat, "prob_variant" = prob_variant,
                         "relax_rate" = mean(config_relax_all[n_buin:it]),
-                        "Config_prob" = Config_prob, 
-                        "Config_all"=Config_all[1:it,], 
-                        "config_relax_all"=config_relax_all[1:it])
+                        "Config_prob" = Config_prob,
+                        "Config_all" = Config_all[1:it,],
+                        "config_relax_all" = config_relax_all[1:it])
     return_list
 }
 
@@ -564,4 +564,222 @@ Geweke_Z <- function(X, first=0.1, last=0.5) {
 
     Z
 }
+
+
+#' Get a clonal tree from a configuration matrix
+#'
+#' @param Config variant x clone matrix of binary values. The clone-variant
+#' configuration, which encodes the phylogenetic tree structure. This is the
+#' output Z of Canopy
+#' @param P a one-column numeric matrix encoding the (observed or estimated)
+#' prevalence (or frequency) of each clone
+#'
+#' @return
+#' An object of class "phylo" describing the tree structure. The output object
+#' also contains an element "sna" defining the clustering of variants onto the
+#' branches of the tree, and if \code{P} is non-null it also contains VAF
+#' (variant allele frequency), CCF (cell clone fraction) and clone prevalence
+#' values (computed from the supplied \code{P} argument).
+#'
+#' @details
+#' Output tree may be nonsensical if the input \code{Config} matrix does not
+#' define a coherent tree structure.
+#'
+#' @author Davis McCarthy
+#'
+#' @import utils
+#' @export
+#'
+#' @examples
+#' Configk3 <- matrix(c(rep(0, 15), rep(1, 8), rep(0, 7), rep(1, 5), rep(0, 3), rep(1, 7)), ncol = 3)
+#' tree_k3 <- get_tree(Config = Configk3, P = matrix(rep(1/3, 3), ncol = 1))
+#' plot_tree(tree_k3)
+get_tree <- function(Config, P = NULL) {
+  if (!is.null(P)) {
+    if (ncol(P) != 1)
+      stop("P must be a matrix with one column encoding clone prevalence values")
+  }
+  k <- ncol(Config) # number of clones
+  varnames <- rownames(Config)
+  sna <- matrix(nrow = nrow(Config), ncol = 3)
+  sna[, 1] <- seq_len(nrow(sna))
+  rownames(sna) <- varnames
+  colnames(sna) <- c("sna", "sna.st.node", "sna.ed.node")
+  tip_label <- seq_len(k)
+  tip_vals <- 2^seq_len(k)
+  ## Need to determine number of internal nodes in the tree
+  Config2 <- t(t(Config) * tip_vals)
+  var_bin_vals <- rowSums(Config2)
+  node_vals <- names(table(var_bin_vals))
+  node_vals <- node_vals[!(node_vals %in% tip_vals)]
+  node_num <- sum(!(node_vals %in% tip_vals))
+  ## define a list with subsets of edge matrices
+  ## start with root node (k+1), which always connects to tip 1 (base clone)
+  if (node_num > 0.5) {
+    node_def_list <- list()
+    edge_list <- list()
+    for (i in 1:(k - 1)) {
+      clone_combos <- utils::combn(2:k, (k - i), simplify = FALSE)
+      for (j in seq_len(length(clone_combos))) {
+        test_sum <- sum(tip_vals[clone_combos[[j]]])
+        if (test_sum %in% node_vals)
+          node_def_list[[
+            paste0("node", paste0(clone_combos[[j]]), collapse = "_")]] <-
+            clone_combos[[j]]
+      }
+    }
+    if (node_num != length(node_def_list))
+      stop("Conflict in computed number of internal nodes.")
+    ## Sort out edges for the root node
+    tip_nodes <- seq_len(k)
+    root_to_tip <- tip_nodes[!(tip_nodes %in% unique(unlist(node_def_list)))]
+    edge_list[["root_node_tips"]] <- matrix(
+      c(rep(k + 1, length(root_to_tip)), root_to_tip),
+      nrow = length(root_to_tip))
+    el_counter <- 1
+    for (i in seq_len(length(node_def_list))) {
+      ## add edge from root to internal node if not already done
+      if (i < 1.5) {
+        el_counter <- el_counter + 1
+        edge_list[[el_counter]] <- matrix(c(k + 1, k + 1 + i), nrow = 1)
+        sna[var_bin_vals == sum(2^node_def_list[[i]]), 2] <- k + 1
+        sna[var_bin_vals == sum(2^node_def_list[[i]]), 3] <- k + 1 + i
+      } else {
+        clones_in_this_node <- node_def_list[[i]]
+        clones_in_prev_nodes <- unique(unlist(node_def_list[1:(i - 1)]))
+        if (!any(clones_in_this_node %in% clones_in_prev_nodes)) {
+          el_counter <- el_counter + 1
+          edge_list[[el_counter]] <- matrix(c(k + 1, k + 1 + i), nrow = 1)
+          sna[var_bin_vals == sum(2^node_def_list[[i]]), 2] <- k + 1
+          sna[var_bin_vals == sum(2^node_def_list[[i]]), 3] <- k + 1 + i
+        }
+      }
+      ## add edge from internal node to internal node
+      ## if all of the clones for the node are present in the previous node in
+      ## the tree (immediately above in the hierarchy), then add the edge
+      ## check the size of previous nodes, and select the node that has minimum
+      ## number of clones that is more than the number in this node
+      if (i > 1.5) {
+        prev_nodes <- 1:(i - 1)
+        prev_node_sizes <- sapply(node_def_list[prev_nodes], length)
+        prev_nodes <- prev_nodes[prev_node_sizes > length(node_def_list[[i]])]
+        min_prev_node_size <- min(prev_node_sizes[prev_nodes])
+        prev_nodes <- prev_nodes[prev_node_sizes[prev_nodes] ==
+                                   min_prev_node_size]
+        for (j in prev_nodes) {
+          if (all(node_def_list[[i]] %in% node_def_list[[j]])) {
+            el_counter <- el_counter + 1
+            edge_list[[el_counter]] <- matrix(
+              c(k + 1 + j, k + 1 + i), nrow = 1)
+            sna[var_bin_vals == sum(2^node_def_list[[i]]), 2] <- k + 1 + j
+            sna[var_bin_vals == sum(2^node_def_list[[i]]), 3] <- k + 1 + i
+          }
+        }
+      }
+      ## add edge from internal node to tip
+      ## (if clone not present in any subsequent nodes)
+      if (node_num < 1.5) {
+        ## if only one internal node, there are edges from this node to all tips
+        node_to_tip <- tip_nodes[-1]
+        el_counter <- el_counter + 1
+        edge_list[[el_counter]] <- matrix(
+          c(rep(k + 1 + i, length(node_to_tip)), node_to_tip),
+          nrow = length(node_to_tip))
+        for (m in node_to_tip) {
+          sna[var_bin_vals == sum(2^m), 2] <- k + 1 + i
+          sna[var_bin_vals == sum(2^m), 3] <- m
+        }
+      } else {
+        ## if more than one internal node, need to check if tips mentioned in
+        ## this node appear in any subsequent nodes
+        node_to_tip <- node_def_list[[i]]
+        if (i < node_num) {
+          node_to_tip <- node_to_tip[
+            !(node_to_tip %in% unique(unlist(node_def_list[(i + 1):node_num])))]
+        } ## else this is the last node; just connect edges from node to tips
+        if (length(node_to_tip) > 0.5) {
+          el_counter <- el_counter + 1
+          edge_list[[el_counter]] <- matrix(
+            c(rep(k + 1 + i, length(node_to_tip)), node_to_tip),
+            nrow = length(node_to_tip))
+          for (m in node_to_tip) {
+            sna[var_bin_vals == sum(2^m), 2] <- k + 1 + i
+            sna[var_bin_vals == sum(2^m), 3] <- m
+          }
+        }
+      }
+    }
+  } else {
+    edge_list <- list("root_node" = matrix(c(k + 1, k + 1, 1, 2), nrow = 2))
+  }
+  # node_def_list
+  edge_mat <- do.call(rbind, edge_list)
+  tree_out <- list(edge = edge_mat, Nnode = node_num + 1, tip.label = tip_label)
+  class(tree_out) <- "phylo"
+  tree_out$Z <- Config
+  if (!is.null(P)) {
+    tree_out$P <- P
+    tree_out$VAF <- tree_out$Z %*% tree_out$P / 2
+    tree_out$CCF <- tree_out$Z %*% tree_out$P
+  }
+  tree_out$sna <- sna
+  tree_out
+}
+
+
+### Create a tree from a config matrix
+# Configk3 <- matrix(c(rep(0, 15), rep(1, 8), rep(0, 7), rep(1, 5), rep(0, 3),
+#                      rep(1, 7)), ncol = 3)
+# Configk4_1 <- matrix(c(rep(0, 15), rep(1, 8), rep(0, 7), rep(1, 5), rep(0, 3),
+#                        rep(1, 4), rep(0, 3), rep(1, 5), rep(0, 7), rep(1, 3)),
+#                      ncol = 4)
+# Configk4_2 <- matrix(c(rep(0, 15), rep(1, 8), rep(0, 7), rep(1, 5), rep(0, 3),
+#                        rep(1, 4), rep(0, 3), rep(1, 5), rep(0, 3), rep(1, 2),
+#                        rep(0, 2), rep(1, 3)),
+#                      ncol = 4)
+# Configk5 <- matrix(c(rep(0, 15), rep(1, 8), rep(0, 7), rep(1, 5), rep(0, 3),
+#                      rep(1, 4), rep(0, 3), rep(1, 5), rep(0, 3), rep(1, 2),
+#                      rep(0, 2), rep(0, 3), rep(1, 8), rep(0, 4), rep(1, 3)),
+#                    ncol = 5)
+#
+# tree_k3 <- get_tree(Config = Configk3, P = matrix(rep(1/3, 3), ncol = 1))
+# tree_k3$sna
+# tree_k3$Z
+# tree_k3$edge
+# cardelino::plot_tree(tree_k3)
+#
+# tree_k4_1 <- get_tree(Config = Configk4_1, P = matrix(rep(1/4, 4), ncol = 1))
+# tree_k4_1$sna
+# tree_k4_1$Z
+# tree_k4_1$edge
+# plot_tree(tree_k4_1)
+#
+# tree_k4_2 <- get_tree(Config = Configk4_2, P = matrix(rep(1/4, 4), ncol = 1))
+# tree_k4_2$sna
+# tree_k4_2$Z
+# tree_k4_2$edge
+# plot_tree(tree_k4_2)
+#
+# tree_k5 <- get_tree(Config = Configk5, P = matrix(rep(1/5, 5), ncol = 1))
+# tree_k5$sna
+# tree_k5$Z
+# tree_k5$edge
+# plot_tree(tree_k5)
+#
+# card_joxm <- readRDS("../fibroblast-clonality/data/cell_assignment/cardelino_results_carderelax.joxm.filt_lenient.cell_coverage_sites.rds")
+# names(card_joxm)
+# card_joxm_Config_prob <- card_joxm$tree$Z
+# card_joxm_Config_prob[,] <- colMeans(card_joxm$Config_all)
+# card_joxm_Config_best <- round(card_joxm_Config_prob)
+#
+# tree_joxm <- get_tree(card_joxm_Config_best,
+#                       P = matrix(colMeans(card_joxm$prob_mat > 0.5), ncol = 1))
+# p1 <- cardelino::plot_tree(tree_joxm, orient = "v") +
+#   ggtitle("joxm: Cardelino output tree") +
+#   theme(plot.title = element_text(hjust = 0.5))
+# p2 <- cardelino::plot_tree(card_joxm$tree, orient = "v") +
+#   ggtitle("joxm: Canopy tree") +
+#   theme(plot.title = element_text(hjust = 0.5))
+# cowplot::plot_grid(p2, p1, ncol = 1)
+
 
