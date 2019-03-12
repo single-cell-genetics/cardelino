@@ -65,7 +65,7 @@ heterozygous site for variant i cell j}
 \item{D_germ}{A matrix of integers. Number of reads depth in germline
 heterozygous site for variant i cell j}
 
-\item{relax_Config}{bool(1), If TRUE, relaxing the Clone Configuration by 
+\item{relax_Config}{bool(1), If TRUE, relaxing the Clone Configuration by
 changing it from fixed value to act as a prior Config with a relax rate.}
 
 \item{relax_prior}{numeric(2), the two parameters of beta prior distribution
