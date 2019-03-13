@@ -865,6 +865,52 @@ get_tree <- function(Config, P = NULL, strictness = "lax") {
 #   theme(plot.title = element_text(hjust = 0.5))
 # cowplot::plot_grid(p2, p1, ncol = 1)
 #
+# ## vils - works
+# card_vils <- readRDS("../fibroblast-clonality/data/cell_assignment/cardelino_results_carderelax.vils.filt_lenient.cell_coverage_sites.rds")
+# names(card_vils)
+# card_vils_Config_prob <- card_vils$tree$Z
+# card_vils_Config_prob[,] <- colMeans(card_vils$Config_all)
+# card_vils_Config_best <- round(card_vils_Config_prob)
+#
+# tree_vils <- get_tree(
+#   card_vils_Config_best,
+#   P = matrix(colSums(card_vils$prob_mat > 0.5) /
+#                sum(rowMax(card_vils$prob_mat) > 0.5), ncol = 1))
+# tree_vils$edge
+# tree_vils$P
+# ##
+# p1 <- cardelino::plot_tree(tree_vils, orient = "v") +
+#   ggtitle("vils: Cardelino output tree") +
+#   theme(plot.title = element_text(hjust = 0.5))
+# p2 <- cardelino::plot_tree(card_vils$tree, orient = "v") +
+#   ggtitle("vils: Canopy tree") +
+#   theme(plot.title = element_text(hjust = 0.5))
+# cowplot::plot_grid(p2, p1, ncol = 1)
+#
+# ## sehl - fails
+# card_sehl <- readRDS("../fibroblast-clonality/data/cell_assignment/cardelino_results_carderelax.sehl.filt_lenient.cell_coverage_sites.rds")
+# names(card_sehl)
+# card_sehl_Config_prob <- card_sehl$tree$Z
+# card_sehl_Config_prob[,] <- colMeans(card_sehl$Config_all)
+# card_sehl_Config_best <- (card_sehl_Config_prob > 0.49) * 1L
+#
+# tree_sehl <- get_tree(
+#   card_sehl_Config_best,
+#   P = matrix(colSums(card_sehl$prob_mat > 0.5) /
+#                sum(rowMax(card_sehl$prob_mat) > 0.5), ncol = 1))
+# tree_sehl$edge
+# tree_sehl$P
+# ## Too many edges - looks like it finds an internal node that does not make sense
+# p1 <- cardelino::plot_tree(tree_sehl, orient = "v") +
+#   ggtitle("sehl: Cardelino output tree") +
+#   theme(plot.title = element_text(hjust = 0.5))
+# p2 <- cardelino::plot_tree(card_sehl$tree, orient = "v") +
+#   ggtitle("sehl: Canopy tree") +
+#   theme(plot.title = element_text(hjust = 0.5))
+# cowplot::plot_grid(p2, p1, ncol = 1)
+
+
+#
 #
 # ## example data - fails; finds too many internal nodes
 # data(example_donor)

@@ -52,7 +52,7 @@ prob_heatmap <- function(prob_mat, threshold=0.5, mode="best", cell_idx=NULL){
 }
 
 #' Plot heatmap from a matrix
-#' 
+#'
 #' @param mat A matrix to show, column by x-axis and row by y-axis
 #' @param base_size Numeric value for the base size in theme_bw
 #' @param digits Integer value for the number of digits to show
@@ -64,7 +64,7 @@ heat_matrix <- function(mat, base_size=12, digits=2, show_value=FALSE){
     heat.plot <- ggplot(df, aes_string(x = "Var1", y = "Var2")) +
         geom_tile(aes_string(fill = "value"), colour = "grey") +
         scale_fill_gradient(low = "white", high = "steelblue") +
-        #theme_grey(base_size = base_size) + 
+        #theme_grey(base_size = base_size) +
         theme_bw(base_size = base_size) +
         scale_x_continuous(expand = c(0, 0)) +
         scale_y_continuous(expand = c(0, 0)) +
@@ -75,8 +75,8 @@ heat_matrix <- function(mat, base_size=12, digits=2, show_value=FALSE){
               axis.ticks.x = ggplot2::element_blank(),
               axis.ticks.y = ggplot2::element_blank())
     if (show_value) {
-        heat.plot <- heat.plot + 
-            geom_text(aes_string(label = "value"), 
+        heat.plot <- heat.plot +
+            geom_text(aes_string(label = "value"),
                       vjust = 0.5, size=base_size*0.25)
     }
     heat.plot
@@ -273,3 +273,61 @@ pub.theme <- function(size = 12) {
                            size = 0.05, colour = "#d3d3d3")
                        )
 }
+
+
+#' Define a publication-style plot theme
+#'
+#' @param Config1 variant by clone matrix defining the first clonal structure
+#' @param Config2 variant by clone matrix defining the second clonal structure
+#' @param show_variant_names logical(1), should the variant names (rownames of
+#' Config matrices) be shown on the plot? Default is \code{FALSE}.
+#'
+#' @return a ggplot heatmap style plot showing the differences between the two
+#' Config matrices, specifically the differences Config1 - Config2.
+#'
+#' @import ggplot2
+#' @export
+#' @examples
+#' Config1 <- matrix(c(rep(0, 15), rep(1, 8), rep(0, 7), rep(1, 5), rep(0, 3), rep(1, 7)), ncol = 3)
+#' Config2 <- matrix(c(rep(0, 15), rep(1, 8), rep(1, 7), rep(0, 5), rep(1, 3), rep(1, 7)), ncol = 3)
+#' rownames(Config1) <- rownames(Config2) <- paste0("var", 1:nrow(Config1))
+#' colnames(Config1) <- colnames(Config2) <- paste0("clone", 1:ncol(Config1))
+#' plot_config_diffs(Config1, Config2)
+plot_config_diffs <- function(Config1, Config2, show_variant_names = FALSE) {
+  if (!identical(rownames(Config1), rownames(Config2)))
+    stop("Config matrices must have identical rownames.")
+  if (!identical(colnames(Config1), colnames(Config2)))
+    stop("Config matrices must have identical colnames.")
+  diffs <- Config1 - Config2
+  df <- data.frame(
+    variant = factor(rep(rownames(Config1), ncol(Config1)),
+                     levels = rev(rownames(Config1))),
+    clone = rep(colnames(Config1), each = nrow(Config1)),
+    diffs = as.vector(diffs)
+  )
+  p_out <- ggplot(df, aes_string(x = "clone", y = "variant", fill = "diffs")) +
+    geom_raster() +
+    scale_x_discrete(position = "top") +
+    scale_fill_gradient2(low = "dodgerblue4", mid = "white",
+                         high = "firebrick4", midpoint = 0, space = "Lab",
+                         na.value = "grey50", guide = "colourbar",
+                         aesthetics = "fill", name = "Config\ndifferences") +
+    heatmap.theme() +
+    theme(legend.position = "bottom",
+          legend.key.width = unit(0.95, "in"))
+  if (!show_variant_names)
+    p_out <- p_out + theme(axis.text.y = element_blank(),
+                           axis.title.y = element_blank())
+  p_out
+}
+
+# ## joxm - works
+# card_joxm <- readRDS("../fibroblast-clonality/data/cell_assignment/cardelino_results_carderelax.joxm.filt_lenient.cell_coverage_sites.rds")
+# names(card_joxm)
+# card_joxm_Config_prob <- card_joxm$tree$Z
+# card_joxm_Config_prob[,] <- colMeans(card_joxm$Config_all)
+# card_joxm_Config_best <- round(card_joxm_Config_prob)
+#
+# plot_config_diffs(card_joxm_Config_prob, card_joxm$tree$Z) + ggtitle("joxm")
+# plot_config_diffs(card_lexy_Config_prob, card_lexy$tree$Z)
+# plot_config_diffs(card_zoxy_Config_prob, card_zoxy$tree$Z)
