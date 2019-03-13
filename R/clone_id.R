@@ -573,6 +573,12 @@ Geweke_Z <- function(X, first=0.1, last=0.5) {
 #' output Z of Canopy
 #' @param P a one-column numeric matrix encoding the (observed or estimated)
 #' prevalence (or frequency) of each clone
+#' @param strictness character(1), a character string defining the strictness of
+#' the function if there are all-zero rows in the Config matrix. If \code{"lax"}
+#' then the function silently drops all-zero rows and proceeds. If \code{"warn"}
+#' then the function warns of dropping all-zero rows and proceeds. If
+#' \code{"error"} then the function throws an error is all-zero rows are
+#' detected.
 #'
 #' @return
 #' An object of class "phylo" describing the tree structure. The output object
@@ -594,10 +600,23 @@ Geweke_Z <- function(X, first=0.1, last=0.5) {
 #' Configk3 <- matrix(c(rep(0, 15), rep(1, 8), rep(0, 7), rep(1, 5), rep(0, 3), rep(1, 7)), ncol = 3)
 #' tree_k3 <- get_tree(Config = Configk3, P = matrix(rep(1/3, 3), ncol = 1))
 #' plot_tree(tree_k3)
-get_tree <- function(Config, P = NULL) {
+get_tree <- function(Config, P = NULL, strictness = "lax") {
   if (!is.null(P)) {
     if (ncol(P) != 1)
       stop("P must be a matrix with one column encoding clone prevalence values")
+  }
+  all_zero_rows <- rowSums(Config) == 0
+  strictness <- match.arg(strictness, c("lax", "warn", "error"))
+  if (any(all_zero_rows)) {
+    if (strictness == "error")
+      stop("Config matrix contains all-zero rows.")
+    else {
+      if (strictness == "warn")
+        warning(paste("Dropped", sum(all_zero_rows), "all-zero rows from Config matrix."))
+      else
+        message(paste("Dropped", sum(all_zero_rows), "all-zero rows from Config matrix."))
+      Config <- Config[!all_zero_rows,]
+    }
   }
   k <- ncol(Config) # number of clones
   varnames <- rownames(Config)
@@ -710,7 +729,12 @@ get_tree <- function(Config, P = NULL) {
       }
     }
   } else {
-    edge_list <- list("root_node" = matrix(c(k + 1, k + 1, 1, 2), nrow = 2))
+    edge_list <- list("root_node" = matrix(c(rep(k + 1, k), seq_len(k)),
+                                           ncol = 2))
+    for (j in 2:k) {
+      sna[var_bin_vals == 2^j, 2] <- k + 1
+      sna[var_bin_vals == 2^j, 3] <- j
+    }
   }
   # node_def_list
   edge_mat <- do.call(rbind, edge_list)
@@ -737,6 +761,12 @@ get_tree <- function(Config, P = NULL) {
 #                        rep(1, 4), rep(0, 3), rep(1, 5), rep(0, 3), rep(1, 2),
 #                        rep(0, 2), rep(1, 3)),
 #                      ncol = 4)
+# Configk4_2_bad <- matrix(c(rep(0, 15), rep(1, 8), rep(0, 2), rep(1, 2),
+#                            rep(0, 3), rep(1, 5), rep(0, 3),
+#                            rep(1, 4), rep(0, 3), rep(1, 5), rep(0, 3), rep(1, 2),
+#                            rep(0, 2), rep(1, 3)),
+#                          ncol = 4)
+#
 # Configk5 <- matrix(c(rep(0, 15), rep(1, 8), rep(0, 7), rep(1, 5), rep(0, 3),
 #                      rep(1, 4), rep(0, 3), rep(1, 5), rep(0, 3), rep(1, 2),
 #                      rep(0, 2), rep(0, 3), rep(1, 8), rep(0, 4), rep(1, 3)),
@@ -760,12 +790,19 @@ get_tree <- function(Config, P = NULL) {
 # tree_k4_2$edge
 # plot_tree(tree_k4_2)
 #
+# tree_k4_2_bad <- get_tree(Config = Configk4_2_bad, P = matrix(rep(1/4, 4), ncol = 1))
+# tree_k4_2_bad$sna
+# tree_k4_2_bad$Z
+# tree_k4_2_bad$edge
+# plot_tree(tree_k4_2_bad)
+#
 # tree_k5 <- get_tree(Config = Configk5, P = matrix(rep(1/5, 5), ncol = 1))
 # tree_k5$sna
 # tree_k5$Z
 # tree_k5$edge
 # plot_tree(tree_k5)
 #
+# ## joxm - works
 # card_joxm <- readRDS("../fibroblast-clonality/data/cell_assignment/cardelino_results_carderelax.joxm.filt_lenient.cell_coverage_sites.rds")
 # names(card_joxm)
 # card_joxm_Config_prob <- card_joxm$tree$Z
@@ -781,5 +818,66 @@ get_tree <- function(Config, P = NULL) {
 #   ggtitle("joxm: Canopy tree") +
 #   theme(plot.title = element_text(hjust = 0.5))
 # cowplot::plot_grid(p2, p1, ncol = 1)
-
-
+#
+# ## zoxy - fails
+# card_zoxy <- readRDS("../fibroblast-clonality/data/cell_assignment/cardelino_results_carderelax.zoxy.filt_lenient.cell_coverage_sites.rds")
+# names(card_zoxy)
+# card_zoxy_Config_prob <- card_zoxy$tree$Z
+# card_zoxy_Config_prob[,] <- colMeans(card_zoxy$Config_all)
+# card_zoxy_Config_best <- round(card_zoxy_Config_prob)
+#
+# tree_zoxy <- get_tree(card_zoxy_Config_best,
+#                       P = matrix(colMeans(card_zoxy$prob_mat > 0.5), ncol = 1))
+# tree_zoxy$edge
+# tree_zoxy$sna
+# tree_zoxy <- get_tree(card_zoxy_Config_best,
+#                       P = matrix(colMeans(card_zoxy$prob_mat > 0.5), ncol = 1),
+#                       strictness = "warn")
+# tree_zoxy <- get_tree(card_zoxy_Config_best,
+#                       P = matrix(colMeans(card_zoxy$prob_mat > 0.5), ncol = 1),
+#                       strictness = "e")
+# ## handles all-zero rows
+# ## looks like a problem caused by no shared variants between cl2 and cl3
+# p1 <- cardelino::plot_tree(tree_zoxy, orient = "v") +
+#   ggtitle("zoxy: Cardelino output tree") +
+#   theme(plot.title = element_text(hjust = 0.5))
+# p2 <- cardelino::plot_tree(card_zoxy$tree, orient = "v") +
+#   ggtitle("zoxy: Canopy tree") +
+#   theme(plot.title = element_text(hjust = 0.5))
+# cowplot::plot_grid(p2, p1, ncol = 1)
+#
+# ## lexy - some all-zero rows
+# card_lexy <- readRDS("../fibroblast-clonality/data/cell_assignment/cardelino_results_carderelax.lexy.filt_lenient.cell_coverage_sites.rds")
+# names(card_lexy)
+# card_lexy_Config_prob <- card_lexy$tree$Z
+# card_lexy_Config_prob[,] <- colMeans(card_lexy$Config_all)
+# card_lexy_Config_best <- round(card_lexy_Config_prob)
+#
+# tree_lexy <- get_tree(card_lexy_Config_best,
+#                       P = matrix(colMeans(card_lexy$prob_mat > 0.5), ncol = 1))
+# tree_lexy$edge
+# ##
+# p1 <- cardelino::plot_tree(tree_lexy, orient = "v") +
+#   ggtitle("lexy: Cardelino output tree") +
+#   theme(plot.title = element_text(hjust = 0.5))
+# p2 <- cardelino::plot_tree(card_lexy$tree, orient = "v") +
+#   ggtitle("lexy: Canopy tree") +
+#   theme(plot.title = element_text(hjust = 0.5))
+# cowplot::plot_grid(p2, p1, ncol = 1)
+#
+#
+# ## example data - fails; finds too many internal nodes
+# data(example_donor)
+# plot_tree(get_tree(tree$Z))
+# assignments_binom <- cell_assign_Gibbs(A_clone, D_clone, Config = tree$Z,
+#                                        relax_Config = TRUE, model = "binomial")
+# eg_Config_prob <- assignments_binom$Config_prob
+# eg_Config_best <- round(eg_Config_prob)
+#
+# tree_eg <- get_tree(eg_Config_best,
+#                       P = matrix(colMeans(assignments_binom$prob > 0.5), ncol = 1))
+# tree_eg$edge
+# ## too many internal nodes
+# ggtree::ggtree(tree_eg)
+# plot_tree(tree_eg)
+# ## gives a new and different error *shrug*
