@@ -311,10 +311,11 @@ plot_config_diffs <- function(Config1, Config2, show_variant_names = FALSE) {
     scale_fill_gradient2(low = "dodgerblue4", mid = "white",
                          high = "firebrick4", midpoint = 0, space = "Lab",
                          na.value = "grey50", guide = "colourbar",
-                         aesthetics = "fill", name = "Config\ndifferences") +
+                         aesthetics = "fill", name = "Config\ndifferences",
+                         limits = c(-1, 1)) +
     heatmap.theme() +
     theme(legend.position = "bottom",
-          legend.key.width = unit(0.95, "in"))
+          legend.key.width = unit(0.5, "in"))
   if (!show_variant_names)
     p_out <- p_out + theme(axis.text.y = element_blank(),
                            axis.title.y = element_blank())
