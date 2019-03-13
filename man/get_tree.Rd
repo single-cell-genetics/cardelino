@@ -4,7 +4,7 @@
 \alias{get_tree}
 \title{Get a clonal tree from a configuration matrix}
 \usage{
-get_tree(Config, P = NULL)
+get_tree(Config, P = NULL, strictness = "lax")
 }
 \arguments{
 \item{Config}{variant x clone matrix of binary values. The clone-variant
@@ -13,6 +13,13 @@ output Z of Canopy}
 
 \item{P}{a one-column numeric matrix encoding the (observed or estimated)
 prevalence (or frequency) of each clone}
+
+\item{strictness}{character(1), a character string defining the strictness of
+the function if there are all-zero rows in the Config matrix. If \code{"lax"}
+then the function silently drops all-zero rows and proceeds. If \code{"warn"}
+then the function warns of dropping all-zero rows and proceeds. If
+\code{"error"} then the function throws an error is all-zero rows are
+detected.}
 }
 \value{
 An object of class "phylo" describing the tree structure. The output object
