@@ -1,6 +1,14 @@
 \name{NEWS}
 \title{News for Package \pkg{cardelino}}
 
+\section{Changes in version 0.3.7}{
+  \itemize{
+    \item Fix a bug in colMatch in `force` mode
+    \item Specify the fixed relax rate in cell_assign_Gibbs, which can be used 
+          to turn the input Config as a uniform prior when setting 
+          relax_rate_fixed=0.5
+  }
+}
 \section{Changes in version 0.3.4}{
   \itemize{
     \item Add averaged `Config_prob` and `relax_rate` in cell_assign_Gibbs 

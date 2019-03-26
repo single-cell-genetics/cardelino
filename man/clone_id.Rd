@@ -15,8 +15,9 @@ cell_assign_EM(A, D, Config, Psi = NULL, model = "binomial",
   logLik_threshold = 1e-05, verbose = TRUE)
 
 cell_assign_Gibbs(A, D, Config, Psi = NULL, A_germ = NULL,
-  D_germ = NULL, relax_Config = FALSE, relax_prior = c(1, 9),
-  prior0 = c(0.2, 99.8), prior1 = c(0.45, 0.55), model = "binomial",
+  D_germ = NULL, relax_Config = FALSE, relax_rate_fixed = NULL,
+  relax_rate_prior = c(1, 9), keep_base_clone = TRUE, prior0 = c(0.2,
+  99.8), prior1 = c(0.45, 0.55), model = "binomial",
   Bernoulli_threshold = 1, min_iter = 3000, max_iter = 10000,
   wise = "variant", verbose = TRUE)
 }
@@ -68,8 +69,16 @@ heterozygous site for variant i cell j}
 \item{relax_Config}{bool(1), If TRUE, relaxing the Clone Configuration by
 changing it from fixed value to act as a prior Config with a relax rate.}
 
-\item{relax_prior}{numeric(2), the two parameters of beta prior distribution
-on the relax rate for relaxing the clone Configuration.}
+\item{relax_rate_fixed}{numeric(1), If the value is between 0 to 1, 
+the relax rate will be set as a fix value during updating clone Config. If
+NULL, the relax rate will be learned automatically with relax_rate_prior.}
+
+\item{relax_rate_prior}{numeric(2), the two parameters of beta prior 
+distribution of the relax rate for relaxing the clone Configuration. This 
+mode is used when relax_relax is NULL.}
+
+\item{keep_base_clone}{bool(1), if TRUE, keep the base clone of Config to its
+input values when relax mode is used.}
 
 \item{prior0}{numeric(2), alpha and beta parameters for the Beta prior
 distribution on the inferred false positive rate.}

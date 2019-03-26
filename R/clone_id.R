@@ -251,8 +251,14 @@ cell_assign_EM <- function(A, D, Config, Psi=NULL, model="binomial",
 #' distribution on the inferred (1 - false negative) rate.
 #' @param relax_Config bool(1), If TRUE, relaxing the Clone Configuration by
 #' changing it from fixed value to act as a prior Config with a relax rate.
-#' @param relax_prior numeric(2), the two parameters of beta prior distribution
-#' on the relax rate for relaxing the clone Configuration.
+#' @param relax_rate_fixed numeric(1), If the value is between 0 to 1, 
+#' the relax rate will be set as a fix value during updating clone Config. If
+#' NULL, the relax rate will be learned automatically with relax_rate_prior.
+#' @param relax_rate_prior numeric(2), the two parameters of beta prior 
+#' distribution of the relax rate for relaxing the clone Configuration. This 
+#' mode is used when relax_relax is NULL.
+#' @param keep_base_clone bool(1), if TRUE, keep the base clone of Config to its
+#' input values when relax mode is used.
 #' @param Bernoulli_threshold An integer. The count threshold of alteration
 #' reads when using Bernoulli model.
 #' @param wise A string, the wise of parameters for theta1: global, variant,
@@ -268,7 +274,8 @@ cell_assign_EM <- function(A, D, Config, Psi=NULL, model="binomial",
 #' assignments_bern <- cell_assign_Gibbs(A_clone, D_clone, Config = tree$Z, model = "Bernoulli")
 #'
 cell_assign_Gibbs <- function(A, D, Config, Psi=NULL, A_germ=NULL, D_germ=NULL,
-                              relax_Config=FALSE, relax_prior=c(1, 9),
+                              relax_Config=FALSE, relax_rate_fixed=NULL, 
+                              relax_rate_prior=c(1, 9), keep_base_clone=TRUE,
                               prior0=c(0.2, 99.8), prior1=c(0.45, 0.55),
                               model="binomial", Bernoulli_threshold=1,
                               min_iter=3000, max_iter=10000, wise="variant",
@@ -367,19 +374,28 @@ cell_assign_Gibbs <- function(A, D, Config, Psi=NULL, A_germ=NULL, D_germ=NULL,
     theta0_all <- matrix(0, nrow = max_iter, ncol = 1)
     theta1_all <- matrix(0, nrow = max_iter, ncol = n_element)
     Config_all <- matrix(0, nrow = max_iter, ncol = N*K)
-    config_relax_all <- matrix(0, nrow = max_iter, ncol = 1)
+    relax_rate_all <- matrix(0, nrow = max_iter, ncol = 1)
+
     if (!is.null(relax_Config) && relax_Config != FALSE) {
-        if (!is.null(relax_prior)) {
-            config_relax <- relax_prior[1] / (relax_prior[1] + relax_prior[2])
+        if (!is.null(relax_rate_fixed)) {
+          if (relax_rate_fixed > 1 || relax_rate_fixed < 0) {
+            stop("Error: relax_rate_fixed needs to be NULL or in [0, 1].")
+          }
+          relax_rate <- relax_rate_fixed ## fixed relax_rate
+          relax_rate_all[,] <- relax_rate
+        } else if (!is.null(relax_rate_prior)) {
+          relax_rate <- relax_rate_prior[1] / (relax_rate_prior[1] + 
+                                               relax_rate_prior[2])
         } else {
-            config_relax <- 0.1
+          stop("Error: require value for either relax_Config or relax_prior.")
         }
 
         Config_new <- Config
         Config_prior <- Config
-        Config_prior[Config == 1] <- 1 - config_relax
-        Config_prior[Config == 0] <- config_relax
-        Config_prior[, 1] <- Config[, 1] ## Keep the base clone
+        Config_prior[Config == 1] <- 1 - relax_rate
+        Config_prior[Config == 0] <- relax_rate
+        if (keep_base_clone) {
+            Config_prior[, 1] <- Config[, 1]}
         Config_prior_oddlog <- log(Config_prior) - log(1 - Config_prior)
         Iden_mat <- matrix(0, nrow = M, ncol = K)
     }
@@ -421,17 +437,18 @@ cell_assign_Gibbs <- function(A, D, Config, Psi=NULL, A_germ=NULL, D_germ=NULL,
         ## Update Config
         if (it > (0.1 * min_iter) && !is.null(relax_Config) &&
                   relax_Config != FALSE) {
-            if (it > (0.1 * min_iter + 5) && !is.null(relax_prior)) {
+            if (it > (0.1 * min_iter + 5) && is.null(relax_rate_fixed)) {
                 diff0 <- sum((Config == Config_new)[, 2:ncol(Config)])
                 diff1 <- sum((Config != Config_new)[, 2:ncol(Config)])
-                config_relax <- stats::rbeta(1, relax_prior[1] + diff1,
-                                             relax_prior[2] + diff0)
-                config_relax_all[it] <- config_relax
+                relax_rate <- stats::rbeta(1, relax_rate_prior[1] + diff1,
+                                              relax_rate_prior[2] + diff0)
+                relax_rate_all[it] <- relax_rate
 
                 Config_prior <- Config
-                Config_prior[Config == 1] <- 1 - config_relax
-                Config_prior[Config == 0] <- config_relax
-                Config_prior[, 1] <- Config[, 1] ## Keep the base clone
+                Config_prior[Config == 1] <- 1 - relax_rate
+                Config_prior[Config == 0] <- relax_rate
+                if (keep_base_clone) {
+                    Config_prior[, 1] <- Config[, 1]}
                 Config_prior_oddlog <- log(Config_prior) - log(1 - Config_prior)
             }
 
@@ -530,10 +547,10 @@ cell_assign_Gibbs <- function(A, D, Config, Psi=NULL, A_germ=NULL, D_germ=NULL,
                         "element" = idx_mat, "logLik" = logLik_all[1:it],
                         "prob_all" = prob_all[1:it,],
                         "prob" = prob_mat, "prob_variant" = prob_variant,
-                        "relax_rate" = mean(config_relax_all[n_buin:it]),
+                        "relax_rate" = mean(relax_rate_all[n_buin:it]),
                         "Config_prob" = Config_prob,
                         "Config_all" = Config_all[1:it,],
-                        "config_relax_all" = config_relax_all[1:it])
+                        "relax_rate_all" = relax_rate_all[1:it])
     return_list
 }
 
