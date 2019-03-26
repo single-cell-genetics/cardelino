@@ -83,7 +83,7 @@ colMatch <- function(A, B, force=FALSE) {
         for (ii in seq_len(length(idx_list))) {
             MAE_list[ii] <- mean(abs(A - B[, idx_list[[ii]]]))
         }
-        idx_list[[which.min(MAE_list)]]
+        idx <- idx_list[[which.min(MAE_list)]]
     } else {
         ncol_A <- ncol(A)
         ncol_B <- ncol(B)
