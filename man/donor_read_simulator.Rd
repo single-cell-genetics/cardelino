@@ -6,7 +6,7 @@
 \usage{
 donor_read_simulator(GT, D_seed, sample_variants = FALSE,
   donor_size = NULL, beta_shapes = NULL, n_cell = 5000,
-  doublet_rate = NULL, rand_seed = NULL, gene_ASE = FALSE)
+  doublet_rate = NULL, rand_seed = NULL)
 }
 \arguments{
 \item{GT}{Variant-by-donor matrix for genotypes}
@@ -29,8 +29,6 @@ and 2; default NULL means matrix(c(0.2, 0.5, 99.8, 99.8, 0.5, 0.2), nrow = 3)}
 rate n_cell / 100000}
 
 \item{rand_seed}{A integer for random number generation}
-
-\item{gene_ASE}{A logic value, if true, use gene specific allele expression}
 }
 \description{
 Reads simulator for donor identification
