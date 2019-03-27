@@ -503,12 +503,13 @@ cell_assign_Gibbs <- function(A, D, Config, Psi=NULL, A_germ=NULL, D_germ=NULL,
 
         #Check convergence
         if ((it >= min_iter) && (it %% 100 == 0)) {
-            FLAG <- Geweke_Z(theta0_all[1:it, 1]) <= 2
-            for (n in seq_len(ncol(theta1_all))) {
-                if (FLAG == FALSE) {break}
-                FLAG <- Geweke_Z(theta1_all[1:it, n]) <= 2
+            Converged_all <- rep(FALSE, ncol(prob_all))
+            for (n in seq_len(ncol(prob_all))) {
+                Converged_all[n] <- Geweke_Z(prob_all[1:it, n]) <= 2
             }
-            if (FLAG) {break}
+            cat(paste0(round(mean(Converged_all, na.rm=TRUE), 3) * 100, 
+                       "% converged."))
+            if (mean(Converged_all, na.rm=TRUE) > 0.999) {break}
         }
     }
     if (verbose) {print(paste("Converged in", it, "iterations."))}

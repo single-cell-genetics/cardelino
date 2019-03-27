@@ -1,6 +1,13 @@
 \name{NEWS}
 \title{News for Package \pkg{cardelino}}
 
+\section{Changes in version 0.3.8}{
+  \itemize{
+    \item Change the covergency diagnosis in cell_assign_Gibbs to all cells
+    \item Change the donor_read_simulator to betabinomial for each variant in 
+          each cell
+  }
+}
 \section{Changes in version 0.3.7}{
   \itemize{
     \item Fix a bug in colMatch in `force` mode
