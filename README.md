@@ -4,14 +4,15 @@
 
 <img src=inst/cardelino_sticker.png height="200">
 
-This R package contains methods to assign donor and clone identities to 
-individual cells from single-cell RNA-sequencing data.
+This R package contains two major methods to analysis single-cell RNA-seq data
+* `cardelino` to reconstructing somatic clonal tree and assigning single cells to clones. See [cardelino munual](https://rawgit.com/PMBio/cardelino/master/inst/doc/vignette-cloneid.html)
+* `Vireo` to demultiplex pooled scRNA-seq with or without genotype reference. See [Vireo manual](https://huangyh09.github.io/vireo-manual)
 
 ## Installation
 
 ### From R
 
-The `cardelino` package can be conveniently installed using the 
+The **latest** `cardelino` package can be conveniently installed using the 
 [`devtools`](https://www.rstudio.com/products/rpackages/devtools/) package thus:
 
 ```{R}
@@ -60,7 +61,7 @@ provided.
 
 Accessing the vignettes from within your R session is recommended, but
 you can also [view the clone ID vignette](https://rawgit.com/PMBio/cardelino/master/inst/doc/vignette-cloneid.html) 
-and [view the donor ID vignette](https://rawgit.com/PMBio/cardelino/master/inst/doc/vignette-donorid.html) online.
+and [view the donor ID vignette](https://huangyh09.github.io/vireo-manual) online.
 
 
 
@@ -74,6 +75,8 @@ in notable paintings from the
 [Italian renaissance](https://en.wikipedia.org/wiki/Madonna_del_cardellino) and 
 the [Dutch Golden Age](https://en.wikipedia.org/wiki/The_Goldfinch_(painting)). 
 Perhaps this package may prove a saviour for certain single-cell datasets.
+
+`Vireo`(variational inference for reconstructing ensemebl origin) is a Latin word referring to a green migratory bird, perhaps the female golden oriole, possibly the [European greenfinch](https://en.wikipedia.org/wiki/European_greenfinch)
 
 <img src=inst/cardelino_med.jpg height="400">
 
