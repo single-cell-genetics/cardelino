@@ -201,10 +201,13 @@ get_snp_matrices <- function(vcf_cell, vcf_donor=NULL, verbose = TRUE,
 #' @param min_MAF minimum minor allele fraction, e.g., 0.1
 #' @param rowname_format the format of rowname: NULL is the default from vcfR, 
 #' short is CHROM_POS, and full is CHROM_POS_REF_ALT
+#' @param keep_GL logical(1), if TRUE, check if GL (genotype probability) exists
+#' it will be returned
 #' @export
 #'
 load_cellSNP_vcf <- function(vcf_file, min_count=0, min_MAF=0, 
-                             max_other_allele=NULL, rowname_format="full") {
+                             max_other_allele=NULL, rowname_format="full",
+                             keep_GL=FALSE) {
     vcf_temp <- vcfR::read.vcfR(vcf_file)
     dp_full <- vcfR::extract.gt(vcf_temp, element = "DP", as.numeric = TRUE)
     ad_full <- vcfR::extract.gt(vcf_temp, element = "AD", as.numeric = TRUE)
@@ -230,34 +233,66 @@ load_cellSNP_vcf <- function(vcf_file, min_count=0, min_MAF=0,
 
     if (!is.null(rowname_format)) {
         fix_val <- vcfR::getFIX(vcf_temp)
-        var_ids <- paste0(fix_val[,1], "_", fix_val[,2], 
-                        "_", fix_val[,4], "_", fix_val[,5])
-        var_ids_short <- paste0(fix_val[,1], "_", fix_val[,2])
         if (rowname_format == "short") {
-            row.names(A) <- row.names(D) <- var_ids_short[idx]
+            var_ids <- paste0(fix_val[,1], "_", fix_val[,2])
         } else {
-            row.names(A) <- row.names(D) <- var_ids[idx]
+            var_ids <- paste0(fix_val[,1], "_", fix_val[,2],
+                              "_", fix_val[,4], "_", fix_val[,5])
+        }
+    }
+    row.names(A) <- row.names(D) <- var_ids[idx]
+    
+    GL_list <- list()
+    if (keep_GL && sum(strsplit(vcf_temp@gt[1, 1], ":")$FORMAT == "GL") > 0) {
+        GL_full <- vcfR::extract.gt(vcf_temp, element = "GL", as.numeric = FALSE)
+        for(ii in seq_len(length(strsplit(GL_full[1,1], ",")[[1]]))) {
+            GL_tmp <- vcfR::masplit(GL_full, delim = ",", record=ii, sort = 0)
+            GL_tmp[is.na(GL_tmp)] <- 0
+            row.names(GL_tmp) <- var_ids
+            GL_list[[ii]] <- Matrix::Matrix(GL_tmp[idx, ], sparse = TRUE)
         }
     }
 
     list("A" = Matrix::Matrix(A, sparse = TRUE), 
-         "D" = Matrix::Matrix(D, sparse = TRUE))
+         "D" = Matrix::Matrix(D, sparse = TRUE),
+         "GL" = GL_list)
 }
 
 
 #' Load genotype VCF into numeric values: 0, 1, or 2
+#' 
+#' Note, the genotype VCF can be very big for whole genome. It would be more 
+#' efficient to only keep the wanted variants and samples. bcftools does such
+#' jobs nicely.
 #'
 #' @param vcf_file character(1), path to VCF file for donor genotypes
 #' @param rowname_format the format of rowname: NULL is the default from vcfR, 
 #' short is CHROM_POS, and full is CHROM_POS_REF_ALT
+#' @param na.rm logical(1), if TRUE, remove the variants with NA values
+#' @param keep_GP logical(1), if TRUE, check if GP (genotype probability) exists
+#' it will be returned
 #' @export
-load_GT_vcf <- function(vcf_file, rowname_format="full") {
+load_GT_vcf <- function(vcf_file, rowname_format="full", na.rm=TRUE, 
+                        keep_GP=TRUE) {
     GT_vcf <- vcfR::read.vcfR(vcf_file)
+    
+    ## variant ids
+    if (!is.null(rowname_format)) {
+      fix_val <- vcfR::getFIX(GT_vcf)
+      if (rowname_format == "short") {
+        var_ids <- paste0(fix_val[,1], "_", fix_val[,2])
+      } else {
+        var_ids <- paste0(fix_val[,1], "_", fix_val[,2], 
+                          "_", fix_val[,4], "_", fix_val[,5])
+      }
+    }
+    
+    ## GT values
     GT <- vcfR::extract.gt(GT_vcf, element = "GT")
     
     GT_num <- matrix(NA, nrow = nrow(GT), ncol = ncol(GT))
     colnames(GT_num) <- colnames(GT) 
-    row.names(GT_num) <- row.names(GT)
+    rownames(GT_num) <- var_ids
     
     idx0 = which(GT == "0/0" | GT == "0|0")
     idx2 = which(GT == "1/1" | GT == "1|1")
@@ -268,15 +303,26 @@ load_GT_vcf <- function(vcf_file, rowname_format="full") {
     GT_num[idx1] <- 1
     GT_num[idx2] <- 2
     
-    if (!is.null(rowname_format)) {
-      fix_val <- vcfR::getFIX(GT_vcf)
-      if (rowname_format == "short") {
-        row.names(GT_num) <- paste0(fix_val[,1], "_", fix_val[,2])
-      } else {
-        row.names(GT_num) <- paste0(fix_val[,1], "_", fix_val[,2], 
-                                    "_", fix_val[,4], "_", fix_val[,5])
+    if (na.rm) {
+      idx <- rowSums(is.na(GT_num)) == 0
+    } else {
+      idx <- seq_len(nrow(GT_num))
+    }
+    GT_num <- GT_num[idx, ]
+    
+    ## Genotype probability
+    if (keep_GP && sum(strsplit(GT_vcf@gt[1, 1], ":")$FORMAT == "GP") > 0) {
+      GP_val <- matrix(NA, nrow = length(GT_num), ncol = 3)
+      rownames(GP_val) <- paste0(rep(colnames(GT_num), each=ncol(GT_num)), ":",
+                                 rep(rownames(GT_num), times=ncol(GT_num)))
+      colnames(GP_val) <- c("GT=0", "GT=1", "GT=2")
+      GP <- vcfR::extract.gt(GT_vcf, element = "GP", as.numeric = FALSE)
+      for(ii in seq_len(3)) {
+        GP_val[, ii] <- vcfR::masplit(GP, delim = ",", record=ii, sort = 0)[idx]
       }
+    } else {
+      GP_val <- NULL
     }
     
-    GT_num
+    list("GT"=GT_num, "GP"=GP_val)
 }

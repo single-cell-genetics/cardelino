@@ -6,7 +6,10 @@
 
 This R package contains two major methods to analysis single-cell RNA-seq data
 * `cardelino` to reconstructing somatic clonal tree and assigning single cells to clones. See [cardelino munual](https://rawgit.com/PMBio/cardelino/master/inst/doc/vignette-cloneid.html)
-* `Vireo` to demultiplex pooled scRNA-seq with or without genotype reference. See [Vireo manual](https://huangyh09.github.io/vireo-manual)
+* `Vireo` to demultiplex pooled scRNA-seq with or without genotype reference. See [Vireo manual](https://huangyh09.github.io/vireo-manual) or run our wrap [run_vireo.R](https://github.com/PMBio/cardelino/tree/master/bin/run_vireo.R) in a command line with Rscript:
+  ```{bash}
+  Rscript run_vireo.R $CELL_FILE $OUT_DIR $N_DONOR [$GT_VCF_FILE]
+  ```
 
 ## Installation
 

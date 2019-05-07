@@ -308,11 +308,11 @@ cell_assign_Gibbs <- function(A, D, Config, Psi=NULL, A_germ=NULL, D_germ=NULL,
     D_germ[which(D_germ == 0)] <- NA
     A_germ[(D_germ > 0) & is.na(A_germ)] <- 0
 
-    ### test: hack variants phasing
-    idx_tmp <- (A > 0) || (A_germ == 0) || (A_germ == D_germ)
-    A_germ[idx_tmp] <- D_germ[idx_tmp] <- NA
-    idx_tmp <- which(A_germ > (D_germ - A_germ))
-    A_germ[idx_tmp] <- D_germ[idx_tmp] - A_germ[idx_tmp]
+    ### test: hack variants phasing (TODO)
+    # idx_tmp <- (A > 0) || (A_germ == 0) || (A_germ == D_germ)
+    # A_germ[idx_tmp] <- D_germ[idx_tmp] <- NA
+    # idx_tmp <- which(A_germ > (D_germ - A_germ))
+    # A_germ[idx_tmp] <- D_germ[idx_tmp] - A_germ[idx_tmp]
 
     C1 <- Config
     C0 <- 1 - Config
