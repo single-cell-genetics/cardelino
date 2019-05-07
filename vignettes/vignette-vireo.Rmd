@@ -161,8 +161,9 @@ and donor data before sent to `vireo`, which can be achieved as follows.
 ```{r load GT data}
 donor_GT <- load_GT_vcf(system.file("extdata", "donors.donorid.vcf.gz", 
                                     package = "cardelino"))
-row.names(donor_GT) <- paste0("chr", row.names(donor_GT)) #not always necessary
-head(donor_GT)
+rownames(donor_GT$GT) <- paste0("chr", rownames(donor_GT$GT)) #not always necessary
+head(donor_GT$GT)
+head(donor_GT$GP)
 ```
 
 
@@ -171,7 +172,8 @@ genotype is only for a subset of the input donors, please provide `n_donor` the
 true number of donors.
 
 ```{r vireo with GT}
-ids_GT <- vireo(cell_data = cell_data, donor_data = donor_GT, n_proc = 1)
+### match variants
+ids_GT <- vireo(cell_data = cell_data, donor_data = donor_GT$GT, n_proc = 1)
 table(ids_GT$assigned$donor_id)
 
 df$donor_id_GT <- ids_GT$assigned$donor_id
