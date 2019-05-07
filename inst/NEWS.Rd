@@ -1,6 +1,15 @@
 \name{NEWS}
 \title{News for Package \pkg{cardelino}}
 
+\section{Changes in version 0.3.9}{
+  \itemize{
+    \item Add a runnable R file: run_vireo.R in /bin to run from command line 
+    \item Change load_GT_vcf by supporting GP for genotype probability
+    \item Change load_cellSNP_vcf by supporting GL for genotype likelihood
+    \item Change heat_matrix to for scale_x_discrete by default
+  }
+}
+
 \section{Changes in version 0.3.8}{
   \itemize{
     \item Change the covergency diagnosis in cell_assign_Gibbs to all cells

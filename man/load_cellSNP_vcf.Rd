@@ -5,7 +5,7 @@
 \title{Load sparse matrices A and D from cellSNP VCF file with filtering SNPs}
 \usage{
 load_cellSNP_vcf(vcf_file, min_count = 0, min_MAF = 0,
-  max_other_allele = NULL, rowname_format = "full")
+  max_other_allele = NULL, rowname_format = "full", keep_GL = FALSE)
 }
 \arguments{
 \item{vcf_file}{character(1), path to VCF file generated from cellSNP}
@@ -19,6 +19,9 @@ ALT alleles; for cellSNP vcf, we recommend 0.05}
 
 \item{rowname_format}{the format of rowname: NULL is the default from vcfR, 
 short is CHROM_POS, and full is CHROM_POS_REF_ALT}
+
+\item{keep_GL}{logical(1), if TRUE, check if GL (genotype probability) exists
+it will be returned}
 }
 \description{
 Load sparse matrices A and D from cellSNP VCF file with filtering SNPs

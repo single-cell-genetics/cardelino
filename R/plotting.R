@@ -66,8 +66,8 @@ heat_matrix <- function(mat, base_size=12, digits=2, show_value=FALSE){
         scale_fill_gradient(low = "white", high = "steelblue") +
         #theme_grey(base_size = base_size) +
         theme_bw(base_size = base_size) +
-        scale_x_continuous(expand = c(0, 0)) +
-        scale_y_continuous(expand = c(0, 0)) +
+        scale_x_discrete(expand = c(0, 0)) +
+        scale_x_discrete(expand = c(0, 0)) +
         theme(legend.position = "none",
               panel.grid.major = element_blank(),
               panel.border = element_blank(),
