@@ -52,8 +52,8 @@
 #'
 sim_read_count <- function(Config, D, Psi=NULL,
                            means=c(0.002, 0.45), vars=c(100, 1),
-                           wise0="element", wise1="variant",
-                           cell_num=300, permute_D=FALSE, doublet=0.0){
+                           wise0="element", wise1="variant", cell_num=300, 
+                           permute_D=FALSE, sample_cell=TRUE, doublet=0.0){
     M <- cell_num      #number of cells
     K <- ncol(Config)  #number of clones
     N <- nrow(Config)  #number of variants
@@ -64,6 +64,11 @@ sim_read_count <- function(Config, D, Psi=NULL,
     D[which(D == 0)] <- NA
     if (permute_D == TRUE) {
         D <- D[sample(nrow(D)), ]
+    }
+    if (sample_cell || M > ncol(D)) {
+        D_sim <- D[, sample(ncol(D), M, replace = TRUE)]
+    } else {
+        D_sim <- D[, seq_len(M)]
     }
 
     # genotype for cells H_sim, and clone labels I_sim
@@ -80,10 +85,8 @@ sim_read_count <- function(Config, D, Psi=NULL,
     # generate p, D and A
     p_sim <- matrix(0, 2)      # p1 and p2 for False positive and True positive
     A_sim <- matrix(NA, N, M)  # Alteration counts matrix
-    D_sim <- D[, sample(ncol(D), M, replace = TRUE)]
     A_germ_sim <- matrix(NA, N, M)  # Alteration counts matrix for germline var
     D_germ_sim <- matrix(NA, N, M)
-    colnames(D_sim) <- NULL
     theta0_Bern_sim <- matrix(NA, N, M)   # theta0 matrix
     theta1_Bern_sim <- matrix(NA, N, M)   # theta1 matrix
     theta0_binom_sim <- matrix(NA, N, M)  # theta0 matrix

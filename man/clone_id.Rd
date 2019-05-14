@@ -7,7 +7,9 @@
 \alias{cell_assign_Gibbs}
 \title{Infer clonal identity of single cells}
 \usage{
-clone_id(A, D, Config, model = "binomial", inference = "sampling",
+clone_id(A, D, Config = NULL, n_clone = NULL, Psi = NULL,
+  relax_Config = FALSE, relax_rate_fixed = NULL, n_chain = 1,
+  model = "binomial", inference = "sampling", n_proc = 1,
   verbose = TRUE, ...)
 
 cell_assign_EM(A, D, Config, Psi = NULL, model = "binomial",
@@ -19,7 +21,7 @@ cell_assign_Gibbs(A, D, Config, Psi = NULL, A_germ = NULL,
   relax_rate_prior = c(1, 9), keep_base_clone = TRUE, prior0 = c(0.2,
   99.8), prior1 = c(0.45, 0.55), model = "binomial",
   Bernoulli_threshold = 1, min_iter = 3000, max_iter = 10000,
-  wise = "variant", verbose = TRUE)
+  wise = "variant", relabel = FALSE, verbose = TRUE)
 }
 \arguments{
 \item{A}{variant x cell matrix of integers; number of alternative allele
@@ -32,6 +34,21 @@ variant i cell j}
 configuration, which encodes the phylogenetic tree structure. This is the
 output Z of Canopy}
 
+\item{n_clone}{integer(1), the number of clone to reconstruct. This is in use
+only if Config is NULL}
+
+\item{Psi}{A vector of float. The fractions of each clone, output P of Canopy}
+
+\item{relax_Config}{logical(1), If TRUE, relaxing the Clone Configuration by
+changing it from fixed value to act as a prior Config with a relax rate.}
+
+\item{relax_rate_fixed}{numeric(1), If the value is between 0 to 1, 
+the relax rate will be set as a fix value during updating clone Config. If
+NULL, the relax rate will be learned automatically with relax_rate_prior.}
+
+\item{n_chain}{integer(1), the number of chains to run, which will be 
+averaged as an output result}
+
 \item{model}{character(1), the model to use for inference; either "binomial"
 to use the beta-binomial mixture model or "Bernoulli" to use the Bernoulli
 mixure model (default: "binomial")}
@@ -40,13 +57,14 @@ mixure model (default: "binomial")}
 "sampling" to use Gibbs sampling (default) or "EM" to use
 expectation-maximisation (faster)}
 
+\item{n_proc}{integer(1), the numebr of processors to use. This parallel 
+computing can largely reduce time when using multiple chains}
+
 \item{verbose}{logical(1), should the function output verbose information as
 it runs?}
 
 \item{...}{arguments passed to \code{\link{cell_assign_Gibbs}} or
 \code{\link{cell_assign_EM}} (as appropriate)}
-
-\item{Psi}{A vector of float. The fractions of each clone, output P of Canopy}
 
 \item{Bernoulli_threshold}{An integer. The count threshold of alteration
 reads when using Bernoulli model.}
@@ -66,13 +84,6 @@ heterozygous site for variant i cell j}
 \item{D_germ}{A matrix of integers. Number of reads depth in germline
 heterozygous site for variant i cell j}
 
-\item{relax_Config}{bool(1), If TRUE, relaxing the Clone Configuration by
-changing it from fixed value to act as a prior Config with a relax rate.}
-
-\item{relax_rate_fixed}{numeric(1), If the value is between 0 to 1, 
-the relax rate will be set as a fix value during updating clone Config. If
-NULL, the relax rate will be learned automatically with relax_rate_prior.}
-
 \item{relax_rate_prior}{numeric(2), the two parameters of beta prior 
 distribution of the relax rate for relaxing the clone Configuration. This 
 mode is used when relax_relax is NULL.}
@@ -88,6 +99,16 @@ distribution on the inferred (1 - false negative) rate.}
 
 \item{wise}{A string, the wise of parameters for theta1: global, variant,
 element.}
+
+\item{relabel}{bool(1), if TRUE, relabel the samples of both Config and prob 
+during the Gibbs sampleing.}
+
+\item{relax_Config}{logical(1), If TRUE, relaxing the Clone Configuration by
+changing it from fixed value to act as a prior Config with a relax rate.}
+
+\item{relax_rate_fixed}{numeric(1), If the value is between 0 to 1, 
+the relax rate will be set as a fix value during updating clone Config. If
+NULL, the relax rate will be learned automatically with relax_rate_prior.}
 }
 \value{
 If inference method is "EM", a list containing \code{theta}, a vector of
