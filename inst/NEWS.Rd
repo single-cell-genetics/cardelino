@@ -1,6 +1,20 @@
 \name{NEWS}
 \title{News for Package \pkg{cardelino}}
 
+\section{Changes in version 0.4.0}{
+  \itemize{
+    \item Support multiple chains when running clone_id (one chain by default)
+    \item Support relabel during Gibbs sampling when running clone_id (not in 
+          use by default)
+    \item Change sim_read_count: the default of wise0 is to "element", i.e.,
+          sequencing error rate is both variant and cell specific. Also, a new
+          parameter sample_cell is added for the option to turn off sampling 
+          cells from seed D
+    \item Change heat_matrix for supporting rownames and colnames matching the 
+          original order in the matrix instead of alphabetical order
+  }
+}
+
 \section{Changes in version 0.3.9}{
   \itemize{
     \item Add a runnable R file: run_vireo.R in /bin to run from command line 

@@ -60,6 +60,13 @@ prob_heatmap <- function(prob_mat, threshold=0.5, mode="best", cell_idx=NULL){
 #' @export
 heat_matrix <- function(mat, base_size=12, digits=2, show_value=FALSE){
     df <- mtx_to_df(mat)
+    if (!is.null(rownames(mat))) {
+        df$Var1 <- factor(df$Var1, rownames(mat))
+    }
+    if (!is.null(colnames(mat))) {
+        df$Var2 <- factor(df$Var2, colnames(mat))
+    }
+    
     df$value <- round(df$value, digits = digits)
     heat.plot <- ggplot(df, aes_string(x = "Var1", y = "Var2")) +
         geom_tile(aes_string(fill = "value"), colour = "grey") +
