@@ -34,3 +34,30 @@ test_that("vireo with known donor GT works as expected", {
     print(table(ids2$assigned$donor_id))
     expect_is(ids2, "list")
 })
+
+# test_that("vireo with known donor GT works as expected", {
+#     mm <- match(rownames(donor_GT$GT), rownames(cell_data$A))
+#     print(paste(sum(!is.na(mm)), "out of", length(mm), 
+#                 "variants mathed between GT and cells."))
+#     
+#     idx <- which(!is.na(mm))
+#     GT_use <- donor_GT$GT[idx, ]
+#     idx_GP <- c()
+#     for (ii in seq_len(ncol(donor_GT$GT))) {
+#         idx_GP <- c(idx_GP, idx + nrow(donor_GT$GT) * (ii - 1))
+#     }
+#     GP_use <- donor_GT$GP[idx_GP, ]
+#     
+#     cell_data$A <- cell_data$A[mm[!is.na(mm)], ]
+#     cell_data$D <- cell_data$D[mm[!is.na(mm)], ]
+#     
+#     GP_use <- GT_to_prob(GT_use)
+#     GP_use <- (GP_use - 0.5) * 0.999 + 0.5
+#     
+#     
+#     ## It seems harmful to use GP
+#     ids3 <- vireo(cell_data = cell_data, n_donor = 3, GT_prior = GP_use, 
+#                   K_amplify = 1)
+#     print(table(ids3$assigned$donor_id))
+#     expect_is(ids3, "list")
+# })

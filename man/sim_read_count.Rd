@@ -6,7 +6,8 @@
 \usage{
 sim_read_count(Config, D, Psi = NULL, means = c(0.002, 0.45),
   vars = c(100, 1), wise0 = "element", wise1 = "variant",
-  cell_num = 300, permute_D = FALSE, doublet = 0)
+  cell_num = 300, permute_D = FALSE, sample_cell = TRUE,
+  doublet = 0)
 }
 \arguments{
 \item{Config}{A matrix of binary values. The clone-variant configuration,

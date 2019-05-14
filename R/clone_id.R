@@ -9,6 +9,17 @@
 #' @param Config variant x clone matrix of binary values. The clone-variant
 #' configuration, which encodes the phylogenetic tree structure. This is the
 #' output Z of Canopy
+#' @param n_clone integer(1), the number of clone to reconstruct. This is in use
+#' only if Config is NULL
+#' @param relax_Config logical(1), If TRUE, relaxing the Clone Configuration by
+#' changing it from fixed value to act as a prior Config with a relax rate.
+#' @param relax_rate_fixed numeric(1), If the value is between 0 to 1, 
+#' the relax rate will be set as a fix value during updating clone Config. If
+#' NULL, the relax rate will be learned automatically with relax_rate_prior.
+#' @param n_chain integer(1), the number of chains to run, which will be 
+#' averaged as an output result
+#' @param n_proc integer(1), the numebr of processors to use. This parallel 
+#' computing can largely reduce time when using multiple chains
 #' @param model character(1), the model to use for inference; either "binomial"
 #' to use the beta-binomial mixture model or "Bernoulli" to use the Bernoulli
 #' mixure model (default: "binomial")
@@ -69,8 +80,10 @@
 #'                                  inference = "EM")
 #' prob_heatmap(assignments_bern_EM$prob)
 #'
-clone_id <- function(A, D, Config, model = "binomial", inference = "sampling",
-                     verbose = TRUE, ...) {
+clone_id <- function(A, D, Config = NULL, n_clone = NULL, Psi = NULL, 
+                     relax_Config = FALSE, relax_rate_fixed = NULL,
+                     n_chain = 1, model = "binomial", inference = "sampling", 
+                     n_proc = 1, verbose = TRUE, ...) {
     model <- match.arg(model, c("binomial", "Bernoulli"))
     inference <- match.arg(inference, c("sampling", "EM"))
     ## check input data
@@ -78,6 +91,19 @@ clone_id <- function(A, D, Config, model = "binomial", inference = "sampling",
         stop("Rownames for A and D are not identical.")
     if (!(all(colnames(A) == colnames(D))))
         stop("Colnames for A and D are not identical.")
+    if (is.null(Config) && is.null(n_clone))
+      stop("Config and n_clone can't be NULL together.")
+    
+    ## Cardelino-free mode if Config is NULL
+    if (is.null(Config)) {
+      cat("Config is NULL: de-novo mode is in use.")
+      Config <- matrix(0, nrow = nrow(D), ncol = n_clone)
+      rownames(Config) <- rownames(D)
+      colnames(Config) <- paste0("Clone", seq_len(n_clone))
+      relax_Config <-  TRUE
+      relax_rate_fixed <- 0.5
+    }
+    
     ## Match exome-seq and scRNA-seq data
     if (!any(rownames(D) %in% rownames(Config)))
         stop("No matches in variant names between Config and D arguments.")
@@ -88,13 +114,41 @@ clone_id <- function(A, D, Config, model = "binomial", inference = "sampling",
     Config <- Config[common_vars,, drop = FALSE]
     if (verbose)
         message(length(common_vars), " variants used for cell assignment.")
+    
     ## pass data to specific functions
-    if (inference == "sampling")
-        return(cell_assign_Gibbs(A, D, Config, model = model, verbose = verbose,
-                                 ...))
-    else
+    if (inference == "sampling") {
+      #TODO: solve the warnings for using foreach
+      library(foreach)
+      doMC::registerDoMC(n_proc)
+      
+      ids_list <- foreach::foreach(ii = 1:n_chain) %dopar% {
+        cell_assign_Gibbs(A, D, Config, Psi = Psi, 
+                          relax_Config = relax_Config, 
+                          relax_rate_fixed = relax_rate_fixed,
+                          model = model, verbose = verbose, ...)
+      }
+      
+      ids_out <- ids_list[[1]]
+      ids_out$n_chain <- 1
+      if (n_chain > 1) {
+        for (ii in seq(2, n_chain)) {
+          ids_out$n_chain <- ids_out$n_chain + 1
+          idx <- colMatch(ids_out$prob, ids_list[[ii]]$prob, force = TRUE)
+          ids_out$prob <- ids_out$prob + ids_list[[ii]]$prob[, idx]
+          ids_out$relax_rate <- ids_out$relax_rate + ids_list[[ii]]$relax_rate
+          ids_out$Config_prob <- (ids_out$Config_prob + 
+                                    ids_list[[ii]]$Config_prob[, idx])
+        }
+        ids_out$prob <- ids_out$prob / n_chain
+        ids_out$relax_rate <- ids_out$relax_rate / n_chain
+        ids_out$Config_prob <- ids_out$Config_prob / n_chain
+      }
+      return(ids_out)
+    }
+    else {
         return(cell_assign_EM(A, D, Config, model = model, verbose = verbose,
                               ...))
+    }
 }
 
 
@@ -249,7 +303,7 @@ cell_assign_EM <- function(A, D, Config, Psi=NULL, model="binomial",
 #' distribution on the inferred false positive rate.
 #' @param prior1 numeric(2), alpha and beta parameters for the Beta prior
 #' distribution on the inferred (1 - false negative) rate.
-#' @param relax_Config bool(1), If TRUE, relaxing the Clone Configuration by
+#' @param relax_Config logical(1), If TRUE, relaxing the Clone Configuration by
 #' changing it from fixed value to act as a prior Config with a relax rate.
 #' @param relax_rate_fixed numeric(1), If the value is between 0 to 1, 
 #' the relax rate will be set as a fix value during updating clone Config. If
@@ -263,6 +317,8 @@ cell_assign_EM <- function(A, D, Config, Psi=NULL, model="binomial",
 #' reads when using Bernoulli model.
 #' @param wise A string, the wise of parameters for theta1: global, variant,
 #' element.
+#' @param relabel bool(1), if TRUE, relabel the samples of both Config and prob 
+#' during the Gibbs sampleing.
 #'
 #' @import matrixStats
 #' @rdname clone_id
@@ -279,7 +335,7 @@ cell_assign_Gibbs <- function(A, D, Config, Psi=NULL, A_germ=NULL, D_germ=NULL,
                               prior0=c(0.2, 99.8), prior1=c(0.45, 0.55),
                               model="binomial", Bernoulli_threshold=1,
                               min_iter=3000, max_iter=10000, wise="variant",
-                              verbose=TRUE) {
+                              relabel=FALSE, verbose=TRUE) {
     if (is.null(Psi)) {Psi <- rep(1/ncol(Config), ncol(Config))}
     if (dim(A)[1] != dim(D)[1] || dim(A)[2] != dim(D)[2] ||
         dim(A)[1] != dim(Config)[1] || dim(Config)[2] != length(Psi)) {
@@ -295,7 +351,7 @@ cell_assign_Gibbs <- function(A, D, Config, Psi=NULL, A_germ=NULL, D_germ=NULL,
     ## preprocessing
     N <- dim(A)[1]             # number of variants
     M <- dim(A)[2]             # number of cells
-    K <- dim(Config)[2]             # number of clones
+    K <- dim(Config)[2]        # number of clones
     if (is.null(A_germ))
         A_germ <- matrix(NA, nrow = N, ncol = M)
     if (is.null(D_germ))
@@ -507,9 +563,9 @@ cell_assign_Gibbs <- function(A, D, Config, Psi=NULL, A_germ=NULL, D_germ=NULL,
             for (n in seq_len(ncol(prob_all))) {
                 Converged_all[n] <- Geweke_Z(prob_all[1:it, n]) <= 2
             }
-            cat(paste0(round(mean(Converged_all, na.rm=TRUE), 3) * 100, 
+            cat(paste0(round(mean(Converged_all, na.rm = TRUE), 3) * 100, 
                        "% converged."))
-            if (mean(Converged_all, na.rm=TRUE) > 0.999) {break}
+            if (mean(Converged_all, na.rm = TRUE) > 0.999) {break}
         }
     }
     if (verbose) {print(paste("Converged in", it, "iterations."))}
@@ -532,6 +588,15 @@ cell_assign_Gibbs <- function(A, D, Config, Psi=NULL, A_germ=NULL, D_germ=NULL,
     colnames(prob_variant) <- colnames(A)
 
     # prob_mat <- get_Gibbs_prob(assign_all[1:it,], buin_in=0.25)
+    if (relabel) {
+      for (ii in seq(n_buin, it)) {
+        prob1 <- matrix(prob_all[ii - 1, ], nrow = M)
+        prob2 <- matrix(prob_all[ii - 1, ], nrow = M)
+        idx <- colMatch(prob1, prob2, force = TRUE)
+        prob_all[ii, ] <- prob2[idx]
+        Config_all[ii, ] <- matrix(Config_all[ii, ], nrow = N)[, idx]
+      }
+    }
     prob_mat <- matrix(colMeans(prob_all[n_buin:it, ]), nrow = M)
     row.names(prob_mat) <- colnames(A)
     colnames(prob_mat) <- colnames(Config)
