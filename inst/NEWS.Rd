@@ -1,6 +1,12 @@
 \name{NEWS}
 \title{News for Package \pkg{cardelino}}
 
+\section{Changes in version 0.4.1}{
+  \itemize{
+    \item Support direct loading sparse matrix from cellSNP file in hdf5 format
+  }
+}
+
 \section{Changes in version 0.4.0}{
   \itemize{
     \item Support multiple chains when running clone_id (one chain by default)
