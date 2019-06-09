@@ -38,7 +38,7 @@ if (tools::file_ext(cell_file) == "rds") {
     cell_data <- readRDS(cell_file)
 } else if (tools::file_ext(cell_file) == "h5" || 
            tools::file_ext(cell_file) == "hdf5") {
-    cell_dat <- load_vcf_h5(cell_file)
+    cell_data <- load_vcf_h5(cell_file)
 } else {
     cell_data <- load_cellSNP_vcf(cell_file)
 }
