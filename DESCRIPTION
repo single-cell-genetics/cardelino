@@ -1,8 +1,8 @@
 Package: cardelino
 Type: Package
 Title: Clone and Donor Identification from Single Cell Data
-Version: 0.4.0
-Date: 2019-05-14
+Version: 0.4.1
+Date: 2019-06-09
 Authors@R: c(person("Davis", "McCarthy", role=c("aut", "cre"),
         email="davis@ebi.ac.uk"), person("Yuanhua", "Huang", 
         role=c("aut"), email="yuanhua@ebi.ac.uk"))
@@ -15,7 +15,7 @@ License: GPL (>= 3)
 Depends: R (>= 3.4), stats
 Imports: ggplot2, ggpubr, ggtree, pheatmap, matrixStats, Matrix, doMC, foreach,
     vcfR, GenomeInfoDb, GenomicRanges, methods, snpStats, S4Vectors, 
-    VariantAnnotation
+    VariantAnnotation, hdf5r
 Suggests: BiocStyle, knitr, pcaMethods, testthat
 VignetteBuilder: knitr
 LazyData: true
