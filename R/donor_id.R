@@ -61,6 +61,10 @@ vireo <- function(cell_data, donor_data = NULL, n_donor=NULL,
                   check_doublet = TRUE, n_init=NULL, n_proc=1, 
                   n_vars_threshold = 10, singlet_threshold = 0.9,
                   doublet_threshold = 0.9, verbose = FALSE, ...) {
+    
+    message("vireo is switched to Python: https://vireoSNP.readthedocs.io.")
+    message("Please use the Python package in future.")
+    
     if (typeof(cell_data) == "character") {
         in_data <- load_cellSNP_vcf(cell_data)
     } else {
@@ -301,7 +305,7 @@ vireo_flock <- function(A, D, K=NULL, K_amplify=1.5, GT=NULL, GT_prior=NULL,
 #' \code{GT}, the input GT or a point estimate of genotype of donors. Note,
 #' this may be not very accurate, especially for lowly expressed SNPs.
 #' \code{GT_doublet}, the pair-wise doublet genotype based on GT.
-vireo_core <- function(A, D, K=NULL, GT=NULL, GT_prior=NULL, 
+vireo_core <- function(A, D, K=NULL, GT=NULL, GT_prior=NULL, learn_GT=TRUE,
                        theta_prior=NULL, learn_theta=TRUE, 
                        check_doublet=TRUE, doublet_prior=NULL, 
                        check_doublet_iterative=FALSE,
@@ -333,6 +337,9 @@ vireo_core <- function(A, D, K=NULL, GT=NULL, GT_prior=NULL,
     if (is.null(GT)) {
         update_GT <- TRUE
         if (is.null(GT_prior)) {
+            if (learn_GT == FALSE) {
+              message("Warning: No GT prior, so GT will be learned.")
+            }
             GT_prior <- matrix(1 / length(gt_singlet), nrow = N * K, 
                                ncol = length(gt_singlet))
             GT_prob <- matrix(0, nrow = N * K, ncol = length(gt_singlet))
@@ -340,6 +347,7 @@ vireo_core <- function(A, D, K=NULL, GT=NULL, GT_prior=NULL,
                 GT_prob[ii, ] <- t(rmultinom(1, size = 1, GT_prior[ii, ]))
             }
         } else{
+            update_GT <- learn_GT
             GT_prob <- GT_prior
             # GT_prior[GT_prior > 0.999999] <- 0.999999
             # GT_prior[GT_prior < 10^-8] <- 10^-8
