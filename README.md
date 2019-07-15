@@ -11,6 +11,11 @@ This R package contains two major methods to analysis single-cell RNA-seq data
   Rscript run_vireo.R $CELL_FILE $OUT_DIR $N_DONOR [$GT_VCF_FILE]
   ```
 
+**Note**: Vireo is now re-implemented in Python, which is more memory 
+efficient and easier to run via a command line. We may turn off Vireo in R 
+but mainly maintain the Python in future, so please consider switch:
+https://vireoSNP.readthedocs.io
+
 ## Installation
 
 ### From R

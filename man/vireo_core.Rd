@@ -5,10 +5,10 @@
 \title{Variational inference with a single run}
 \usage{
 vireo_core(A, D, K = NULL, GT = NULL, GT_prior = NULL,
-  theta_prior = NULL, learn_theta = TRUE, check_doublet = TRUE,
-  doublet_prior = NULL, check_doublet_iterative = FALSE,
-  binary_GT = FALSE, min_iter = 20, max_iter = 200,
-  epsilon_conv = 0.01, verbose = FALSE)
+  learn_GT = TRUE, theta_prior = NULL, learn_theta = TRUE,
+  check_doublet = TRUE, doublet_prior = NULL,
+  check_doublet_iterative = FALSE, binary_GT = FALSE, min_iter = 20,
+  max_iter = 200, epsilon_conv = 0.01, verbose = FALSE)
 }
 \arguments{
 \item{A}{A matrix of integers. Number of alteration reads in SNP i cell j}

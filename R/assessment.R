@@ -156,6 +156,56 @@ binaryPRC <- function(scores, labels, cutoff=NULL, cut_direction=">=",
 }
 
 
+binaryROC <- function(scores, labels, cutoff=NULL, cut_direction=">=",
+                      add_cut1=TRUE, cutoff_point=0.9) {
+  if (is.null(cutoff)) {
+    cutoff <- sort(unique(scores))
+  }
+  cutoff <- sort(unique(c(cutoff, cutoff_point, 0, 1)))
+  
+  TPR <- rep(0, length(cutoff))
+  FPR <- rep(0, length(cutoff))
+  Precision <- rep(0, length(cutoff))
+  for (i in seq_len(length(cutoff))) {
+    if (cut_direction == "<=") {
+      idx <- scores <= cutoff[i]
+    } else if (cut_direction == "<") {
+      idx <- scores < cutoff[i]
+    } else if (cut_direction == ">") {
+      idx <- scores > cutoff[i]
+    } else {
+      idx <- scores >= cutoff[i]
+    }
+    
+    FPR[i] <- sum(labels[idx] == 0) / sum(labels == 0) ## FPR
+    TPR[i] <- sum(labels[idx] == 1) / sum(labels == 1) ## TPR
+    Precision[i] <- mean(labels[idx] == 1)
+  }    
+  Precision[(TPR == 0) & is.na(Precision)] <- 1.0
+  
+  if (add_cut1) {
+    cutoff <- c(cutoff, 1.0)
+    FPR <- c(FPR, 0.0)
+    TPR <- c(TPR, 0.0)
+    Precision <- c(Precision, 1.0)
+  }
+  
+  AUC <- AUPRC <- 0.0
+  for (i in seq_len(length(cutoff) - 1)) {
+    AUC <- ((FPR[i] - FPR[i + 1]) * 
+              (TPR[i] + TPR[i + 1]) * 0.5 + AUC)
+    AUPRC <- ((TPR[i] - TPR[i + 1]) * 
+                (Precision[i] + Precision[i + 1]) * 0.5 + AUPRC)
+  }
+  AUC <- AUC / (FPR[1] - FPR[length(FPR)])
+  AUPRC <- AUPRC / (TPR[1] - TPR[length(TPR)])
+  
+  df <- data.frame("cutoff" = cutoff, "TPR" = TPR, 
+                   "FPR" = FPR, Precision = Precision)
+  list("df" = df, "AUC" = AUC, "AUPRC" = AUPRC)
+}
+
+
 #' Precision-recall curve for multi-class prediction
 #' @param prob_mat Probability matrix for each cell to each component
 #' @param simu_mat The true identity of assignment from simulation

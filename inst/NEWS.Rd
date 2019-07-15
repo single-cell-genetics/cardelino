@@ -1,6 +1,13 @@
 \name{NEWS}
 \title{News for Package \pkg{cardelino}}
 
+\section{Changes in version 0.4.2}{
+  \itemize{
+    \item Add binaryROC function of ROC curve
+    \item Add message for switch vireo to Python implementation
+  }
+}
+
 \section{Changes in version 0.4.1}{
   \itemize{
     \item Support direct loading sparse matrix from cellSNP file in hdf5 format
