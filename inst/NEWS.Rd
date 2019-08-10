@@ -1,6 +1,21 @@
 \name{NEWS}
 \title{News for Package \pkg{cardelino}}
 
+\section{Changes in version 0.6.1}{
+  \itemize{
+    \item Change the default colMatch to greedy search
+    \item Rename the cell_assign_Gibbs to clone_id_Gibbs
+    \item Rename the cell_assign_EM to clone_id_EM
+    \item Move get_tree from clone_id.R to tree_utils.R
+    \item Remove "Bernoulli" model in both clone_id_EM and clone_id_Gibbs. The 
+          user can transfer the binomial to Bernoulli by setting a threhold 
+          beforehand
+    \item Remove the A_germ and D_germ parameters, leave it to future 
+          development to jointly modelling the germline variants
+    \item Remove fucntion load_vcf_h5 and dependency hdf5r
+  }
+}
+
 \section{Changes in version 0.6.0}{
   \itemize{
     \item Remove donor id relevant informatio and backup donor_id into `v0.4.2` 

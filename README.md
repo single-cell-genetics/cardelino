@@ -1,6 +1,7 @@
 # cardelino: clone identification from single-cell data 
 
 [![Linux Build Status](https://travis-ci.org/PMBio/cardelino.svg?branch=master)](https://travis-ci.org/PMBio/cardelino)
+[![codecov.io](https://codecov.io/github/PMBio/cardelino/coverage.svg?branch=master)](https://codecov.io/github/PMBio/cardelino/?branch=master)
 
 <img src=inst/cardelino_sticker.png height="200">
 

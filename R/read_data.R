@@ -328,40 +328,40 @@ load_GT_vcf <- function(vcf_file, rowname_format="full", na.rm=TRUE,
 }
 
 
-#' Load sparse matrices A and D from cellSNP VCF file in HDF5 format
-#'
-#' @param filename character(1), path to HDF5 file generated from cellSNP
-#' @export
-#'
-load_vcf_h5 <- function(filename) {
-  if (!requireNamespace('hdf5r', quietly = TRUE)) {
-    stop("Please install hdf5r to read HDF5 files")
-  }
-  if (!file.exists(filename)) {
-    stop("File not found")
-  }
-  infile <- hdf5r::H5File$new(filename = filename, mode = 'r')
+# #' Load sparse matrices A and D from cellSNP VCF file in HDF5 format
+# #'
+# #' @param filename character(1), path to HDF5 file generated from cellSNP
+# #' @export
+# #'
+# load_vcf_h5 <- function(filename) {
+#   if (!requireNamespace('hdf5r', quietly = TRUE)) {
+#     stop("Please install hdf5r to read HDF5 files")
+#   }
+#   if (!file.exists(filename)) {
+#     stop("File not found")
+#   }
+#   infile <- hdf5r::H5File$new(filename = filename, mode = 'r')
 
-  AD <- as.numeric(infile[['GenoINFO/AD']][])
-  DP <- as.numeric(infile[['GenoINFO/DP']][])
-  indices <- as.numeric(infile[['GenoINFO/indices']][])
-  indptr <- as.numeric(infile[['GenoINFO/indptr']][])
-  shp <- as.numeric(infile[['GenoINFO/shape']][])
+#   AD <- as.numeric(infile[['GenoINFO/AD']][])
+#   DP <- as.numeric(infile[['GenoINFO/DP']][])
+#   indices <- as.numeric(infile[['GenoINFO/indices']][])
+#   indptr <- as.numeric(infile[['GenoINFO/indptr']][])
+#   shp <- as.numeric(infile[['GenoINFO/shape']][])
   
-  A.mat <- Matrix::sparseMatrix(
-    i = indices + 1,
-    p = indptr,
-    x = as.numeric(x = AD),
-    dims = shp
-  )
-  D.mat <- Matrix::sparseMatrix(
-    i = indices + 1,
-    p = indptr,
-    x = as.numeric(x = DP),
-    dims = shp
-  )
-  rownames(A.mat) <- rownames(D.mat) <- infile[['samples']][]
-  colnames(A.mat) <- colnames(D.mat) <- infile[['variants']][]
+#   A.mat <- Matrix::sparseMatrix(
+#     i = indices + 1,
+#     p = indptr,
+#     x = as.numeric(x = AD),
+#     dims = shp
+#   )
+#   D.mat <- Matrix::sparseMatrix(
+#     i = indices + 1,
+#     p = indptr,
+#     x = as.numeric(x = DP),
+#     dims = shp
+#   )
+#   rownames(A.mat) <- rownames(D.mat) <- infile[['samples']][]
+#   colnames(A.mat) <- colnames(D.mat) <- infile[['variants']][]
   
-  list("A" = Matrix::t(A.mat), "D" = Matrix::t(D.mat))
-}
+#   list("A" = Matrix::t(A.mat), "D" = Matrix::t(D.mat))
+# }

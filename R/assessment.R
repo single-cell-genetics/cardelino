@@ -65,39 +65,46 @@ rowArgmax <- get_prob_label <- function(X){
 #' Column match between two matrices by the minimum mean abosolute difference
 #' @param A The first matrix which will be matched
 #' @param B The second matrix, the return index will be used on
-#' @param force bool(1), If TRUE, force it to one-to-one match, which uses the
-#' best match in all possible permutation of columns
+#' @param force bool(1), If TRUE, force traversing all permutations of B to 
+#' find the optimised match to A with computing cost of O(n!). Otherwise, use
+#' greedy search with computing cost of O(n^2).
 #' @return \code{idx}, the column index of B to be matched to A
 #' @export
 #' 
-colMatch <- function(A, B, force=FALSE) {
+colMatch <- function(A, B, force = FALSE) {
     if (nrow(A) != nrow(B)) {
         stop("Error: A and B have different rows.")
     }
+    if (ncol(A) > ncol(B)) {
+        stop("Error: A must have equal or smaller columns than B.")
+    }
     if (force == TRUE) {
-        if (ncol(A) != ncol(B)) {
-            stop("Error: force mode requires A and B have same n_col.")
-        }
-        idx_list <- combinat::permn(ncol(A))
+        idx_list <- combinat::permn(ncol(B))
         MAE_list <- rep(NA, length(idx_list))
         for (ii in seq_len(length(idx_list))) {
-            MAE_list[ii] <- mean(abs(A - B[, idx_list[[ii]]]))
+            MAE_list[ii] <- mean(abs(A - B[, idx_list[[ii]][1:ncol(A)]]))
         }
-        idx <- idx_list[[which.min(MAE_list)]]
+        idx_out <- idx_list[[which.min(MAE_list)]][1:ncol(A)]
     } else {
-        ncol_A <- ncol(A)
-        ncol_B <- ncol(B)
-        idx <- rep(NA, ncol_A)
-        MAE <- rep(NA, ncol_B)
-        for (i in seq_len(ncol_A)) {
-            for (j in seq_len(ncol_B)) {
-                MAE[j] <- mean(abs(A[, i] - B[, j]))
+        MAE_mat = matrix(0, ncol(A), ncol(B))
+        for (i in seq_len(ncol(A))){
+            for (j in seq_len(ncol(B))){
+                MAE_mat[i, j] = mean(abs(A[, i] - B[, j]))
             }
-            idx[i] <- order(MAE)[1]
+        }
+        MAE_tmp = MAE_mat
+        idx_out = rep(-1, ncol(A))
+        while (-1 %in% idx_out) {    
+            idx_tmp = which(MAE_tmp == min(MAE_tmp), arr.ind = TRUE)
+            idx_row = idx_tmp[1]
+            idx_col = idx_tmp[2]
+            
+            idx_out[idx_row] = idx_col
+            MAE_tmp[idx_row, ] = max(MAE_mat) + 1
+            MAE_tmp[, idx_col] = max(MAE_mat) + 1
         }
     }
-    
-    idx
+    idx_out
 }
 
 
