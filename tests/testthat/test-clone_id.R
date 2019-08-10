@@ -5,12 +5,14 @@ context("test clone ID")
 data("example_donor")
 
 test_that("default inference works as expected", {
-    assignments <- clone_id(A_clone, D_clone, Config = tree$Z, min_iter=1000)
+    assignments <- clone_id(A_clone, D_clone, Config = tree$Z, min_iter=1000, 
+                            relax_Config = TRUE)
     expect_is(assignments, "list")
 })
 
 test_that("binomial EM inference works as expected", {
-    assignments_EM <- clone_id(A_clone, D_clone, Config = tree$Z, inference = "EM")
+    assignments_EM <- clone_id(A_clone, D_clone, Config = tree$Z, 
+                               inference = "EM")
     expect_is(assignments_EM, "list")
 })
 
