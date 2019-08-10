@@ -1,20 +1,12 @@
-# cardelino: clone and donor identification from single-cell data 
+# cardelino: clone identification from single-cell data 
 
 [![Linux Build Status](https://travis-ci.org/PMBio/cardelino.svg?branch=master)](https://travis-ci.org/PMBio/cardelino)
 
 <img src=inst/cardelino_sticker.png height="200">
 
-This R package contains two major methods to analysis single-cell RNA-seq data
-* `cardelino` to reconstructing somatic clonal tree and assigning single cells to clones. See [cardelino munual](https://rawgit.com/PMBio/cardelino/master/inst/doc/vignette-cloneid.html)
-* `Vireo` to demultiplex pooled scRNA-seq with or without genotype reference. See [Vireo manual](https://huangyh09.github.io/vireo-manual) or run our wrap [run_vireo.R](https://github.com/PMBio/cardelino/tree/master/bin/run_vireo.R) in a command line with Rscript:
-  ```{bash}
-  Rscript run_vireo.R $CELL_FILE $OUT_DIR $N_DONOR [$GT_VCF_FILE]
-  ```
-
-**Note**: Vireo is now re-implemented in Python, which is more memory 
-efficient and easier to run via a command line. We may turn off Vireo in R 
-but mainly maintain the Python in future, so please consider switch:
-https://vireoSNP.readthedocs.io
+This R package contains a Bayesian method to infer clonal structure for a 
+population of cells using single-cell RNA-seq data (and possibly other data 
+modalities). 
 
 ## Installation
 
@@ -64,14 +56,24 @@ library(cardelino)
 browseVignettes("cardelino")
 ```
 
-Vignettes for the donor identification and clone identification use cases are 
-provided. 
+Vignettes for clone identification use cases are provided. 
 
 Accessing the vignettes from within your R session is recommended, but
-you can also [view the clone ID vignette](https://rawgit.com/PMBio/cardelino/master/inst/doc/vignette-cloneid.html) 
-and [view the donor ID vignette](https://huangyh09.github.io/vireo-manual) online.
+you can also [view the clone ID vignette](https://rawgit.com/PMBio/cardelino/master/inst/doc/vignette-cloneid.html).
 
+## Notes for donor deconvolution
+The denor demultiplex function, namely Vireo, was supported in this R package 
+before, but now has been re-implemented in Python, which is more memory 
+efficient and easier to run via a command line. We, therefore, highly recommend 
+you switch to the Python version: https://vireoSNP.readthedocs.io
 
+The vireo function is not supported from version >=0.5.0. If you want to use the
+R functions, please use the version ==0.4.2 or lower. You can also find it in a
+separate branch in this repository: 
+[with_vireo branch](https://github.com/PMBio/cardelino/tree/with_vireo)
+or use the 
+[donor_id.R](https://github.com/PMBio/cardelino/blob/with_vireo/R/donor_id.R) 
+file directly.
 
 ## About the name
 
@@ -84,7 +86,9 @@ in notable paintings from the
 the [Dutch Golden Age](https://en.wikipedia.org/wiki/The_Goldfinch_(painting)). 
 Perhaps this package may prove a saviour for certain single-cell datasets.
 
-`Vireo`(variational inference for reconstructing ensemebl origin) is a Latin word referring to a green migratory bird, perhaps the female golden oriole, possibly the [European greenfinch](https://en.wikipedia.org/wiki/European_greenfinch)
+`Vireo`(variational inference for reconstructing ensemebl origin) is a Latin 
+word referring to a green migratory bird, perhaps the female golden oriole, 
+possibly the [European greenfinch](https://en.wikipedia.org/wiki/European_greenfinch)
 
 <img src=inst/cardelino_med.jpg height="400">
 

@@ -16,7 +16,7 @@ data(example_donor)
 plot_tree(tree, orient = "v")
 
 ## ----cell-assign-----------------------------------------------------------
-assignments <- clone_id(A, D, C = tree$Z)
+assignments <- clone_id(A_clone, D_clone, Config = tree$Z)
 names(assignments)
 
 ## ----prob-heatmap----------------------------------------------------------
@@ -35,13 +35,14 @@ input_data <- get_snp_matrices(vcf)
 ## ----read-canopy-data------------------------------------------------------
 canopy <- readRDS(system.file("extdata", "canopy_results.example.rds", 
                    package = "cardelino"))
-C <- canopy$tree$Z
+Config <- canopy$tree$Z
 
 ## ----correct-variant-ids---------------------------------------------------
-rownames(C) <- gsub("chr", "", gsub(":", "_", gsub("_.*", "", rownames(C))))
+rownames(Config) <- gsub("chr", "", gsub(":", "_", gsub("_.*", "", 
+                                                        rownames(Config))))
 
 ## ----run-cell-assign-------------------------------------------------------
-assignments <- clone_id(input_data$A, input_data$D, C)
+assignments <- clone_id(input_data$A, input_data$D, Config)
 
 ## ----assign-cell-clone-vcf-------------------------------------------------
 df <- assign_cells_to_clones(assignments$prob)

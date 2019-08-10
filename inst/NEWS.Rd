@@ -1,6 +1,16 @@
 \name{NEWS}
 \title{News for Package \pkg{cardelino}}
 
+\section{Changes in version 0.6.0}{
+  \itemize{
+    \item Remove donor id relevant informatio and backup donor_id into `v0.4.2` 
+          and a new branch `with_vireo`
+    \item Remove donor_id.R, bin/run_vireo.R
+    \item Remove tests/testthat/test-donorid.R, vignette/vignette-vireo.Rmd
+    \item Remove unnecessary logo photos in inst
+  }
+}
+
 \section{Changes in version 0.4.2}{
   \itemize{
     \item Add binaryROC function of ROC curve
