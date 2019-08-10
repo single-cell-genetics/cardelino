@@ -64,7 +64,7 @@
 #'
 #' @examples
 #' data(example_donor)
-#' assignments <- clone_id(A_clone, D_clone, Config = tree$Z)
+#' assignments <- clone_id(A_clone, D_clone, Config = tree$Z, min_iter=1000)
 #' prob_heatmap(assignments$prob)
 #'
 #' assignments_EM <- clone_id(A_clone, D_clone, Config = tree$Z, inference = "EM")
@@ -81,7 +81,7 @@ clone_id <- function(A, D, Config = NULL, n_clone = NULL, Psi = NULL,
     if (!(all(colnames(A) == colnames(D))))
         stop("Colnames for A and D are not identical.")
     if (is.null(Config) && is.null(n_clone))
-      stop("Config and n_clone can't be NULL together.")
+        stop("Config and n_clone can't be NULL together.")
     
     ## Cardelino-free mode if Config is NULL
     if (is.null(Config)) {
@@ -107,9 +107,9 @@ clone_id <- function(A, D, Config = NULL, n_clone = NULL, Psi = NULL,
     ## pass data to specific functions
     if (inference == "sampling") {
       #TODO: solve the warnings for using foreach
-      library(foreach)
       doMC::registerDoMC(n_proc)
-      
+      `%dopar%` <- foreach::`%dopar%`
+
       ids_list <- foreach::foreach(ii = 1:n_chain) %dopar% {
         clone_id_Gibbs(A, D, Config, Psi = Psi, 
                        relax_Config = relax_Config, 
@@ -189,8 +189,6 @@ assign_cells_to_clones <- function(prob_mat, threshold = 0.5) {
 #' @import stats
 #' @rdname clone_id
 #' @export
-#' @examples
-#' assignments_EM <- clone_id_EM(A_clone, D_clone, Config = tree$Z)
 #'
 clone_id_EM <- function(A, D, Config, Psi=NULL, min_iter=10, max_iter=1000,
                         logLik_threshold=1e-5, verbose=TRUE) {
@@ -198,9 +196,9 @@ clone_id_EM <- function(A, D, Config, Psi=NULL, min_iter=10, max_iter=1000,
         Psi <- rep(1/ncol(Config), ncol(Config))
     if (dim(A)[1] != dim(D)[1] || dim(A)[2] != dim(D)[2] ||
         dim(A)[1] != dim(Config)[1] || dim(Config)[2] != length(Psi)) {
-        stop(paste("A and D must have the same size;\n ",
-                   "A and Config must have the same number of variants;\n",
-                   "Config and Psi must have the same number of clones",sep = ""))
+        stop(paste0("A and D must have the same size;\n",
+                    "A and Config must have the same number of variants;\n",
+                    "Config and Psi must have the same number of clones"))
     }
 
     ## preprocessing
@@ -291,8 +289,6 @@ clone_id_EM <- function(A, D, Config, Psi=NULL, min_iter=10, max_iter=1000,
 #' @import matrixStats
 #' @rdname clone_id
 #' @export
-#' @examples
-#' assignments_Gibbs <- clone_id_Gibbs(A_clone, D_clone, Config = tree$Z)
 #'
 clone_id_Gibbs <- function(A, D, Config, Psi=NULL,
                            relax_Config=FALSE, relax_rate_fixed=NULL, 

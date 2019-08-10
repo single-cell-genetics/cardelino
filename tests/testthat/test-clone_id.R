@@ -5,7 +5,7 @@ context("test clone ID")
 data("example_donor")
 
 test_that("default inference works as expected", {
-    assignments <- clone_id(A_clone, D_clone, Config = tree$Z)
+    assignments <- clone_id(A_clone, D_clone, Config = tree$Z, min_iter=1000)
     expect_is(assignments, "list")
 })
 
