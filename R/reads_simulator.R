@@ -36,6 +36,7 @@
 #' @param wise1 A string, the beta-binomal parameter specificity for theta1:
 #' global, variant, element.
 #' @param doublet A float between 0 and 1, the rate of doublets
+#' @param sample_cell A boolean value. If True and M > ncol(D), sample cells.
 #'
 #' @return a list containing \code{A_sim}, a matrix for alteration reads,
 #' \code{A_sim}, a matrix for total reads, \code{I_sim}, a matrix for clonal

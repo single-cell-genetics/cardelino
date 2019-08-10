@@ -34,6 +34,8 @@ global, variant, element.}
 
 \item{permute_D}{A boolean value. If True permute variants in D.}
 
+\item{sample_cell}{A boolean value. If True and M > ncol(D), sample cells.}
+
 \item{doublet}{A float between 0 and 1, the rate of doublets}
 }
 \value{
