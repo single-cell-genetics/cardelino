@@ -8,8 +8,9 @@
 \title{Infer clonal identity of single cells}
 \usage{
 clone_id(A, D, Config = NULL, n_clone = NULL, Psi = NULL,
-  relax_Config = FALSE, relax_rate_fixed = NULL, n_chain = 1,
-  inference = "sampling", n_proc = 1, verbose = TRUE, ...)
+  relax_Config = FALSE, relax_rate_fixed = NULL,
+  inference = "sampling", n_chain = 1, n_proc = 1, verbose = TRUE,
+  ...)
 
 clone_id_EM(A, D, Config, Psi = NULL, min_iter = 10, max_iter = 1000,
   logLik_threshold = 1e-05, verbose = TRUE)
@@ -17,7 +18,7 @@ clone_id_EM(A, D, Config, Psi = NULL, min_iter = 10, max_iter = 1000,
 clone_id_Gibbs(A, D, Config, Psi = NULL, relax_Config = FALSE,
   relax_rate_fixed = NULL, relax_rate_prior = c(1, 9),
   keep_base_clone = TRUE, prior0 = c(0.2, 99.8), prior1 = c(0.45,
-  0.55), min_iter = 3000, max_iter = 10000, wise = "variant",
+  0.55), min_iter = 5000, max_iter = 20000, wise = "variant",
   relabel = FALSE, verbose = TRUE)
 }
 \arguments{
@@ -43,12 +44,12 @@ changing it from fixed value to act as a prior Config with a relax rate.}
 the relax rate will be set as a fix value during updating clone Config. If
 NULL, the relax rate will be learned automatically with relax_rate_prior.}
 
-\item{n_chain}{integer(1), the number of chains to run, which will be 
-averaged as an output result}
-
 \item{inference}{character(1), the method to use for inference, either
 "sampling" to use Gibbs sampling (default) or "EM" to use
 expectation-maximisation (faster)}
+
+\item{n_chain}{integer(1), the number of chains to run, which will be 
+averaged as an output result}
 
 \item{n_proc}{integer(1), the numebr of processors to use. This parallel 
 computing can largely reduce time when using multiple chains}
@@ -123,7 +124,8 @@ with and without the mutation present.
 }
 \examples{
 data(example_donor)
-assignments <- clone_id(A_clone, D_clone, Config = tree$Z, min_iter=1000)
+assignments <- clone_id(A_clone, D_clone, Config = tree$Z, 
+min_iter = 800, max_iter = 1200)
 prob_heatmap(assignments$prob)
 
 assignments_EM <- clone_id(A_clone, D_clone, Config = tree$Z, inference = "EM")

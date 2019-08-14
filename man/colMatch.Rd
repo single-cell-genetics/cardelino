@@ -21,3 +21,10 @@ greedy search with computing cost of O(n^2).}
 \description{
 Column match between two matrices by the minimum mean abosolute difference
 }
+\examples{
+matA = matrix(sample(seq(12)), nrow=3)
+col_idx = sample(4)
+matB = matA[, col_idx]
+colMatch(matB, matA)
+
+}

@@ -1,11 +1,11 @@
 Package: cardelino
 Type: Package
 Title: Clone Identification from Single Cell Data
-Version: 0.6.1
+Version: 0.6.2
 Date: 2019-08-10
-Authors@R: c(person("Davis", "McCarthy", role=c("aut", "cre"),
-        email="davis@ebi.ac.uk"), person("Yuanhua", "Huang", 
-        role=c("aut"), email="yuanhua@ebi.ac.uk"))
+Authors@R: c(person("Yuanhua", "Huang", role=c("aut", "cre"), 
+        email="yuanhua@ebi.ac.uk"), person("Davis", "McCarthy", 
+        role=c("aut"), email="davis@ebi.ac.uk"))
 Maintainer: Davis McCarthy <davis@ebi.ac.uk>
 Description: Methods to infer clonal structure for a population of cells using 
     single-cell RNA-seq data (and possibly other data modalities). Methods to 
