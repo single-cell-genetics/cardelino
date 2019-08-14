@@ -3,6 +3,7 @@
 export(assign_cells_to_clones)
 export(assign_scores)
 export(binaryPRC)
+export(binaryROC)
 export(clone_id)
 export(clone_id_EM)
 export(clone_id_Gibbs)

@@ -20,3 +20,6 @@ When |Z| <= 2, the sampling could be taken as converged.
 \description{
 Geweke diagnostic for MCMC sampling.
 }
+\author{
+Yuanhua Huang
+}

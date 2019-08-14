@@ -21,3 +21,8 @@ on the mode used.
 \description{
 Maximum value for each row in a matrix
 }
+\examples{
+matA = matrix(sample(seq(12)), nrow=3)
+rowMax(matA)
+
+}

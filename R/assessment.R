@@ -28,6 +28,9 @@ mtx_to_df <- function(X) {
 #' on the mode used.
 #'
 #' @export
+#' @examples 
+#' matA = matrix(sample(seq(12)), nrow=3)
+#' rowMax(matA)
 #'
 rowMax <- get_prob_value <- function(X, mode = "best") {
     max_val <- rep(0, nrow(X))
@@ -53,6 +56,9 @@ rowMax <- get_prob_value <- function(X, mode = "best") {
 #' returned.
 #'
 #' @export
+#' @examples 
+#' matA = matrix(sample(seq(12)), nrow=3)
+#' rowArgmax(matA)
 #'
 rowArgmax <- get_prob_label <- function(X){
     max_idx <- rep(0, nrow(X))
@@ -70,6 +76,11 @@ rowArgmax <- get_prob_label <- function(X){
 #' greedy search with computing cost of O(n^2).
 #' @return \code{idx}, the column index of B to be matched to A
 #' @export
+#' @examples 
+#' matA = matrix(sample(seq(12)), nrow=3)
+#' col_idx = sample(4)
+#' matB = matA[, col_idx]
+#' colMatch(matB, matA)
 #' 
 colMatch <- function(A, B, force = FALSE) {
     if (nrow(A) != nrow(B)) {
@@ -162,7 +173,15 @@ binaryPRC <- function(scores, labels, cutoff=NULL, cut_direction=">=",
     list("df" = df, "AUC" = AUC)
 }
 
-
+#' ROC curve for binary label prediction
+#' @param scores Prediction score for each sample
+#' @param labels True labels for each sample, e.g., from simulation
+#' @param cutoff A list of cutoff; if NULL use all unique scores
+#' @param cut_direction A string to compare with cutoff: >=, >, <=, <
+#' @param add_cut1 Logical value; if True, manually add a cutoff of 1
+#' @param cutoff_point Numeric value; additional cutoff value
+#' @export
+#' 
 binaryROC <- function(scores, labels, cutoff=NULL, cut_direction=">=",
                       add_cut1=TRUE, cutoff_point=0.9) {
   if (is.null(cutoff)) {
