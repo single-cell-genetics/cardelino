@@ -64,7 +64,8 @@
 #'
 #' @examples
 #' data(example_donor)
-#' assignments <- clone_id(A_clone, D_clone, Config = tree$Z, min_iter=1000)
+#' assignments <- clone_id(A_clone, D_clone, Config = tree$Z, 
+#' min_iter = 800, max_iter = 1200)
 #' prob_heatmap(assignments$prob)
 #'
 #' assignments_EM <- clone_id(A_clone, D_clone, Config = tree$Z, inference = "EM")
@@ -72,8 +73,8 @@
 #'
 clone_id <- function(A, D, Config = NULL, n_clone = NULL, Psi = NULL, 
                      relax_Config = FALSE, relax_rate_fixed = NULL,
-                     n_chain = 1, inference = "sampling", 
-                     n_proc = 1, verbose = TRUE, ...) {
+                     inference = "sampling", n_chain = 1, n_proc = 1, 
+                     verbose = TRUE, ...) {
     inference <- match.arg(inference, c("sampling", "EM"))
     ## check input data
     if (!(all(rownames(A) == rownames(D))))
@@ -85,7 +86,7 @@ clone_id <- function(A, D, Config = NULL, n_clone = NULL, Psi = NULL,
     
     ## Cardelino-free mode if Config is NULL
     if (is.null(Config)) {
-      cat("Config is NULL: de-novo mode is in use.")
+      cat("Config is NULL: de-novo mode is in use.\n")
       Config <- matrix(0, nrow = nrow(D), ncol = n_clone)
       rownames(Config) <- rownames(D)
       colnames(Config) <- paste0("Clone", seq_len(n_clone))
@@ -106,7 +107,6 @@ clone_id <- function(A, D, Config = NULL, n_clone = NULL, Psi = NULL,
     
     ## pass data to specific functions
     if (inference == "sampling") {
-      #TODO: solve the warnings for using foreach
       doMC::registerDoMC(n_proc)
       `%dopar%` <- foreach::`%dopar%`
 
@@ -294,7 +294,7 @@ clone_id_Gibbs <- function(A, D, Config, Psi=NULL,
                            relax_Config=FALSE, relax_rate_fixed=NULL, 
                            relax_rate_prior=c(1, 9), keep_base_clone=TRUE,
                            prior0=c(0.2, 99.8), prior1=c(0.45, 0.55),
-                           min_iter=3000, max_iter=10000, wise="variant",
+                           min_iter=5000, max_iter=20000, wise="variant",
                            relabel=FALSE, verbose=TRUE) {
     if (is.null(Psi)) {Psi <- rep(1/ncol(Config), ncol(Config))}
     if (dim(A)[1] != dim(D)[1] || dim(A)[2] != dim(D)[2] ||
@@ -427,8 +427,7 @@ clone_id_Gibbs <- function(A, D, Config, Psi=NULL,
         }
 
         ## Update Config
-        if (it > (0.1 * min_iter) && !is.null(relax_Config) &&
-                  relax_Config != FALSE) {
+        if (!is.null(relax_Config) && relax_Config != FALSE) {
             if (it > (0.1 * min_iter + 5) && is.null(relax_rate_fixed)) {
                 diff0 <- sum((Config == Config_new)[, 2:ncol(Config)])
                 diff1 <- sum((Config != Config_new)[, 2:ncol(Config)])
@@ -493,18 +492,24 @@ clone_id_Gibbs <- function(A, D, Config, Psi=NULL,
                                           prior1[,1] + S3_wgt[idx_vec],
                                           prior1[,2] + S4_wgt[idx_vec])
 
-        #Check convergence
+        #Check convergence. TODO: consider relabel
         if ((it >= min_iter) && (it %% 100 == 0)) {
-            Converged_all <- rep(FALSE, ncol(prob_all))
-            for (n in seq_len(ncol(prob_all))) {
-                Converged_all[n] <- Geweke_Z(prob_all[1:it, n]) <= 2
+            Converged_all <- abs(Geweke_Z(prob_all[1:it, ])) <= 2
+            # Converged_all <- abs(Geweke_Z(Config_all[1:it, ])) <= 2
+            
+            # Converged_all = rep(NA, ncol(prob_all))
+            # for (ic in seq_len(length(Converged_all))) {
+            # Converged_all[ic] = abs(coda::geweke.diag(prob_all[, ic])$z) <= 2
+            # }
+            
+            if (verbose) {
+                cat(paste0(round(mean(Converged_all, na.rm = TRUE), 3) * 100, 
+                           "% converged.\n"))
             }
-            cat(paste0(round(mean(Converged_all, na.rm = TRUE), 3) * 100, 
-                       "% converged."))
-            if (mean(Converged_all, na.rm = TRUE) > 0.999) {break}
+            if (mean(Converged_all, na.rm = TRUE) > 0.995) {break}
         }
     }
-    if (verbose) {print(paste("Converged in", it, "iterations."))}
+    print(paste("Converged in", it, "iterations."))
 
     ## Return values
     n_buin = ceiling(it * 0.25)
@@ -523,14 +528,21 @@ clone_id_Gibbs <- function(A, D, Config, Psi=NULL,
     row.names(prob_variant) <- row.names(A)
     colnames(prob_variant) <- colnames(A)
 
-    # prob_mat <- get_Gibbs_prob(assign_all[1:it,], buin_in=0.25)
     if (relabel) {
+      col_idx_use <- seq(K)
       for (ii in seq(n_buin, it)) {
-        prob1 <- matrix(prob_all[ii - 1, ], nrow = M)
-        prob2 <- matrix(prob_all[ii - 1, ], nrow = M)
-        idx <- colMatch(prob1, prob2, force = TRUE)
-        prob_all[ii, ] <- prob2[idx]
-        Config_all[ii, ] <- matrix(Config_all[ii, ], nrow = N)[, idx]
+        mat1 <- matrix(prob_all[ii - 1, ], nrow = M)
+        mat2 <- matrix(prob_all[ii, ], nrow = M)
+        # mat1 <- matrix(Config_all[ii - 1, ], nrow = N)
+        # mat2 <- matrix(Config_all[ii, ], nrow = N)
+
+        if (ncol(mat1) <= 5) {
+            idx <- colMatch(mat1, mat2, force = TRUE) }
+        else {
+            idx <- colMatch(mat1, mat2, force = FALSE) }
+        col_idx_use <- col_idx_use[idx]
+        prob_all[ii, ] <- matrix(prob_all[ii, ], nrow = M)[, col_idx_use]
+        Config_all[ii, ] <- matrix(Config_all[ii, ], nrow = N)[, col_idx_use]
       }
     }
     prob_mat <- matrix(colMeans(prob_all[n_buin:it, ]), nrow = M)
@@ -563,6 +575,7 @@ clone_id_Gibbs <- function(A, D, Config, Psi=NULL,
 #' @param first A float between 0 and 1. The initial region of MCMC chain.
 #' @param last A float between 0 and 1. The final region of MCMC chain.
 #'
+#' @author Yuanhua Huang
 #' @return \code{Z}, a vector of absolute value of Z scores for each variable.
 #' When |Z| <= 2, the sampling could be taken as converged.
 #'
@@ -575,11 +588,14 @@ Geweke_Z <- function(X, first=0.1, last=0.5) {
 
     A_col_mean <- colMeans(A)
     B_col_mean <- colMeans(B)
-    A_col_var <- rowSums((t(A) - A_col_mean)^2) / (ncol(A) - 1)
-    B_col_var <- rowSums((t(B) - B_col_mean)^2) / (ncol(A) - 1)
-
-    min_var <- 10^(-10)
-    Z <- abs(A_col_mean - B_col_mean) / sqrt(A_col_var + B_col_var + min_var)
+    A_col_var <- rowSums((t(A) - A_col_mean)^2) / (nrow(A) - 1)#^2
+    B_col_var <- rowSums((t(B) - B_col_mean)^2) / (nrow(A) - 1)#^2
+    # The original diagnostic uses spectral densities to 
+    # estimate the sample variances for adjusting the samples 
+    # as the two ‘samples’ are not independent
+        
+    min_var <- 10^(-50)
+    Z <- (A_col_mean - B_col_mean) / sqrt(A_col_var + B_col_var + min_var)
 
     Z
 }
