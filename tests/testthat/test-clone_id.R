@@ -4,6 +4,23 @@
 context("test clone ID")
 data("example_donor")
 
+# test_that("Model selection as expected", {
+#     doMC::registerDoMC(4)
+#     `%dopar%` <- foreach::`%dopar%`
+#     res_all <- foreach::foreach(ii = 2:5) %dopar% {
+#         clone_id(A_clone, D_clone, n_clone = ii, 
+#                  min_iter = 10000, max_iter = 10000, relabel = TRUE)
+#     }
+#     
+#     n_clones <- seq(2,5)
+#     DIC <- rep(0, 4)
+#     for (i in seq_len(4)) {
+#         DIC[i] <- res_all[[i]]$DIC
+#     }
+#     plot(n_clones, DIC, type = "b")
+# })
+
+
 test_that("binomial EM inference works as expected", {
     assignments_EM <- clone_id(A_clone, D_clone, Config = tree$Z, 
                                inference = "EM")
