@@ -72,7 +72,7 @@
 #' prob_heatmap(assignments_EM$prob)
 #'
 clone_id <- function(A, D, Config = NULL, n_clone = NULL, Psi = NULL, 
-                     relax_Config = FALSE, relax_rate_fixed = NULL,
+                     relax_Config = TRUE, relax_rate_fixed = NULL,
                      inference = "sampling", n_chain = 1, n_proc = 1, 
                      verbose = TRUE, ...) {
     inference <- match.arg(inference, c("sampling", "EM"))
@@ -291,7 +291,7 @@ clone_id_EM <- function(A, D, Config, Psi=NULL, min_iter=10, max_iter=1000,
 #' @export
 #'
 clone_id_Gibbs <- function(A, D, Config, Psi=NULL,
-                           relax_Config=FALSE, relax_rate_fixed=NULL, 
+                           relax_Config=TRUE, relax_rate_fixed=NULL, 
                            relax_rate_prior=c(1, 9), keep_base_clone=TRUE,
                            prior0=c(0.2, 99.8), prior1=c(0.45, 0.55),
                            min_iter=5000, max_iter=20000, wise="variant",
@@ -555,6 +555,9 @@ clone_id_Gibbs <- function(A, D, Config, Psi=NULL,
     theta0 <- mean(theta0_all[n_buin:it, ])
     theta1[idx_mat] <- colMeans(as.matrix(theta1_all[n_buin:it, ]))
 
+    DIC <- devarianceIC(mean(logLik_all[n_buin:it]), 
+                        A1, B1, Conf_prob, theta0, theta1, Psi, W_log)
+
     return_list <- list("theta0" = theta0, "theta1" = theta1,
                         "theta0_all" = as.matrix(theta0_all[1:it, ]),
                         "theta1_all" = as.matrix(theta1_all[1:it, ]),
@@ -564,7 +567,7 @@ clone_id_Gibbs <- function(A, D, Config, Psi=NULL,
                         "relax_rate" = mean(relax_rate_all[n_buin:it]),
                         "Config_prob" = Config_prob,
                         "Config_all" = Config_all[1:it, ],
-                        "relax_rate_all" = relax_rate_all[1:it])
+                        "relax_rate_all" = relax_rate_all[1:it], "DIC"=DIC)
     return_list
 }
 
@@ -598,4 +601,55 @@ Geweke_Z <- function(X, first=0.1, last=0.5) {
     Z <- (A_col_mean - B_col_mean) / sqrt(A_col_var + B_col_var + min_var)
 
     Z
+}
+
+
+#' Devariance Information Criterion for cardelino model
+#'
+#' @param logLik_mean A float; the log likelihood of a model averaged by 
+#' posterior of parameters
+#' @param A1 variant x cell matrix of integers; number of alternative allele
+#' reads in variant i cell j
+#' @param B1 variant x cell matrix of integers; number of reference allele 
+#' reads in variant i cell j
+#' @param Config variant x clone matrix of float values. The clone-variant
+#' configuration probability, averaged by posterior samples
+#' @param theta0 the binomial rate for alternative allele from config = 0
+#' @param theta1 the binomial rate for alternative allele from config = 1
+#' @param Psi A vector of float. The fractions of each clone
+#' @param W_log A float for the log value of weight
+#'
+#' @author Yuanhua Huang
+#' @return \code{DIC}, a float of Devariance information criterion
+#'
+devarianceIC <- function(logLik_mean, A1, B1, Config, theta0, theta1, 
+                         Psi, W_log) {
+    # https://www.mrc-bsu.cam.ac.uk/wp-content/uploads/DIC-slides.pdf
+    # Spiegelhalter et al. The deviance information criterion: 12 years on, 2014
+    # Spiegelhalter et al. Bayesian measures of model complexity and fit, 2002
+
+    logLik_mat <- matrix(0, nrow = ncol(A1), ncol = ncol(Config))
+    for (k in seq_len(ncol(Config))) {
+        S1 <- A1 * (1 - Config[, k])
+        S2 <- B1 * (1 - Config[, k])
+        S3 <- A1 * Config[, k]
+        S4 <- B1 * Config[, k]
+
+        logLik_mat[, k] <- (colSums(S1 * log(theta0), na.rm = TRUE) +
+                            colSums(S2 * log(1 - theta0), na.rm = TRUE) +
+                            colSums(S3 * log(theta1), na.rm = TRUE) +
+                            colSums(S4 * log(1 - theta1), na.rm = TRUE))
+        logLik_mat[, k] <- logLik_mat[, k] + log(Psi[k])
+    }
+
+    logLik_vec <- rep(NA, nrow(logLik_mat))
+    for (i in seq_len(nrow(logLik_mat))) {
+        logLik_vec[i] <- matrixStats::logSumExp(logLik_mat[i,], na.rm = TRUE)
+    }
+    logLik_post = sum(logLik_vec, na.rm = TRUE) + W_log
+    p_D = -2 * logLik_mean -  (-2 * logLik_post)
+    DIC = -2 * logLik_mean + p_D
+    cat(paste("DIC:", round(DIC, 2), "D_mean:", round(-2 * logLik_mean, 2), 
+              "D_post:", round(-2 * logLik_post, 2), "\n"))
+    DIC
 }

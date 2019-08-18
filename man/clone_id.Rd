@@ -8,14 +8,14 @@
 \title{Infer clonal identity of single cells}
 \usage{
 clone_id(A, D, Config = NULL, n_clone = NULL, Psi = NULL,
-  relax_Config = FALSE, relax_rate_fixed = NULL,
+  relax_Config = TRUE, relax_rate_fixed = NULL,
   inference = "sampling", n_chain = 1, n_proc = 1, verbose = TRUE,
   ...)
 
 clone_id_EM(A, D, Config, Psi = NULL, min_iter = 10, max_iter = 1000,
   logLik_threshold = 1e-05, verbose = TRUE)
 
-clone_id_Gibbs(A, D, Config, Psi = NULL, relax_Config = FALSE,
+clone_id_Gibbs(A, D, Config, Psi = NULL, relax_Config = TRUE,
   relax_rate_fixed = NULL, relax_rate_prior = c(1, 9),
   keep_base_clone = TRUE, prior0 = c(0.2, 99.8), prior1 = c(0.45,
   0.55), min_iter = 5000, max_iter = 20000, wise = "variant",
