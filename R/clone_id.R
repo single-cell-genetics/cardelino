@@ -555,8 +555,8 @@ clone_id_Gibbs <- function(A, D, Config, Psi=NULL,
     theta0 <- mean(theta0_all[n_buin:it, ])
     theta1[idx_mat] <- colMeans(as.matrix(theta1_all[n_buin:it, ]))
 
-    DIC <- devarianceIC(mean(logLik_all[n_buin:it]), 
-                        A1, B1, Conf_prob, theta0, theta1, Psi, W_log)
+    DIC <- devianceIC(mean(logLik_all[n_buin:it]), 
+                      A1, B1, Conf_prob, theta0, theta1, Psi, W_log)
 
     return_list <- list("theta0" = theta0, "theta1" = theta1,
                         "theta0_all" = as.matrix(theta0_all[1:it, ]),
@@ -604,7 +604,7 @@ Geweke_Z <- function(X, first=0.1, last=0.5) {
 }
 
 
-#' Devariance Information Criterion for cardelino model
+#' Deviance Information Criterion for cardelino model
 #'
 #' @param logLik_mean A float; the log likelihood of a model averaged by 
 #' posterior of parameters
@@ -620,9 +620,9 @@ Geweke_Z <- function(X, first=0.1, last=0.5) {
 #' @param W_log A float for the log value of weight
 #'
 #' @author Yuanhua Huang
-#' @return \code{DIC}, a float of Devariance information criterion
+#' @return \code{DIC}, a float of deviance information criterion
 #'
-devarianceIC <- function(logLik_mean, A1, B1, Config, theta0, theta1, 
+devianceIC <- function(logLik_mean, A1, B1, Config, theta0, theta1, 
                          Psi, W_log) {
     # https://www.mrc-bsu.cam.ac.uk/wp-content/uploads/DIC-slides.pdf
     # Spiegelhalter et al. The deviance information criterion: 12 years on, 2014
