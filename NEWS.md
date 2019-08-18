@@ -1,6 +1,6 @@
 # News for Package `cardelino`
 
-## Changes in v0.6.3 (18/08/2019)
+## Changes in v0.6.3 (19/08/2019)
 * Add devarianceIC() for Devariance information criterion (DIC) for 
   clone_id_Gibbs()
 * Change the default of relax_Config=TRUE for clone_id() and clone_id_Gibbs()
