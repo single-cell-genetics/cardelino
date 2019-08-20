@@ -9,13 +9,14 @@ data("example_donor")
 #     `%dopar%` <- foreach::`%dopar%`
 #     res_all <- foreach::foreach(ii = 2:5) %dopar% {
 #         clone_id(A_clone, D_clone, n_clone = ii, 
-#                  min_iter = 10000, max_iter = 10000, relabel = TRUE)
+#                  min_iter = 10000, max_iter = 10000, 
+#                  prior1=c(45, 55), relabel = TRUE)
 #     }
-#     
+# 
 #     n_clones <- seq(2,5)
 #     DIC <- rep(0, 4)
 #     for (i in seq_len(4)) {
-#         DIC[i] <- res_all[[i]]$DIC
+#         DIC[i] <- res_all[[i]]$DIC$DIC
 #     }
 #     plot(n_clones, DIC, type = "b")
 # })

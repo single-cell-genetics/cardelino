@@ -4,28 +4,14 @@
 \alias{devianceIC}
 \title{Deviance Information Criterion for cardelino model}
 \usage{
-devianceIC(logLik_mean, A1, B1, Config, theta0, theta1, Psi, W_log)
+devianceIC(logLik_all, logLik_post)
 }
 \arguments{
-\item{logLik_mean}{A float; the log likelihood of a model averaged by 
-posterior of parameters}
+\item{logLik_all}{A vector of numeric; the log likelihood of posterior 
+sample, i.e., posterior samples of deviance}
 
-\item{A1}{variant x cell matrix of integers; number of alternative allele
-reads in variant i cell j}
-
-\item{B1}{variant x cell matrix of integers; number of reference allele 
-reads in variant i cell j}
-
-\item{Config}{variant x clone matrix of float values. The clone-variant
-configuration probability, averaged by posterior samples}
-
-\item{theta0}{the binomial rate for alternative allele from config = 0}
-
-\item{theta1}{the binomial rate for alternative allele from config = 1}
-
-\item{Psi}{A vector of float. The fractions of each clone}
-
-\item{W_log}{A float for the log value of weight}
+\item{logLik_post}{numeric(1); the log likelihood of mean posterior 
+parameters, i.e., deviance of posterior means}
 }
 \value{
 \code{DIC}, a float of deviance information criterion

@@ -1,8 +1,8 @@
 Package: cardelino
 Type: Package
 Title: Clone Identification from Single Cell Data
-Version: 0.6.3
-Date: 2019-08-19
+Version: 0.6.4
+Date: 2019-08-21
 Authors@R: c(person("Yuanhua", "Huang", role=c("aut"), 
         email="yuanhua@ebi.ac.uk"), person("Davis", "McCarthy", 
         role=c("aut", "cre"), email="davis@ebi.ac.uk"))
