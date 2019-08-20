@@ -280,6 +280,7 @@ clone_id_EM <- function(A, D, Config, Psi=NULL, min_iter=10, max_iter=1000,
 #' mode is used when relax_relax is NULL.
 #' @param keep_base_clone bool(1), if TRUE, keep the base clone of Config to its
 #' input values when relax mode is used.
+#' @param buin_frac numeric(1), the fraction of chain as burn-in period
 #' @param wise A string, the wise of parameters for theta1: global, variant,
 #' element.
 #' @param relabel bool(1), if TRUE, relabel the samples of both Config and prob 
@@ -294,8 +295,8 @@ clone_id_Gibbs <- function(A, D, Config, Psi=NULL,
                            relax_Config=TRUE, relax_rate_fixed=NULL, 
                            relax_rate_prior=c(1, 9), keep_base_clone=TRUE,
                            prior0=c(0.2, 99.8), prior1=c(0.45, 0.55),
-                           min_iter=5000, max_iter=20000, wise="variant",
-                           relabel=FALSE, verbose=TRUE) {
+                           min_iter=5000, max_iter=20000, buin_frac=0.5,
+                           wise="variant", relabel=FALSE, verbose=TRUE) {
     if (is.null(Psi)) {Psi <- rep(1/ncol(Config), ncol(Config))}
     if (dim(A)[1] != dim(D)[1] || dim(A)[2] != dim(D)[2] ||
         dim(A)[1] != dim(Config)[1] || dim(Config)[2] != length(Psi)) {
@@ -413,12 +414,12 @@ clone_id_Gibbs <- function(A, D, Config, Psi=NULL,
         prob_mat <- exp(logLik_mat_amplify) / rowSums(exp(logLik_mat_amplify))
         prob_all[it, ] <- prob_mat
 
-        logLik_vec <- rep(NA, nrow(logLik_mat))
-        for (i in seq_len(nrow(logLik_mat))) {
-            logLik_vec[i] <- matrixStats::logSumExp(logLik_mat[i,], na.rm = TRUE)
-        }
-        logLik_all[it] <- sum(logLik_vec, na.rm = TRUE) + W_log
-        #Update logLikelihood (TODO: add W0 and W1)
+        # logLik_vec <- rep(NA, nrow(logLik_mat))
+        # for (i in seq_len(nrow(logLik_mat))) {
+        #     logLik_vec[i] <- matrixStats::logSumExp(logLik_mat[i,], na.rm = TRUE)
+        # }
+        # logLik_all[it] <- sum(logLik_vec, na.rm = TRUE) + W_log
+        # #Update logLikelihood (TODO: add W0 and W1)
 
         # Sample assignment
         for (j in seq_len(M)) {
@@ -455,9 +456,9 @@ clone_id_Gibbs <- function(A, D, Config, Psi=NULL,
             oddR_log <- oddR_log + Config_prior_oddlog
             oddR_log[which(oddR_log > 50)] <- 50
             oddR_log[which(oddR_log < -50)] <- -50
-            Conf_prob <- exp(oddR_log) / (exp(oddR_log) + 1)
+            Config_prob_tmp <- exp(oddR_log) / (exp(oddR_log) + 1)
 
-            Config_new[,] <- stats::rbinom(N*K, size = 1, Conf_prob)
+            Config_new[,] <- stats::rbinom(N*K, size = 1, Config_prob_tmp)
             Config_all[it, ] <- Config_new
 
             for (k in seq_len(K)) {
@@ -491,17 +492,15 @@ clone_id_Gibbs <- function(A, D, Config, Psi=NULL,
         theta1_all[it,  ] <- stats::rbeta(rep(1, n_element),
                                           prior1[,1] + S3_wgt[idx_vec],
                                           prior1[,2] + S4_wgt[idx_vec])
+        
+        # Calculate logLikelihood
+        logLik_all[it] <- get_logLik(A1, B1, Config_new, assign_all[it, ], 
+                                     theta0, theta1)
 
         #Check convergence. TODO: consider relabel
         if ((it >= min_iter) && (it %% 100 == 0)) {
             Converged_all <- abs(Geweke_Z(prob_all[1:it, ])) <= 2
             # Converged_all <- abs(Geweke_Z(Config_all[1:it, ])) <= 2
-            
-            # Converged_all = rep(NA, ncol(prob_all))
-            # for (ic in seq_len(length(Converged_all))) {
-            # Converged_all[ic] = abs(coda::geweke.diag(prob_all[, ic])$z) <= 2
-            # }
-            
             if (verbose) {
                 cat(paste0(round(mean(Converged_all, na.rm = TRUE), 3) * 100, 
                            "% converged.\n"))
@@ -512,7 +511,7 @@ clone_id_Gibbs <- function(A, D, Config, Psi=NULL,
     print(paste("Converged in", it, "iterations."))
 
     ## Return values
-    n_buin = ceiling(it * 0.25)
+    n_buin = ceiling(it * buin_frac)
 
     a <- A1[idx_mat]
     d <- A1[idx_mat] + B1[idx_mat]
@@ -554,9 +553,13 @@ clone_id_Gibbs <- function(A, D, Config, Psi=NULL,
 
     theta0 <- mean(theta0_all[n_buin:it, ])
     theta1[idx_mat] <- colMeans(as.matrix(theta1_all[n_buin:it, ]))
-
-    DIC <- devianceIC(mean(logLik_all[n_buin:it]), 
-                      A1, B1, Conf_prob, theta0, theta1, Psi, W_log)
+    
+    
+    logLik_post <- get_logLik(A1, B1, Config_prob, prob_mat, theta0, theta1)
+    DIC <- devianceIC(logLik_all[n_buin:it], logLik_post)
+        
+#     DIC <- devianceIC(logLik_all[n_buin:it],
+#                       A1, B1, Config_prob, theta0, theta1, Psi, W_log)
 
     return_list <- list("theta0" = theta0, "theta1" = theta1,
                         "theta0_all" = as.matrix(theta0_all[1:it, ]),
@@ -583,6 +586,16 @@ clone_id_Gibbs <- function(A, D, Config, Psi=NULL,
 #' When |Z| <= 2, the sampling could be taken as converged.
 #'
 Geweke_Z <- function(X, first=0.1, last=0.5) {
+    # The original Geweke’s diagnostics uses pectral densities to estimate 
+    # the sample variances (Geweke,1992), for adjusting the samples 
+    # as the two ‘samples’ are not independent
+    # so as the implementation in coda::geweke.diag()
+
+    # Converged_all = rep(NA, ncol(prob_all))
+    # for (ic in seq_len(length(Converged_all))) {
+    # Converged_all[ic] = abs(coda::geweke.diag(prob_all[, ic])$z) <= 2
+    # }
+
     if (is.null(dim(X)))
         X <- as.matrix(X, ncol = 1)
     N <- nrow(X)
@@ -593,9 +606,6 @@ Geweke_Z <- function(X, first=0.1, last=0.5) {
     B_col_mean <- colMeans(B)
     A_col_var <- rowSums((t(A) - A_col_mean)^2) / (nrow(A) - 1)#^2
     B_col_var <- rowSums((t(B) - B_col_mean)^2) / (nrow(A) - 1)#^2
-    # The original diagnostic uses spectral densities to 
-    # estimate the sample variances for adjusting the samples 
-    # as the two ‘samples’ are not independent
         
     min_var <- 10^(-50)
     Z <- (A_col_mean - B_col_mean) / sqrt(A_col_var + B_col_var + min_var)
@@ -603,53 +613,80 @@ Geweke_Z <- function(X, first=0.1, last=0.5) {
     Z
 }
 
-
-#' Deviance Information Criterion for cardelino model
-#'
-#' @param logLik_mean A float; the log likelihood of a model averaged by 
-#' posterior of parameters
+#' Log likelihood of clone_id model
+#' It returns P(A, D | C, I, theta0, theta1)
+#' 
 #' @param A1 variant x cell matrix of integers; number of alternative allele
 #' reads in variant i cell j
 #' @param B1 variant x cell matrix of integers; number of reference allele 
 #' reads in variant i cell j
 #' @param Config variant x clone matrix of float values. The clone-variant
 #' configuration probability, averaged by posterior samples
+#' @param Assign cells x clone matrix of float values. The cell-clone
+#' assignment probability, averaged by posterior samples
 #' @param theta0 the binomial rate for alternative allele from config = 0
 #' @param theta1 the binomial rate for alternative allele from config = 1
-#' @param Psi A vector of float. The fractions of each clone
-#' @param W_log A float for the log value of weight
+#'
+#' @author Yuanhua Huang
+#' @return \code{logLik}, a float of log likelihood
+#'
+get_logLik <- function(A1, B1, Config, Assign, theta0, theta1) {
+    if (is.null(dim(Assign)) || length(dim(Assign)) == 1) {
+        Assign_prob <- matrix(0, length(Assign), ncol(Config))
+        for (i in seq_len(length(Assign))) {
+            Assign_prob[i, Assign[i]] = 1
+        }
+    } else {
+        Assign_prob <- Assign
+    }
+    
+    prob_mat <- Config %*% t(Assign_prob)
+ 
+    Lik_mat <- (exp(log(theta1) * A1 + log(1 - theta1) * B1) * prob_mat + 
+                exp(log(theta0) * A1 + log(1 - theta0) * B1) * (1 - prob_mat))
+        
+    logLik <- (sum(log(Lik_mat), na.rm = TRUE) + 
+               sum(lchoose(A1 + B1, A1), na.rm = TRUE))
+    logLik
+}
+
+
+#' Deviance Information Criterion for cardelino model
+#'
+#' @param logLik_all A vector of numeric; the log likelihood of posterior 
+#' sample, i.e., posterior samples of deviance
+#' @param logLik_post numeric(1); the log likelihood of mean posterior 
+#' parameters, i.e., deviance of posterior means
 #'
 #' @author Yuanhua Huang
 #' @return \code{DIC}, a float of deviance information criterion
 #'
-devianceIC <- function(logLik_mean, A1, B1, Config, theta0, theta1, 
-                         Psi, W_log) {
+devianceIC <- function(logLik_all, logLik_post) {
     # https://www.mrc-bsu.cam.ac.uk/wp-content/uploads/DIC-slides.pdf
     # Spiegelhalter et al. The deviance information criterion: 12 years on, 2014
     # Spiegelhalter et al. Bayesian measures of model complexity and fit, 2002
-
-    logLik_mat <- matrix(0, nrow = ncol(A1), ncol = ncol(Config))
-    for (k in seq_len(ncol(Config))) {
-        S1 <- A1 * (1 - Config[, k])
-        S2 <- B1 * (1 - Config[, k])
-        S3 <- A1 * Config[, k]
-        S4 <- B1 * Config[, k]
-
-        logLik_mat[, k] <- (colSums(S1 * log(theta0), na.rm = TRUE) +
-                            colSums(S2 * log(1 - theta0), na.rm = TRUE) +
-                            colSums(S3 * log(theta1), na.rm = TRUE) +
-                            colSums(S4 * log(1 - theta1), na.rm = TRUE))
-        logLik_mat[, k] <- logLik_mat[, k] + log(Psi[k])
-    }
-
-    logLik_vec <- rep(NA, nrow(logLik_mat))
-    for (i in seq_len(nrow(logLik_mat))) {
-        logLik_vec[i] <- matrixStats::logSumExp(logLik_mat[i,], na.rm = TRUE)
-    }
-    logLik_post = sum(logLik_vec, na.rm = TRUE) + W_log
-    p_D = -2 * logLik_mean -  (-2 * logLik_post)
-    DIC = -2 * logLik_mean + p_D
-    cat(paste("DIC:", round(DIC, 2), "D_mean:", round(-2 * logLik_mean, 2), 
-              "D_post:", round(-2 * logLik_post, 2), "\n"))
-    DIC
+    # Gelman et al. Bayesian Data Analysis. 3rd Edition, 2013 (Charpter 7.2, p173)
+    
+    logLik_mean = mean(logLik_all)
+    logLik_var = var(logLik_all)
+    
+    p_D_Spiegelhalter = -2 * logLik_mean -  (-2 * logLik_post)
+    DIC_Spiegelhalter = -2 * logLik_post + 2 * p_D_Spiegelhalter
+    
+    p_D_Gelman = 2 * logLik_var
+    DIC_Gelman = -2 * logLik_post + 2 * p_D_Gelman
+    
+    DIC = DIC_Gelman
+    
+    cat(paste("DIC:", round(DIC, 2), 
+              "D_mean:", round(-2 * logLik_mean, 2), 
+              "D_post:", round(-2 * logLik_post, 2), 
+              "logLik_var:", round(logLik_var, 2), "\n"))
+        
+    list("DIC" = DIC, 
+         "logLik_var" = logLik_var, 
+         "D_mean" = -2 * logLik_mean, 
+         "D_post" = -2 * logLik_post, 
+         "DIC_Gelman" = DIC_Gelman, 
+         "DIC_Spiegelhalter" = DIC_Spiegelhalter)
 }
