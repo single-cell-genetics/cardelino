@@ -1,5 +1,13 @@
 # News for Package `cardelino`
 
+## Changes in v0.6.4 (21/08/2019)
+* Fix bug in devarianceIC() = D_post + 2 * p_D; and add both the orignal p_D, 
+  i.g., D_mean - D_post and the Gelman's alternative p_D = 2 * var(D). By 
+  default, DIC uses Gelman's method.
+* Suggest nerrowing theta1 for cardelino-free, e.g., prior1=c(45, 55)
+* Add get_logLik() function to get log likelihood for clone_id_Gibbs(), namely
+  P(A, D | C, I, theta0, theta1)
+
 ## Changes in v0.6.3 (19/08/2019)
 * Add devarianceIC() for Devariance information criterion (DIC) for 
   clone_id_Gibbs()
