@@ -17,7 +17,7 @@ The **latest** `cardelino` package can be conveniently installed using the
 [`devtools`](https://www.rstudio.com/products/rpackages/devtools/) package thus:
 
 ```{R}
-devtools::install_github("PMBio/cardelino", build_vignettes = TRUE)
+devtools::install_github("single-cell-genetics/cardelino", build_vignettes = FALSE)
 ```
 
 ### Cardelino in a container
