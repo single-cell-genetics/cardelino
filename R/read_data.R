@@ -39,6 +39,10 @@
 # }
 
 
+
+# #' @examples
+# #' vcf <- read_vcf(system.file("extdata", "cells.donorid.vcf.gz", package = "cardelino"))
+
 #' Read a VCF file into R session
 #'
 #' @param vcf_file character(1), path to VCF file to read into R session as a
@@ -56,9 +60,6 @@
 #' @importFrom GenomeInfoDb seqlevelsStyle seqlengths
 #' @importFrom methods as is
 #' @export
-#'
-#' @examples
-#' vcf <- read_vcf(system.file("extdata", "cells.donorid.vcf.gz", package = "cardelino"))
 #'
 read_vcf <- function(vcf_file, genome = "GRCh37",
                           seq_levels_style = "Ensembl", verbose = TRUE) {
@@ -82,6 +83,12 @@ read_vcf <- function(vcf_file, genome = "GRCh37",
     vcf_sample
 }
 
+
+
+# #' @examples
+# #' vcf_cell <- read_vcf(system.file("extdata", "cells.donorid.vcf.gz", package = "cardelino"))
+# #' vcf_donor <-  read_vcf(system.file("extdata", "donors.donorid.vcf.gz", package = "cardelino"))
+# #' snp_data <- get_snp_matrices(vcf_cell, vcf_donor)
 
 #' Get SNP data matrices from VCF object(s)
 #'
@@ -109,11 +116,6 @@ read_vcf <- function(vcf_file, genome = "GRCh37",
 #' @importFrom S4Vectors queryHits subjectHits
 #'
 #' @export
-#'
-#' @examples
-#' vcf_cell <- read_vcf(system.file("extdata", "cells.donorid.vcf.gz", package = "cardelino"))
-#' vcf_donor <-  read_vcf(system.file("extdata", "donors.donorid.vcf.gz", package = "cardelino"))
-#' snp_data <- get_snp_matrices(vcf_cell, vcf_donor)
 #'
 get_snp_matrices <- function(vcf_cell, vcf_donor=NULL, verbose = TRUE,
                              donors = NULL) {
@@ -204,6 +206,9 @@ get_snp_matrices <- function(vcf_cell, vcf_donor=NULL, verbose = TRUE,
 #' @param keep_GL logical(1), if TRUE, check if GL (genotype probability) exists
 #' it will be returned
 #' @export
+#' 
+#' @example
+#' input_data <- load_cellSNP_vcf(system.file("extdata", "cells.donorid.vcf.gz", package = "cardelino"))
 #'
 load_cellSNP_vcf <- function(vcf_file, min_count=0, min_MAF=0, 
                              max_other_allele=NULL, rowname_format="full",
@@ -215,6 +220,8 @@ load_cellSNP_vcf <- function(vcf_file, min_count=0, min_MAF=0,
     idx <- (rowSums(dp_full, na.rm = TRUE) >= min_count & 
             ((rowSums(ad_full, na.rm = TRUE) / 
               rowSums(dp_full, na.rm = TRUE)) >= min_MAF))
+
+    idx <- idx & (!is.na(idx))
 
     if (!is.null(max_other_allele)) {
         dp_sum <- vcfR::extract.info(vcf_temp, element = "DP", 
