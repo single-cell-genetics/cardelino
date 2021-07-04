@@ -3,7 +3,7 @@
 #' Convert a matrix to data frame
 #' @param X A matrix of values
 #' @export
-#' @example 
+#' @examples
 #' mtx_to_df(matrix(seq(12), nrow=3))
 mtx_to_df <- function(X) {
   if (is.null(row.names(X))) {

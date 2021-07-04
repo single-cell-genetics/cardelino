@@ -105,16 +105,29 @@ clone_id <- function(A, D, Config = NULL, n_clone = NULL, Psi = NULL,
     if (verbose)
         message(length(common_vars), " variants used for cell assignment.")
     
+    ## change sparse matrix to dense matrix
+    A <- as.matrix(A)
+    D <- as.matrix(D)
+    
     ## pass data to specific functions
     if (inference == "sampling") {
-      doMC::registerDoMC(n_proc)
-      `%dopar%` <- foreach::`%dopar%`
-
-      ids_list <- foreach::foreach(ii = 1:n_chain) %dopar% {
-        clone_id_Gibbs(A, D, Config, Psi = Psi, 
-                       relax_Config = relax_Config, 
-                       relax_rate_fixed = relax_rate_fixed,
-                       verbose = verbose, ...)
+      if (n_proc > 1) {
+        doMC::registerDoMC(n_proc)
+        `%dopar%` <- foreach::`%dopar%`
+        
+        ids_list <- foreach::foreach(ii = 1:n_chain) %dopar% {
+          clone_id_Gibbs(A, D, Config, Psi = Psi, 
+                         relax_Config = relax_Config, 
+                         relax_rate_fixed = relax_rate_fixed,
+                         verbose = verbose, ...)
+        }
+      }else{
+        ids_list <- list(
+          clone_id_Gibbs(A, D, Config, Psi = Psi, 
+                         relax_Config = relax_Config, 
+                         relax_rate_fixed = relax_rate_fixed,
+                         verbose = verbose, ...)
+        )
       }
       
       ids_out <- ids_list[[1]]

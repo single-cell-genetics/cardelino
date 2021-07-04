@@ -39,9 +39,12 @@
 # }
 
 
-
+## Turn off the examples and imports for `read_vcf`
 # #' @examples
 # #' vcf <- read_vcf(system.file("extdata", "cells.donorid.vcf.gz", package = "cardelino"))
+# #' @importFrom VariantAnnotation readVcf isSNV geno ref alt genotypeToSnpMatrix
+# #' @importFrom GenomeInfoDb seqlevelsStyle seqlengths
+# #' @importFrom methods as is
 
 #' Read a VCF file into R session
 #'
@@ -56,9 +59,6 @@
 #' 
 #' @return a vcf object
 #'
-#' @importFrom VariantAnnotation readVcf isSNV geno ref alt genotypeToSnpMatrix
-#' @importFrom GenomeInfoDb seqlevelsStyle seqlengths
-#' @importFrom methods as is
 #' @export
 #'
 read_vcf <- function(vcf_file, genome = "GRCh37",
@@ -84,11 +84,13 @@ read_vcf <- function(vcf_file, genome = "GRCh37",
 }
 
 
-
+## Turn off the examples and imports for `get_snp_matrices`
 # #' @examples
 # #' vcf_cell <- read_vcf(system.file("extdata", "cells.donorid.vcf.gz", package = "cardelino"))
 # #' vcf_donor <-  read_vcf(system.file("extdata", "donors.donorid.vcf.gz", package = "cardelino"))
 # #' snp_data <- get_snp_matrices(vcf_cell, vcf_donor)
+# #' @importFrom GenomicRanges findOverlaps
+# #' @importFrom S4Vectors queryHits subjectHits
 
 #' Get SNP data matrices from VCF object(s)
 #'
@@ -110,10 +112,6 @@ read_vcf <- function(vcf_file, genome = "GRCh37",
 #' configuration.
 #' \code{GT_donors}, a matrix of integers for genotypes. The donor-SNP 
 #' configuration.
-#'
-#' @import snpStats
-#' @importFrom GenomicRanges findOverlaps
-#' @importFrom S4Vectors queryHits subjectHits
 #'
 #' @export
 #'
@@ -207,8 +205,9 @@ get_snp_matrices <- function(vcf_cell, vcf_donor=NULL, verbose = TRUE,
 #' it will be returned
 #' @export
 #' 
-#' @example
-#' input_data <- load_cellSNP_vcf(system.file("extdata", "cells.donorid.vcf.gz", package = "cardelino"))
+#' @examples
+#' vcf_file <- system.file("extdata", "cellSNP.cells.vcf.gz", package = "cardelino")
+#' input_data <- load_cellSNP_vcf(vcf_file)
 #'
 load_cellSNP_vcf <- function(vcf_file, min_count=0, min_MAF=0, 
                              max_other_allele=NULL, rowname_format="full",
@@ -279,6 +278,11 @@ load_cellSNP_vcf <- function(vcf_file, min_count=0, min_MAF=0,
 #' @param keep_GP logical(1), if TRUE, check if GP (genotype probability) exists
 #' it will be returned
 #' @export
+#' 
+#' @examples
+#' vcf_file <- system.file("extdata", "cellSNP.cells.vcf.gz", package = "cardelino")
+#' GT_dat <- load_GT_vcf(vcf_file, na.rm=FALSE)
+#' 
 load_GT_vcf <- function(vcf_file, rowname_format="full", na.rm=TRUE, 
                         keep_GP=TRUE) {
     GT_vcf <- vcfR::read.vcfR(vcf_file)
