@@ -4,7 +4,9 @@
 \name{D_clone}
 \alias{D_clone}
 \title{A matrix of sequencing depths for clone ID}
-\format{a matrix of float}
+\format{
+a matrix of float
+}
 \source{
 A fibroblast sample from HipSci project
 }

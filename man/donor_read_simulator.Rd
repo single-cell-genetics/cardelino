@@ -4,9 +4,16 @@
 \alias{donor_read_simulator}
 \title{Reads simulator for donor identification}
 \usage{
-donor_read_simulator(GT, D_seed, sample_variants = FALSE,
-  donor_size = NULL, beta_shapes = NULL, n_cell = 5000,
-  doublet_rate = NULL, rand_seed = NULL)
+donor_read_simulator(
+  GT,
+  D_seed,
+  sample_variants = FALSE,
+  donor_size = NULL,
+  beta_shapes = NULL,
+  n_cell = 5000,
+  doublet_rate = NULL,
+  rand_seed = NULL
+)
 }
 \arguments{
 \item{GT}{Variant-by-donor matrix for genotypes}

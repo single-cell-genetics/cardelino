@@ -4,8 +4,7 @@
 \alias{load_GT_vcf}
 \title{Load genotype VCF into numeric values: 0, 1, or 2}
 \usage{
-load_GT_vcf(vcf_file, rowname_format = "full", na.rm = TRUE,
-  keep_GP = TRUE)
+load_GT_vcf(vcf_file, rowname_format = "full", na.rm = TRUE, keep_GP = TRUE)
 }
 \arguments{
 \item{vcf_file}{character(1), path to VCF file for donor genotypes}
@@ -22,4 +21,9 @@ it will be returned}
 Note, the genotype VCF can be very big for whole genome. It would be more 
 efficient to only keep the wanted variants and samples. bcftools does such
 jobs nicely.
+}
+\examples{
+vcf_file <- system.file("extdata", "cellSNP.cells.vcf.gz", package = "cardelino")
+GT_dat <- load_GT_vcf(vcf_file, na.rm=FALSE)
+
 }

@@ -4,8 +4,14 @@
 \alias{binaryROC}
 \title{ROC curve for binary label prediction}
 \usage{
-binaryROC(scores, labels, cutoff = NULL, cut_direction = ">=",
-  add_cut1 = TRUE, cutoff_point = 0.9)
+binaryROC(
+  scores,
+  labels,
+  cutoff = NULL,
+  cut_direction = ">=",
+  add_cut1 = TRUE,
+  cutoff_point = 0.9
+)
 }
 \arguments{
 \item{scores}{Prediction score for each sample}

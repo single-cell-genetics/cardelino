@@ -4,7 +4,9 @@
 \name{D_germline}
 \alias{D_germline}
 \title{A matrix of sequncing depths}
-\format{a matrix of float}
+\format{
+a matrix of float
+}
 \source{
 A fibroblast sample from HipSci project
 }

@@ -4,7 +4,9 @@
 \name{A_clone}
 \alias{A_clone}
 \title{A matrix of read numbers of alternative alleles for clone ID}
-\format{a matrix of float}
+\format{
+a matrix of float
+}
 \source{
 A fibroblast sample from HipSci project
 }
