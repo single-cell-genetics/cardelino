@@ -29,8 +29,8 @@ test_that("binomial EM inference works as expected", {
 })
 
 
-assignments <- clone_id(A_clone, D_clone, Config = tree$Z, 
-                        min_iter = 500, max_iter = 1000, 
+assignments <- clone_id(A_clone, D_clone, Config = tree$Z,
+                        min_iter = 200, max_iter = 500,
                         relax_Config = TRUE, relabel=TRUE)
 
 test_that("default inference works as expected", {
