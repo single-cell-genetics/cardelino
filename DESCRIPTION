@@ -13,14 +13,14 @@ Description: Methods to infer clonal structure for a population of cells using
     between clones.
 License: GPL (>= 3)
 Depends: R (>= 3.4), stats
-Imports: ggplot2, ggpubr, ggtree, pheatmap, matrixStats, Matrix, doMC, foreach,
-    vcfR
-Suggests: BiocStyle, knitr, pcaMethods, testthat, combinat, VGAM
+Imports: ggplot2, ggpubr, ggtree, pheatmap, matrixStats, Matrix, vcfR
+Suggests: BiocStyle, rmarkdown, knitr, pcaMethods, testthat, combinat, VGAM, 
+    doMC, foreach
 VignetteBuilder: knitr
 LazyData: true
 biocViews: SingleCell, RNASeq, Visualization, Transcriptomics, GeneExpression, 
     Sequencing, Software
-RoxygenNote: 6.1.1
+RoxygenNote: 7.1.1
 NeedsCompilation: yes
 URL: https://github.com/single-cell-genetics/cardelino
 BugReports: https://github.com/single-cell-genetics/cardelino/issues
