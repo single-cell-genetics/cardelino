@@ -4,7 +4,9 @@
 \name{Config_all}
 \alias{Config_all}
 \title{A list of tree configuration}
-\format{a list of list of matrix}
+\format{
+a list of list of matrix
+}
 \source{
 PASTRI Python package
 }

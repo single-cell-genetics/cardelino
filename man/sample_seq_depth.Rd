@@ -4,8 +4,7 @@
 \alias{sample_seq_depth}
 \title{Update matrix D with manully selected missing rate}
 \usage{
-sample_seq_depth(D, n_cells = NULL, n_sites = NULL,
-  missing_rate = NULL)
+sample_seq_depth(D, n_cells = NULL, n_sites = NULL, missing_rate = NULL)
 }
 \arguments{
 \item{D}{A matrix (N variants x M cells), the orignal sequencing coverage,

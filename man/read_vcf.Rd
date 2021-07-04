@@ -4,8 +4,12 @@
 \alias{read_vcf}
 \title{Read a VCF file into R session}
 \usage{
-read_vcf(vcf_file, genome = "GRCh37", seq_levels_style = "Ensembl",
-  verbose = TRUE)
+read_vcf(
+  vcf_file,
+  genome = "GRCh37",
+  seq_levels_style = "Ensembl",
+  verbose = TRUE
+)
 }
 \arguments{
 \item{vcf_file}{character(1), path to VCF file to read into R session as a
@@ -25,8 +29,4 @@ a vcf object
 }
 \description{
 Read a VCF file into R session
-}
-\examples{
-vcf <- read_vcf(system.file("extdata", "cells.donorid.vcf.gz", package = "cardelino"))
-
 }

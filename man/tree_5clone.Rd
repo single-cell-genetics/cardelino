@@ -4,7 +4,9 @@
 \name{tree_5clone}
 \alias{tree_5clone}
 \title{A tree object}
-\format{a tree object}
+\format{
+a tree object
+}
 \source{
 A fibroblast sample from HipSci project
 }

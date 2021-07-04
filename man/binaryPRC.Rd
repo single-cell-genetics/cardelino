@@ -4,8 +4,14 @@
 \alias{binaryPRC}
 \title{Precision-recall curve for binary label prediction}
 \usage{
-binaryPRC(scores, labels, cutoff = NULL, cut_direction = ">=",
-  add_cut1 = FALSE, empty_precision = 1)
+binaryPRC(
+  scores,
+  labels,
+  cutoff = NULL,
+  cut_direction = ">=",
+  add_cut1 = FALSE,
+  empty_precision = 1
+)
 }
 \arguments{
 \item{scores}{Prediction score for each sample}

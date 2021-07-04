@@ -4,7 +4,9 @@
 \name{A_germline}
 \alias{A_germline}
 \title{A matrix of read numbers of alternative alleles}
-\format{a matrix of float}
+\format{
+a matrix of float
+}
 \source{
 A fibroblast sample from HipSci project
 }
