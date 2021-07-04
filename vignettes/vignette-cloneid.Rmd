@@ -21,7 +21,7 @@ vignette: >
 
 ```{r knitr-options, echo=FALSE, message=FALSE, warning=FALSE}
 ## To render an HTML version that works nicely with github and web pages, do:
-## rmarkdown::render("vignettes/vignette.Rmd", "all")
+## rmarkdown::render("vignettes/vignette-cloneid.Rmd", "all")
 library(knitr)
 opts_chunk$set(fig.align = 'center', fig.width = 6, fig.height = 5, dev = 'png',
     warning = FALSE, error = FALSE, message = FALSE)
@@ -117,12 +117,13 @@ allele frequency is of high uncertainty. For this reason, it is crucial to
 probabilistic clustering with accounting the uncertainty, ideally with guide 
 clonal tree structure from external data. 
 
-```{r allele-frequency}
+```{r allele-frequency, fig.height = 6, fig.width = 10}
 AF <- as.matrix(input_data$A / input_data$D)
-heat_matrix(AF) + ggplot2::labs(x='112 SNVs', y='77 cells') + 
-  theme(axis.text.x = element_blank(),
-        axis.text.y = element_blank(),
-        legend.position = "right")
+
+p = pheatmap::pheatmap(AF, cluster_rows=FALSE, cluster_cols=FALSE,
+                   show_rownames = TRUE, show_colnames = TRUE,
+                   labels_row='77 cells', labels_col='112 SNVs',
+                   angle_col=0, angle_row=0)
 ```
 
 
@@ -192,6 +193,17 @@ heat_matrix(t(assignments$Config_prob - Config)) +
   ggtitle('Changes of clonal Config') + 
   labs(x='Clones', y='112 SNVs') +
   theme(axis.text.y = element_blank(), legend.position = "right")
+```
+
+
+Finally, we can visualize the results cell assignment and updated mutations 
+clonal configuration at the raw allele frequency matrix:
+
+```{r results-plot, fig.height = 6, fig.width = 10}
+AF <- as.matrix(input_data$A / input_data$D)
+Config_binary <- assignments$Config_prob
+Config_binary[Config_binary > 0.5] = 1
+cardelino::vc_heatmap(AF, assignments$prob, Config, show_legend=TRUE)
 ```
 
 # Clone ID without a clonal tree provided
