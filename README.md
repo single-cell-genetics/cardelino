@@ -60,7 +60,7 @@ browseVignettes("cardelino")
 Vignettes for clone identification use cases are provided. 
 
 Accessing the vignettes from within your R session is recommended, but
-you can also [view the clone ID vignette](https://rawgit.com/PMBio/cardelino/master/inst/doc/vignette-cloneid.html).
+you can also [view the clone ID vignette](https://htmlpreview.github.io/?https://github.com/single-cell-genetics/cardelino/blob/lite-depends/inst/doc/vignette-cloneid.html).
 
 ## Notes for donor deconvolution
 The denor demultiplex function, namely Vireo, was supported in this R package 
@@ -71,9 +71,9 @@ you switch to the Python version: https://vireoSNP.readthedocs.io
 The vireo function is not supported from version >=0.5.0. If you want to use the
 R functions, please use the version ==0.4.2 or lower. You can also find it in a
 separate branch in this repository: 
-[with_vireo branch](https://github.com/PMBio/cardelino/tree/with_vireo)
+[with_vireo branch](https://github.com/single-cell-genetics/cardelino/tree/with_vireo)
 or use the 
-[donor_id.R](https://github.com/PMBio/cardelino/blob/with_vireo/R/donor_id.R) 
+[donor_id.R](https://github.com/single-cell-genetics/cardelino/blob/with_vireo/R/donor_id.R) 
 file directly.
 
 ## About the name
