@@ -4,8 +4,14 @@
 \alias{multiPRC}
 \title{Precision-recall curve for multi-class prediction}
 \usage{
-multiPRC(prob_mat, simu_mat, marginal_mode = "best", cutoff = NULL,
-  multiLabel.rm = TRUE, add_cut1 = FALSE)
+multiPRC(
+  prob_mat,
+  simu_mat,
+  marginal_mode = "best",
+  cutoff = NULL,
+  multiLabel.rm = TRUE,
+  add_cut1 = FALSE
+)
 }
 \arguments{
 \item{prob_mat}{Probability matrix for each cell to each component}

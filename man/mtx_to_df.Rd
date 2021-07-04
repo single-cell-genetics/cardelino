@@ -12,3 +12,6 @@ mtx_to_df(X)
 \description{
 Convert a matrix to data frame
 }
+\examples{
+mtx_to_df(matrix(seq(12), nrow=3))
+}
