@@ -117,7 +117,7 @@ allele frequency is of high uncertainty. For this reason, it is crucial to
 probabilistic clustering with accounting the uncertainty, ideally with guide 
 clonal tree structure from external data. 
 
-```{r allele-frequency, fig.height = 6, fig.width = 10}
+```{r allele-frequency, , fig.height = 3, fig.width = 5}
 AF <- as.matrix(input_data$A / input_data$D)
 
 p = pheatmap::pheatmap(AF, cluster_rows=FALSE, cluster_cols=FALSE,
@@ -158,6 +158,7 @@ quick illustration. Please remove them for the default values or set higher
 number of iterations to ensure convergence of the Gibbs sampling.
 
 ```{r cell-assign}
+set.seed(7)
 assignments <- clone_id(input_data$A, input_data$D, Config = Config,
                         min_iter = 800, max_iter = 1200)
 names(assignments)
@@ -199,14 +200,13 @@ heat_matrix(t(assignments$Config_prob - Config)) +
 Finally, we can visualize the results cell assignment and updated mutations 
 clonal configuration at the raw allele frequency matrix:
 
-```{r results-plot, fig.height = 6, fig.width = 10}
+```{r results-plot, fig.height = 4.5, fig.width = 7.5}
 AF <- as.matrix(input_data$A / input_data$D)
-Config_binary <- assignments$Config_prob
-Config_binary[Config_binary > 0.5] = 1
 cardelino::vc_heatmap(AF, assignments$prob, Config, show_legend=TRUE)
 ```
 
-# Clone ID without a clonal tree provided
+
+# Clone ID without input clonal tree
 As shown above, the Config can be updated by the observations from scRNA-seq 
 data. A step further is to not including the Config entirely. This can be 
 possible, as there could be no clonal tree available. In this case, you can use 
@@ -216,6 +216,55 @@ You can turn it off by set `keep_base_clone=FALSE`.
 
 ```{denovo-cell-assign}
 assignments <- clone_id(input_data$A, input_data$D, Config=NULL, n_clone = 3)
+```
+
+## Clone ID on mitochondrial variations
+As an further illustration, we will show how cardelino can be used to infer the
+clonal structure from mitochondrial vairations, that called from 
+[MQuad](https://github.com/single-cell-genetics/MQuad). Again, we have included
+the MQuad output in `.mtx` format in the cardelino package. Note, this 
+mitochondrial data is from the same SMART-seq data set above.
+
+First, let's import these two AD and DP matrices and together with their 
+variant names.
+
+```{r read in mtx files}
+AD_file <- system.file("extdata", "passed_ad.mtx", package = "cardelino")
+DP_file <- system.file("extdata", "passed_dp.mtx", package = "cardelino")
+id_file <- system.file("extdata", "passed_variant_names.txt", package = "cardelino")
+
+AD <- Matrix::readMM(AD_file)
+DP <- Matrix::readMM(DP_file)
+var_ids <- read.table(id_file, )
+rownames(AD) <- rownames(DP) <- var_ids[, 1]
+colnames(AD) <- colnames(DP) <- paste0('Cell', seq(ncol(DP)))
+```
+
+Same as above, AD and DP are matrices with variants as rows and cells as column.
+In this case we have 25 variants (rows) and 77 cells (columns). As expected, 
+the coverage of mtDNA is a lot higher than the nuclear genome above (much fewer
+missing values).
+
+```{r pheatmap, fig.height = 4.5, fig.width = 8.5}
+AF_mt <- as.matrix(AD / DP)
+pheatmap::pheatmap(AF_mt)
+```
+Now, we can run cardelino on the mitochondrial variations. Note, as there is 
+no prior clonal tree, the model is easier to return a local optima. Generally,
+we recommend running it multiple time (with different random seed or 
+initializations) and pick the one with highest DIC.
+
+```{r denovo-mtDNA}
+set.seed(7)
+assign_mtClones <- clone_id(AD, DP, Config=NULL, n_clone = 3, keep_base_clone=FALSE)
+```
+
+Then visualise allele frequency along with the clustering of cells and variants:
+```{r vc_heatmap-mtDNA, fig.height = 4.2, fig.width = 7}
+Config_mt <- assign_mtClones$Config_prob
+Config_mt[Config_mt >= 0.5] = 1
+Config_mt[Config_mt <  0.5] = 0
+cardelino::vc_heatmap(AF_mt, assign_mtClones$prob, Config_mt, show_legend=TRUE)
 ```
 
 
