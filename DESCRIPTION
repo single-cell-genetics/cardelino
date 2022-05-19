@@ -6,7 +6,6 @@ Date: 2021-07-01
 Authors@R: c(person("Yuanhua", "Huang", role=c("aut"), 
         email="yuanhua@hku.hk"), person("Davis", "McCarthy", 
         role=c("aut", "cre"), email="dmccarthy@svi.edu.au"))
-Maintainer: Davis McCarthy <dmccarthy@svi.edu.au>
 Description: Methods to infer clonal structure for a population of cells using 
     single-cell RNA-seq data (and possibly other data modalities). Methods to 
     assign cells to inferred clones and explore differences in gene expression
