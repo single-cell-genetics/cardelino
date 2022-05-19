@@ -11,7 +11,7 @@ Description: Methods to infer clonal structure for a population of cells using
     assign cells to inferred clones and explore differences in gene expression
     between clones.
 License: GPL (>= 3)
-Depends: R (>= 3.4), stats
+Depends: R (>= 4.1), stats
 Imports: ggplot2, ggpubr, ggtree, pheatmap, matrixStats, Matrix, vcfR, utils
 Suggests: BiocStyle, rmarkdown, knitr, pcaMethods, testthat, combinat, VGAM, 
     doMC, foreach
