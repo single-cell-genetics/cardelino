@@ -16,7 +16,6 @@ Imports: ggplot2, ggpubr, ggtree, pheatmap, matrixStats, Matrix, vcfR, utils
 Suggests: BiocStyle, rmarkdown, knitr, pcaMethods, testthat, combinat, VGAM, 
     doMC, foreach
 VignetteBuilder: knitr
-LazyData: true
 biocViews: SingleCell, RNASeq, Visualization, Transcriptomics, GeneExpression, 
     Sequencing, Software
 RoxygenNote: 7.1.1
