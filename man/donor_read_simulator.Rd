@@ -11,8 +11,7 @@ donor_read_simulator(
   donor_size = NULL,
   beta_shapes = NULL,
   n_cell = 5000,
-  doublet_rate = NULL,
-  rand_seed = NULL
+  doublet_rate = NULL
 )
 }
 \arguments{
@@ -34,8 +33,6 @@ and 2; default NULL means matrix(c(0.2, 0.5, 99.8, 99.8, 0.5, 0.2), nrow = 3)}
 
 \item{doublet_rate}{A float from 0 to 1 for doublet rate; default NULL means
 rate n_cell / 100000}
-
-\item{rand_seed}{A integer for random number generation}
 }
 \description{
 Reads simulator for donor identification
