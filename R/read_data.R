@@ -56,7 +56,7 @@
 #' \code{\link[GenomeInfoDb]{seqlevelsStyle}} the style to use for
 #' chromosome/contig names (default: "Ensembl")
 #' @param verbose logical(1), should messages be printed as function runs?
-#' 
+#'
 #' @return a vcf object
 #'
 #' @export
@@ -103,14 +103,14 @@ read_vcf <- function(vcf_file, genome = "GRCh37",
 #' @param donors optional character vector providing a set of donors to use, by
 #' subsetting the donors present in the \code{donor_vcf_file}; if \code{NULL}
 #' (default) then all donors present in VCF will be used.
-#' 
+#'
 #' @return a list containing
 #' \code{A}, a matrix of integers. Number of alteration reads in SNP i cell j.
 #' \code{D}, a matrix of integers. Number of reads depth in SNP i cell j.
 #' \code{R}, a matrix of integers. Number of reference reads in SNP i cell j.
-#' \code{GT_cells}, a matrix of integers for genotypes. The cell-SNP 
+#' \code{GT_cells}, a matrix of integers for genotypes. The cell-SNP
 #' configuration.
-#' \code{GT_donors}, a matrix of integers for genotypes. The donor-SNP 
+#' \code{GT_donors}, a matrix of integers for genotypes. The donor-SNP
 #' configuration.
 #'
 #' @export
@@ -122,7 +122,7 @@ get_snp_matrices <- function(vcf_cell, vcf_donor=NULL, verbose = TRUE,
     vcf_cell <- GenomeInfoDb::sortSeqlevels(vcf_cell, X.is.sexchrom = TRUE)
     slengths_sample <- GenomeInfoDb::seqlengths(vcf_cell)
     if (!is.null(vcf_donor)) {
-        if (!is(vcf_donor, "CollapsedVCF"))
+        if (!methods::is(vcf_donor, "CollapsedVCF"))
             stop("vcf_donor must be a CollapsedVCF object from the VariantAnnotation package.")
         ## filter sample VCF to those variants found in donor VCF
         if (!is.null(donors)) {
@@ -195,43 +195,43 @@ get_snp_matrices <- function(vcf_cell, vcf_donor=NULL, verbose = TRUE,
 #' Load sparse matrices A and D from cellSNP VCF file with filtering SNPs
 #'
 #' @param vcf_file character(1), path to VCF file generated from cellSNP
-#' @param max_other_allele maximum ratio of other alleles comparing to REF and 
+#' @param max_other_allele maximum ratio of other alleles comparing to REF and
 #' ALT alleles; for cellSNP vcf, we recommend 0.05
 #' @param min_count minimum count across all cells, e.g., 20
 #' @param min_MAF minimum minor allele fraction, e.g., 0.1
-#' @param rowname_format the format of rowname: NULL is the default from vcfR, 
+#' @param rowname_format the format of rowname: NULL is the default from vcfR,
 #' short is CHROM_POS, and full is CHROM_POS_REF_ALT
 #' @param keep_GL logical(1), if TRUE, check if GL (genotype probability) exists
 #' it will be returned
 #' @export
-#' 
+#'
 #' @examples
 #' vcf_file <- system.file("extdata", "cellSNP.cells.vcf.gz", package = "cardelino")
 #' input_data <- load_cellSNP_vcf(vcf_file)
 #'
-load_cellSNP_vcf <- function(vcf_file, min_count=0, min_MAF=0, 
+load_cellSNP_vcf <- function(vcf_file, min_count=0, min_MAF=0,
                              max_other_allele=NULL, rowname_format="full",
                              keep_GL=FALSE) {
     vcf_temp <- vcfR::read.vcfR(vcf_file)
     dp_full <- vcfR::extract.gt(vcf_temp, element = "DP", as.numeric = TRUE)
     ad_full <- vcfR::extract.gt(vcf_temp, element = "AD", as.numeric = TRUE)
 
-    idx <- (rowSums(dp_full, na.rm = TRUE) >= min_count & 
-            ((rowSums(ad_full, na.rm = TRUE) / 
+    idx <- (rowSums(dp_full, na.rm = TRUE) >= min_count &
+            ((rowSums(ad_full, na.rm = TRUE) /
               rowSums(dp_full, na.rm = TRUE)) >= min_MAF))
 
     idx <- idx & (!is.na(idx))
 
     if (!is.null(max_other_allele)) {
-        dp_sum <- vcfR::extract.info(vcf_temp, element = "DP", 
+        dp_sum <- vcfR::extract.info(vcf_temp, element = "DP",
                                      as.numeric = TRUE)
-        oth_sum <- vcfR::extract.info(vcf_temp, element = "OTH", 
+        oth_sum <- vcfR::extract.info(vcf_temp, element = "OTH",
                                       as.numeric = TRUE)
         idx <- idx & (oth_sum / dp_sum < max_other_allele)
     }
 
     print(paste(sum(idx), "out of", length(idx), "SNPs passed."))
-        
+
     A <- ad_full[idx, ]
     D <- dp_full[idx, ]
     A[is.na(A)] <- 0
@@ -247,7 +247,7 @@ load_cellSNP_vcf <- function(vcf_file, min_count=0, min_MAF=0,
         }
     }
     row.names(A) <- row.names(D) <- var_ids[idx]
-    
+
     GL_list <- list()
     if (keep_GL && sum(strsplit(vcf_temp@gt[1, 1], ":")$FORMAT == "GL") > 0) {
         GL_full <- vcfR::extract.gt(vcf_temp, element = "GL", as.numeric = FALSE)
@@ -259,68 +259,68 @@ load_cellSNP_vcf <- function(vcf_file, min_count=0, min_MAF=0,
         }
     }
 
-    list("A" = Matrix::Matrix(A, sparse = TRUE), 
+    list("A" = Matrix::Matrix(A, sparse = TRUE),
          "D" = Matrix::Matrix(D, sparse = TRUE),
          "GL" = GL_list)
 }
 
 
 #' Load genotype VCF into numeric values: 0, 1, or 2
-#' 
-#' Note, the genotype VCF can be very big for whole genome. It would be more 
+#'
+#' Note, the genotype VCF can be very big for whole genome. It would be more
 #' efficient to only keep the wanted variants and samples. bcftools does such
 #' jobs nicely.
 #'
 #' @param vcf_file character(1), path to VCF file for donor genotypes
-#' @param rowname_format the format of rowname: NULL is the default from vcfR, 
+#' @param rowname_format the format of rowname: NULL is the default from vcfR,
 #' short is CHROM_POS, and full is CHROM_POS_REF_ALT
 #' @param na.rm logical(1), if TRUE, remove the variants with NA values
 #' @param keep_GP logical(1), if TRUE, check if GP (genotype probability) exists
 #' it will be returned
 #' @export
-#' 
+#'
 #' @examples
 #' vcf_file <- system.file("extdata", "cellSNP.cells.vcf.gz", package = "cardelino")
 #' GT_dat <- load_GT_vcf(vcf_file, na.rm=FALSE)
-#' 
-load_GT_vcf <- function(vcf_file, rowname_format="full", na.rm=TRUE, 
+#'
+load_GT_vcf <- function(vcf_file, rowname_format="full", na.rm=TRUE,
                         keep_GP=TRUE) {
     GT_vcf <- vcfR::read.vcfR(vcf_file)
-    
+
     ## variant ids
     if (!is.null(rowname_format)) {
       fix_val <- vcfR::getFIX(GT_vcf)
       if (rowname_format == "short") {
         var_ids <- paste0(fix_val[,1], "_", fix_val[,2])
       } else {
-        var_ids <- paste0(fix_val[,1], "_", fix_val[,2], 
+        var_ids <- paste0(fix_val[,1], "_", fix_val[,2],
                           "_", fix_val[,4], "_", fix_val[,5])
       }
     }
-    
+
     ## GT values
     GT <- vcfR::extract.gt(GT_vcf, element = "GT")
-    
+
     GT_num <- matrix(NA, nrow = nrow(GT), ncol = ncol(GT))
-    colnames(GT_num) <- colnames(GT) 
+    colnames(GT_num) <- colnames(GT)
     rownames(GT_num) <- var_ids
-    
+
     idx0 = which(GT == "0/0" | GT == "0|0")
     idx2 = which(GT == "1/1" | GT == "1|1")
     idx1 = which(GT == "0/1" | GT == "1/0" |
                  GT == "0|1" | GT == "1|0" )
-    
+
     GT_num[idx0] <- 0
     GT_num[idx1] <- 1
     GT_num[idx2] <- 2
-    
+
     if (na.rm) {
       idx <- rowSums(is.na(GT_num)) == 0
     } else {
       idx <- seq_len(nrow(GT_num))
     }
     GT_num <- GT_num[idx, ]
-    
+
     ## Genotype probability
     if (keep_GP && sum(strsplit(GT_vcf@gt[1, 1], ":")$FORMAT == "GP") > 0) {
       GP_val <- matrix(NA, nrow = length(GT_num), ncol = 3)
@@ -334,7 +334,7 @@ load_GT_vcf <- function(vcf_file, rowname_format="full", na.rm=TRUE,
     } else {
       GP_val <- NULL
     }
-    
+
     list("GT"=GT_num, "GP"=GP_val)
 }
 
@@ -358,7 +358,7 @@ load_GT_vcf <- function(vcf_file, rowname_format="full", na.rm=TRUE,
 #   indices <- as.numeric(infile[['GenoINFO/indices']][])
 #   indptr <- as.numeric(infile[['GenoINFO/indptr']][])
 #   shp <- as.numeric(infile[['GenoINFO/shape']][])
-  
+
 #   A.mat <- Matrix::sparseMatrix(
 #     i = indices + 1,
 #     p = indptr,
@@ -373,6 +373,6 @@ load_GT_vcf <- function(vcf_file, rowname_format="full", na.rm=TRUE,
 #   )
 #   rownames(A.mat) <- rownames(D.mat) <- infile[['samples']][]
 #   colnames(A.mat) <- colnames(D.mat) <- infile[['variants']][]
-  
+
 #   list("A" = Matrix::t(A.mat), "D" = Matrix::t(D.mat))
 # }
