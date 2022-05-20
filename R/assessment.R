@@ -84,10 +84,10 @@ rowArgmax <- get_prob_label <- function(X){
 #'
 colMatch <- function(A, B, force = FALSE) {
     if (nrow(A) != nrow(B)) {
-        stop("Error: A and B have different rows.")
+        stop("A and B have different rows.")
     }
     if (ncol(A) > ncol(B)) {
-        stop("Error: A must have equal or smaller columns than B.")
+        stop("A must have equal or smaller columns than B.")
     }
     if (force == TRUE) {
         idx_list <- combinat::permn(ncol(B))

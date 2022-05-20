@@ -385,7 +385,7 @@ clone_id_Gibbs <- function(A, D, Config, Psi=NULL,
     if (!is.null(relax_Config) && relax_Config != FALSE) {
         if (!is.null(relax_rate_fixed)) {
           if (relax_rate_fixed > 1 || relax_rate_fixed < 0) {
-            stop("Error: relax_rate_fixed needs to be NULL or in [0, 1].")
+            stop("relax_rate_fixed needs to be NULL or in [0, 1].")
           }
           relax_rate <- relax_rate_fixed ## fixed relax_rate
           relax_rate_all[,] <- relax_rate
@@ -393,7 +393,7 @@ clone_id_Gibbs <- function(A, D, Config, Psi=NULL,
           relax_rate <- relax_rate_prior[1] / (relax_rate_prior[1] +
                                                relax_rate_prior[2])
         } else {
-          stop("Error: require value for either relax_Config or relax_prior.")
+          stop("Require value for either relax_Config or relax_prior.")
         }
 
         Config_new <- Config
