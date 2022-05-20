@@ -18,12 +18,12 @@ multiPRC(
 
 \item{simu_mat}{The true identity of assignment from simulation}
 
-\item{marginal_mode}{A string for the mode to marginalize the column: best, 
+\item{marginal_mode}{A string for the mode to marginalize the column: best,
 second, or delta}
 
 \item{cutoff}{A list of cutoff; if NULL use all unique scores}
 
-\item{multiLabel.rm}{Logical value; if True, remove the samples with 
+\item{multiLabel.rm}{Logical value; if True, remove the samples with
 multiple labels}
 
 \item{add_cut1}{Logical value; if True, manually add a cutoff of 1}

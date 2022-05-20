@@ -18,7 +18,6 @@ returned.
 Column index of the maximum value for each row in a matrix
 }
 \examples{
-matA = matrix(sample(seq(12)), nrow=3)
+matA <- matrix(sample(seq(12)), nrow = 3)
 rowArgmax(matA)
-
 }

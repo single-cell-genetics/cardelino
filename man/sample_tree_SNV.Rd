@@ -19,6 +19,5 @@ Down sample number of SNVs in the tree
 }
 \examples{
 data(simulation_input)
-tree_lite <- sample_tree_SNV(tree_4clone, n_SNV=10)
-
+tree_lite <- sample_tree_SNV(tree_4clone, n_SNV = 10)
 }

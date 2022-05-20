@@ -77,7 +77,6 @@ paramerized by the technical error rate.
 }
 \examples{
 data(simulation_input)
-D2 <- sample_seq_depth(D_input, n_cells=500, n_sites=nrow(tree_4clone$Z))
-simu <- sim_read_count(tree_4clone$Z, D2, Psi=NULL, cell_num=500)
-
+D2 <- sample_seq_depth(D_input, n_cells = 500, n_sites = nrow(tree_4clone$Z))
+simu <- sim_read_count(tree_4clone$Z, D2, Psi = NULL, cell_num = 500)
 }
