@@ -27,7 +27,6 @@ assignments <- clone_id(A_clone, D_clone, Config = tree$Z, inference = "EM")
 df <- assign_cells_to_clones(assignments$prob)
 head(df)
 table(df$clone)
-
 }
 \author{
 Davis McCarthy

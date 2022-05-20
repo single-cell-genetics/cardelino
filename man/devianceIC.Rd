@@ -7,10 +7,10 @@
 devianceIC(logLik_all, logLik_post)
 }
 \arguments{
-\item{logLik_all}{A vector of numeric; the log likelihood of posterior 
+\item{logLik_all}{A vector of numeric; the log likelihood of posterior
 sample, i.e., posterior samples of deviance}
 
-\item{logLik_post}{numeric(1); the log likelihood of mean posterior 
+\item{logLik_post}{numeric(1); the log likelihood of mean posterior
 parameters, i.e., deviance of posterior means}
 }
 \value{

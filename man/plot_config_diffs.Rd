@@ -22,10 +22,14 @@ Config matrices, specifically the differences Config1 - Config2.
 Define a publication-style plot theme
 }
 \examples{
-Config1 <- matrix(c(rep(0, 15), rep(1, 8), rep(0, 7), 
-                    rep(1, 5), rep(0, 3), rep(1, 7)), ncol = 3)
-Config2 <- matrix(c(rep(0, 15), rep(1, 8), rep(1, 7), 
-                    rep(0, 5), rep(1, 3), rep(1, 7)), ncol = 3)
+Config1 <- matrix(c(
+    rep(0, 15), rep(1, 8), rep(0, 7),
+    rep(1, 5), rep(0, 3), rep(1, 7)
+), ncol = 3)
+Config2 <- matrix(c(
+    rep(0, 15), rep(1, 8), rep(1, 7),
+    rep(0, 5), rep(1, 3), rep(1, 7)
+), ncol = 3)
 rownames(Config1) <- rownames(Config2) <- paste0("var", 1:nrow(Config1))
 colnames(Config1) <- colnames(Config2) <- paste0("clone", 1:ncol(Config1))
 plot_config_diffs(Config1, Config2)
