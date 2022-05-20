@@ -112,7 +112,7 @@ get_tree <- function(Config, P = NULL, strictness = "lax") {
       ## number of clones that is more than the number in this node
       if (i > 1.5) {
         prev_nodes <- 1:(i - 1)
-        prev_node_sizes <- sapply(node_def_list[prev_nodes], length)
+        prev_node_sizes <- vapply(node_def_list[prev_nodes], length, numeric(1))
         prev_nodes <- prev_nodes[prev_node_sizes > length(node_def_list[[i]])]
         min_prev_node_size <- min(prev_node_sizes[prev_nodes])
         prev_nodes <- prev_nodes[prev_node_sizes[prev_nodes] ==
