@@ -20,7 +20,8 @@
 #' data(example_donor)
 #' assignments <- clone_id(A_clone, D_clone, Config = tree$Z, inference = "EM")
 #' fig <- prob_heatmap(assignments$prob)
-prob_heatmap <- function(prob_mat, threshold = 0.5, mode = "best", cell_idx = NULL) {
+prob_heatmap <- function(prob_mat, threshold = 0.5, mode = "best",
+                         cell_idx = NULL) {
     cell_label <- cardelino::rowArgmax(prob_mat)
     prob_value <- cardelino::rowMax(prob_mat, mode = mode)
     # add clone id
@@ -341,7 +342,8 @@ plot_config_diffs <- function(Config1, Config2, show_variant_names = FALSE) {
         clone = rep(colnames(Config1), each = nrow(Config1)),
         diffs = as.vector(diffs)
     )
-    p_out <- ggplot(df, aes_string(x = "clone", y = "variant", fill = "diffs")) +
+    p_out <- ggplot(df,
+                    aes_string(x = "clone", y = "variant", fill = "diffs")) +
         geom_raster() +
         scale_x_discrete(position = "top") +
         scale_fill_gradient2(

@@ -70,7 +70,8 @@
 #' )
 #' prob_heatmap(assignments$prob)
 #'
-#' assignments_EM <- clone_id(A_clone, D_clone, Config = tree$Z, inference = "EM")
+#' assignments_EM <- clone_id(A_clone, D_clone, Config = tree$Z,
+#'                            inference = "EM")
 #' prob_heatmap(assignments_EM$prob)
 clone_id <- function(A, D, Config = NULL, n_clone = NULL, Psi = NULL,
     relax_Config = TRUE, relax_rate_fixed = NULL,
@@ -147,7 +148,8 @@ clone_id <- function(A, D, Config = NULL, n_clone = NULL, Psi = NULL,
                 ids_out$n_chain <- ids_out$n_chain + 1
                 idx <- colMatch(ids_out$prob, ids_list[[ii]]$prob, force = TRUE)
                 ids_out$prob <- ids_out$prob + ids_list[[ii]]$prob[, idx]
-                ids_out$relax_rate <- ids_out$relax_rate + ids_list[[ii]]$relax_rate
+                ids_out$relax_rate <- ids_out$relax_rate +
+                  ids_list[[ii]]$relax_rate
                 ids_out$Config_prob <- (ids_out$Config_prob +
                     ids_list[[ii]]$Config_prob[, idx])
             }
@@ -214,8 +216,9 @@ assign_cells_to_clones <- function(prob_mat, threshold = 0.5) {
 #' @rdname clone_id
 #' @export
 #'
-clone_id_EM <- function(A, D, Config, Psi = NULL, min_iter = 10, max_iter = 1000,
-    logLik_threshold = 1e-5, verbose = TRUE) {
+clone_id_EM <- function(A, D, Config, Psi = NULL, min_iter = 10,
+                        max_iter = 1000, logLik_threshold = 1e-5,
+                        verbose = TRUE) {
     if (is.null(Psi)) {
           Psi <- rep(1 / ncol(Config), ncol(Config))
       }
@@ -270,7 +273,8 @@ clone_id_EM <- function(A, D, Config, Psi = NULL, min_iter = 10, max_iter = 1000
 
         logLik_vec <- rep(NA, nrow(logLik_mat))
         for (i in seq_len(nrow(logLik_mat))) {
-            logLik_vec[i] <- matrixStats::logSumExp(logLik_mat[i, ], na.rm = TRUE)
+            logLik_vec[i] <- matrixStats::logSumExp(logLik_mat[i, ],
+                                                    na.rm = TRUE)
         }
         logLik_new <- sum(logLik_vec, na.rm = TRUE) + W_log
         logLik_mat_amplify <- logLik_mat - matrixStats::rowMaxs(logLik_mat)
@@ -442,7 +446,8 @@ clone_id_Gibbs <- function(A, D, Config, Psi = NULL,
         theta0 <- theta0_all[it - 1, 1]
         theta1[idx_mat] <- theta1_all[it - 1, ]
         for (k in seq_len(K)) {
-            logLik_mat[, k] <- (colSums(S1_list[[k]] * log(theta0), na.rm = TRUE) +
+            logLik_mat[, k] <- (colSums(S1_list[[k]] * log(theta0),
+                                        na.rm = TRUE) +
                 colSums(S2_list[[k]] * log(1 - theta0), na.rm = TRUE) +
                 colSums(S3_list[[k]] * log(theta1), na.rm = TRUE) +
                 colSums(S4_list[[k]] * log(1 - theta1), na.rm = TRUE))
@@ -454,7 +459,8 @@ clone_id_Gibbs <- function(A, D, Config, Psi = NULL,
 
         # logLik_vec <- rep(NA, nrow(logLik_mat))
         # for (i in seq_len(nrow(logLik_mat))) {
-        #     logLik_vec[i] <- matrixStats::logSumExp(logLik_mat[i,], na.rm = TRUE)
+        #     logLik_vec[i] <- matrixStats::logSumExp(logLik_mat[i,],
+        #                                             na.rm = TRUE)
         # }
         # logLik_all[it] <- sum(logLik_vec, na.rm = TRUE) + W_log
         # #Update logLikelihood (TODO: add W0 and W1)
@@ -601,7 +607,8 @@ clone_id_Gibbs <- function(A, D, Config, Psi = NULL,
             }
             col_idx_use <- col_idx_use[idx]
             prob_all[ii, ] <- matrix(prob_all[ii, ], nrow = M)[, col_idx_use]
-            Config_all[ii, ] <- matrix(Config_all[ii, ], nrow = N)[, col_idx_use]
+            Config_all[ii, ] <- matrix(Config_all[ii, ],
+                                       nrow = N)[, col_idx_use]
         }
     }
     prob_mat <- matrix(colMeans(prob_all[n_buin:it, ]), nrow = M)
@@ -728,7 +735,8 @@ devianceIC <- function(logLik_all, logLik_post) {
     # https://www.mrc-bsu.cam.ac.uk/wp-content/uploads/DIC-slides.pdf
     # Spiegelhalter et al. The deviance information criterion: 12 years on, 2014
     # Spiegelhalter et al. Bayesian measures of model complexity and fit, 2002
-    # Gelman et al. Bayesian Data Analysis. 3rd Edition, 2013 (Charpter 7.2, p173)
+    # Gelman et al. Bayesian Data Analysis. 3rd Edition, 2013
+    # (Charpter 7.2, p173)
 
     logLik_mean <- mean(logLik_all)
     logLik_var <- var(logLik_all)

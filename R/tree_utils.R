@@ -29,13 +29,15 @@
 #' @export
 #'
 #' @examples
-#' Configk3 <- matrix(c(rep(0, 15), rep(1, 8), rep(0, 7), rep(1, 5), rep(0, 3), rep(1, 7)), ncol = 3)
+#' Configk3 <- matrix(c(rep(0, 15), rep(1, 8), rep(0, 7), rep(1, 5), rep(0, 3),
+#'                    rep(1, 7)), ncol = 3)
 #' tree_k3 <- get_tree(Config = Configk3, P = matrix(rep(1 / 3, 3), ncol = 1))
 #' plot_tree(tree_k3)
 get_tree <- function(Config, P = NULL, strictness = "lax") {
     if (!is.null(P)) {
         if (ncol(P) != 1) {
-              stop("P must be a matrix with one column encoding clone prevalence values")
+              stop("P must be a matrix with one column encoding clone ",
+                   "prevalence values")
           }
     }
     all_zero_rows <- rowSums(Config) == 0
@@ -45,9 +47,11 @@ get_tree <- function(Config, P = NULL, strictness = "lax") {
               stop("Config matrix contains all-zero rows.")
           } else {
             if (strictness == "warn") {
-                  warning("Dropped ", sum(all_zero_rows), " all-zero rows from Config matrix.")
+                  warning("Dropped ", sum(all_zero_rows),
+                          " all-zero rows from Config matrix.")
               } else {
-                  message("Dropped ", sum(all_zero_rows), " all-zero rows from Config matrix.")
+                  message("Dropped ", sum(all_zero_rows),
+                          " all-zero rows from Config matrix.")
               }
             Config <- Config[!all_zero_rows, ]
         }
@@ -102,23 +106,30 @@ get_tree <- function(Config, P = NULL, strictness = "lax") {
                 sna[var_bin_vals == sum(2^node_def_list[[i]]), 3] <- k + 1 + i
             } else {
                 clones_in_this_node <- node_def_list[[i]]
-                clones_in_prev_nodes <- unique(unlist(node_def_list[seq_len(i - 1)]))
+                clones_in_prev_nodes <- unique(
+                  unlist(node_def_list[seq_len(i - 1)])
+                )
                 if (!any(clones_in_this_node %in% clones_in_prev_nodes)) {
                     el_counter <- el_counter + 1
-                    edge_list[[el_counter]] <- matrix(c(k + 1, k + 1 + i), nrow = 1)
+                    edge_list[[el_counter]] <- matrix(c(k + 1, k + 1 + i),
+                                                      nrow = 1)
                     sna[var_bin_vals == sum(2^node_def_list[[i]]), 2] <- k + 1
-                    sna[var_bin_vals == sum(2^node_def_list[[i]]), 3] <- k + 1 + i
+                    sna[var_bin_vals == sum(2^node_def_list[[i]]), 3] <-
+                      k + 1 + i
                 }
             }
             ## add edge from internal node to internal node
-            ## if all of the clones for the node are present in the previous node in
-            ## the tree (immediately above in the hierarchy), then add the edge
-            ## check the size of previous nodes, and select the node that has minimum
-            ## number of clones that is more than the number in this node
+            ## if all of the clones for the node are present in the previous
+            ## node in the tree (immediately above in the hierarchy), then add
+            ## the edge check the size of previous nodes, and select the node
+            ## that has minimum number of clones that is more than the number
+            ## in this node
             if (i > 1.5) {
                 prev_nodes <- seq_len(i - 1)
-                prev_node_sizes <- vapply(node_def_list[prev_nodes], length, numeric(1))
-                prev_nodes <- prev_nodes[prev_node_sizes > length(node_def_list[[i]])]
+                prev_node_sizes <- vapply(node_def_list[prev_nodes], length,
+                                          numeric(1))
+                prev_nodes <- prev_nodes[prev_node_sizes >
+                                           length(node_def_list[[i]])]
                 min_prev_node_size <- min(prev_node_sizes[prev_nodes])
                 prev_nodes <- prev_nodes[prev_node_sizes[prev_nodes] ==
                     min_prev_node_size]
@@ -129,15 +140,18 @@ get_tree <- function(Config, P = NULL, strictness = "lax") {
                             c(k + 1 + j, k + 1 + i),
                             nrow = 1
                         )
-                        sna[var_bin_vals == sum(2^node_def_list[[i]]), 2] <- k + 1 + j
-                        sna[var_bin_vals == sum(2^node_def_list[[i]]), 3] <- k + 1 + i
+                        sna[var_bin_vals == sum(2^node_def_list[[i]]), 2] <-
+                          k + 1 + j
+                        sna[var_bin_vals == sum(2^node_def_list[[i]]), 3] <-
+                          k + 1 + i
                     }
                 }
             }
             ## add edge from internal node to tip
             ## (if clone not present in any subsequent nodes)
             if (node_num < 1.5) {
-                ## if only one internal node, there are edges from this node to all tips
+                ## if only one internal node, there are edges from this node to
+                ## all tips
                 node_to_tip <- tip_nodes[-1]
                 el_counter <- el_counter + 1
                 edge_list[[el_counter]] <- matrix(
@@ -149,14 +163,16 @@ get_tree <- function(Config, P = NULL, strictness = "lax") {
                     sna[var_bin_vals == sum(2^m), 3] <- m
                 }
             } else {
-                ## if more than one internal node, need to check if tips mentioned in
-                ## this node appear in any subsequent nodes
+                ## if more than one internal node, need to check if tips
+                ## mentioned in this node appear in any subsequent nodes
                 node_to_tip <- node_def_list[[i]]
                 if (i < node_num) {
                     node_to_tip <- node_to_tip[
                         !(node_to_tip %in% unique(unlist(node_def_list[(i + 1):node_num])))
                     ]
-                } ## else this is the last node; just connect edges from node to tips
+                }
+                ## else this is the last node; just connect edges from node to
+                ## tips
                 if (length(node_to_tip) > 0.5) {
                     el_counter <- el_counter + 1
                     edge_list[[el_counter]] <- matrix(
@@ -181,7 +197,8 @@ get_tree <- function(Config, P = NULL, strictness = "lax") {
     }
     # node_def_list
     edge_mat <- do.call(rbind, edge_list)
-    tree_out <- list(edge = edge_mat, Nnode = node_num + 1, tip.label = tip_label)
+    tree_out <- list(edge = edge_mat, Nnode = node_num + 1,
+                     tip.label = tip_label)
     class(tree_out) <- "phylo"
     tree_out$Z <- Config
     if (!is.null(P)) {
@@ -233,7 +250,8 @@ get_tree <- function(Config, P = NULL, strictness = "lax") {
 # tree_k4_2$edge
 # plot_tree(tree_k4_2)
 #
-# tree_k4_2_bad <- get_tree(Config = Configk4_2_bad, P = matrix(rep(1/4, 4), ncol = 1))
+# tree_k4_2_bad <- get_tree(Config = Configk4_2_bad, P = matrix(rep(1/4, 4),
+#                           ncol = 1))
 # tree_k4_2_bad$sna
 # tree_k4_2_bad$Z
 # tree_k4_2_bad$edge
@@ -253,7 +271,8 @@ get_tree <- function(Config, P = NULL, strictness = "lax") {
 # card_joxm_Config_best <- round(card_joxm_Config_prob)
 #
 # tree_joxm <- get_tree(card_joxm_Config_best,
-#                       P = matrix(colMeans(card_joxm$prob_mat > 0.5), ncol = 1))
+#                       P = matrix(colMeans(card_joxm$prob_mat > 0.5),
+#                                  ncol = 1))
 # p1 <- cardelino::plot_tree(tree_joxm, orient = "v") +
 #   ggtitle("joxm: Cardelino output tree") +
 #   theme(plot.title = element_text(hjust = 0.5))
@@ -270,14 +289,17 @@ get_tree <- function(Config, P = NULL, strictness = "lax") {
 # card_zoxy_Config_best <- round(card_zoxy_Config_prob)
 #
 # tree_zoxy <- get_tree(card_zoxy_Config_best,
-#                       P = matrix(colMeans(card_zoxy$prob_mat > 0.5), ncol = 1))
+#                       P = matrix(colMeans(card_zoxy$prob_mat > 0.5),
+#                                  ncol = 1))
 # tree_zoxy$edge
 # tree_zoxy$sna
 # tree_zoxy <- get_tree(card_zoxy_Config_best,
-#                       P = matrix(colMeans(card_zoxy$prob_mat > 0.5), ncol = 1),
+#                       P = matrix(colMeans(card_zoxy$prob_mat > 0.5),
+#                                  ncol = 1),
 #                       strictness = "warn")
 # tree_zoxy <- get_tree(card_zoxy_Config_best,
-#                       P = matrix(colMeans(card_zoxy$prob_mat > 0.5), ncol = 1),
+#                       P = matrix(colMeans(card_zoxy$prob_mat > 0.5),
+#                                  ncol = 1),
 #                       strictness = "e")
 # ## handles all-zero rows
 # ## looks like a problem caused by no shared variants between cl2 and cl3
@@ -297,7 +319,8 @@ get_tree <- function(Config, P = NULL, strictness = "lax") {
 # card_lexy_Config_best <- round(card_lexy_Config_prob)
 #
 # tree_lexy <- get_tree(card_lexy_Config_best,
-#                       P = matrix(colMeans(card_lexy$prob_mat > 0.5), ncol = 1))
+#                       P = matrix(colMeans(card_lexy$prob_mat > 0.5),
+#                                  ncol = 1))
 # tree_lexy$edge
 # ##
 # p1 <- cardelino::plot_tree(tree_lexy, orient = "v") +
@@ -343,7 +366,8 @@ get_tree <- function(Config, P = NULL, strictness = "lax") {
 #                sum(rowMax(card_sehl$prob_mat) > 0.5), ncol = 1))
 # tree_sehl$edge
 # tree_sehl$P
-# ## Too many edges - looks like it finds an internal node that does not make sense
+# ## Too many edges - looks like it finds an internal node that does not make
+# sense
 # p1 <- cardelino::plot_tree(tree_sehl, orient = "v") +
 #   ggtitle("sehl: Cardelino output tree") +
 #   theme(plot.title = element_text(hjust = 0.5))
@@ -359,12 +383,14 @@ get_tree <- function(Config, P = NULL, strictness = "lax") {
 # data(example_donor)
 # plot_tree(get_tree(tree$Z))
 # assignments_binom <- cell_assign_Gibbs(A_clone, D_clone, Config = tree$Z,
-#                                        relax_Config = TRUE, model = "binomial")
+#                                        relax_Config = TRUE,
+#                                        model = "binomial")
 # eg_Config_prob <- assignments_binom$Config_prob
 # eg_Config_best <- round(eg_Config_prob)
 #
 # tree_eg <- get_tree(eg_Config_best,
-#                       P = matrix(colMeans(assignments_binom$prob > 0.5), ncol = 1))
+#                       P = matrix(colMeans(assignments_binom$prob > 0.5),
+#                       ncol = 1))
 # tree_eg$edge
 # ## too many internal nodes
 # ggtree::ggtree(tree_eg)
