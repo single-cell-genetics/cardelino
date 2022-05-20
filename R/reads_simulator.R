@@ -254,18 +254,13 @@ sample_tree_SNV <- function(tree, n_SNV = NULL) {
 #' @param n_cell An integer for number of total cells
 #' @param doublet_rate A float from 0 to 1 for doublet rate; default NULL means
 #' rate n_cell / 100000
-#' @param rand_seed A integer for random number generation
 #' @export
 #'
 donor_read_simulator <- function(GT, D_seed, sample_variants = FALSE,
     donor_size = NULL, beta_shapes = NULL,
-    n_cell = 5000, doublet_rate = NULL,
-    rand_seed = NULL) {
+    n_cell = 5000, doublet_rate = NULL) {
     K <- ncol(GT) # number of clones
     N <- nrow(GT) # number of variants
-    if (!is.null(rand_seed)) {
-        set.seed(rand_seed)
-    }
     if (is.null(beta_shapes)) {
         # beta_shapes <- matrix(c(0.3, 3, 29.7, 29.7, 3, 0.3), nrow = 3)
         beta_shapes <- matrix(c(0.2, 0.1, 99.8, 99.8, 0.1, 0.2), nrow = 3)
