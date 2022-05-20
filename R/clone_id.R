@@ -209,9 +209,9 @@ clone_id_EM <- function(A, D, Config, Psi=NULL, min_iter=10, max_iter=1000,
         Psi <- rep(1/ncol(Config), ncol(Config))
     if (dim(A)[1] != dim(D)[1] || dim(A)[2] != dim(D)[2] ||
         dim(A)[1] != dim(Config)[1] || dim(Config)[2] != length(Psi)) {
-        stop(paste0("A and D must have the same size;\n",
-                    "A and Config must have the same number of variants;\n",
-                    "Config and Psi must have the same number of clones"))
+        stop("A and D must have the same size;\n",
+             "A and Config must have the same number of variants;\n",
+              "Config and Psi must have the same number of clones")
     }
 
     ## preprocessing
@@ -313,13 +313,13 @@ clone_id_Gibbs <- function(A, D, Config, Psi=NULL,
     if (is.null(Psi)) {Psi <- rep(1/ncol(Config), ncol(Config))}
     if (dim(A)[1] != dim(D)[1] || dim(A)[2] != dim(D)[2] ||
         dim(A)[1] != dim(Config)[1] || dim(Config)[2] != length(Psi)) {
-        stop(paste0("A and D must have the same size;\n ",
-                    "A and Config must have the same number of variants;\n",
-                    "Config and Psi must have the same number of clones"))
+        stop("A and D must have the same size;\n ",
+             "A and Config must have the same number of variants;\n",
+             "Config and Psi must have the same number of clones")
     }
     if (sum(c("element", "variant", "global") == wise) == 0) {
-        stop(paste0("Input wise mode: ", wise,
-                    ", while only supporting: element, variant, global"))
+        stop("Input wise mode: ", wise,
+             ", while only supporting: element, variant, global")
     }
 
     ## preprocessing
