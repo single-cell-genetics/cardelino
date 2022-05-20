@@ -1,7 +1,8 @@
 # Functions to read data into cardelino
 
-# parse_cell_vcf <- function(vcf_file, filter_variants = TRUE, filter_cells = FALSE,
-#                       cell_nvars_threshold = 1.5, verbose = TRUE, ...) {
+# parse_cell_vcf <- function(vcf_file, filter_variants = TRUE,
+#                            filter_cells = FALSE, cell_nvars_threshold = 1.5,
+#                            verbose = TRUE, ...) {
 #     vcf <- vcfR::read.vcfR(vcf_file, verbose = verbose, ...)
 #     ## get read count data
 #     dp <- vcfR::extract.gt(vcf, element = "DP", as.numeric = TRUE)
@@ -41,8 +42,10 @@
 
 ## Turn off the examples and imports for `read_vcf`
 # #' @examples
-# #' vcf <- read_vcf(system.file("extdata", "cells.donorid.vcf.gz", package = "cardelino"))
-# #' @importFrom VariantAnnotation readVcf isSNV geno ref alt genotypeToSnpMatrix
+# #' vcf <- read_vcf(system.file("extdata", "cells.donorid.vcf.gz",
+# #'                 package = "cardelino"))
+# #' @importFrom VariantAnnotation readVcf isSNV geno ref alt
+# #'   genotypeToSnpMatrix
 # #' @importFrom GenomeInfoDb seqlevelsStyle seqlengths
 # #' @importFrom methods as is
 
@@ -97,8 +100,10 @@ read_vcf <- function(vcf_file, genome = "GRCh37",
 
 ## Turn off the examples and imports for `get_snp_matrices`
 # #' @examples
-# #' vcf_cell <- read_vcf(system.file("extdata", "cells.donorid.vcf.gz", package = "cardelino"))
-# #' vcf_donor <-  read_vcf(system.file("extdata", "donors.donorid.vcf.gz", package = "cardelino"))
+# #' vcf_cell <- read_vcf(system.file("extdata", "cells.donorid.vcf.gz",
+# #'                      package = "cardelino"))
+# #' vcf_donor <-  read_vcf(system.file("extdata", "donors.donorid.vcf.gz",
+# #'                        package = "cardelino"))
 # #' snp_data <- get_snp_matrices(vcf_cell, vcf_donor)
 # #' @importFrom GenomicRanges findOverlaps
 # #' @importFrom S4Vectors queryHits subjectHits
@@ -129,22 +134,26 @@ read_vcf <- function(vcf_file, genome = "GRCh37",
 get_snp_matrices <- function(vcf_cell, vcf_donor = NULL, verbose = TRUE,
     donors = NULL) {
     if (!methods::is(vcf_cell, "CollapsedVCF")) {
-          stop("vcf_cell must be a CollapsedVCF object from the VariantAnnotation package.")
+          stop("vcf_cell must be a CollapsedVCF object from the ",
+               "VariantAnnotation package.")
       }
     vcf_cell <- GenomeInfoDb::sortSeqlevels(vcf_cell, X.is.sexchrom = TRUE)
     slengths_sample <- GenomeInfoDb::seqlengths(vcf_cell)
     if (!is.null(vcf_donor)) {
         if (!methods::is(vcf_donor, "CollapsedVCF")) {
-              stop("vcf_donor must be a CollapsedVCF object from the VariantAnnotation package.")
+              stop("vcf_donor must be a CollapsedVCF object from the ",
+                   "VariantAnnotation package.")
           }
         ## filter sample VCF to those variants found in donor VCF
         if (!is.null(donors)) {
             if (sum(colnames(vcf_donor) %in% donors) < 1) {
-                  stop("No donors in vcf_donor are found in the donors argument supplied.")
+                  stop("No donors in vcf_donor are found in the donors",
+                       "argument supplied.")
               }
             vcf_donor <- vcf_donor[, colnames(vcf_donor) %in% donors]
         }
-        vcf_donor <- GenomeInfoDb::sortSeqlevels(vcf_donor, X.is.sexchrom = TRUE)
+        vcf_donor <- GenomeInfoDb::sortSeqlevels(vcf_donor,
+                                                 X.is.sexchrom = TRUE)
         GenomeInfoDb::seqlengths(vcf_donor) <-
             slengths_sample[GenomeInfoDb::seqlevels(vcf_donor)]
         ovlap <- GenomicRanges::findOverlaps(vcf_cell, vcf_donor)
@@ -160,11 +169,12 @@ get_snp_matrices <- function(vcf_cell, vcf_donor = NULL, verbose = TRUE,
               }
             vcf_donor <- vcf_donor[S4Vectors::subjectHits(ovlap)]
             match_alleles <- unlist(
-                VariantAnnotation::ref(vcf_cell) == VariantAnnotation::ref(vcf_donor) &
-                    VariantAnnotation::alt(vcf_cell) == VariantAnnotation::alt(vcf_donor)
+              VariantAnnotation::ref(vcf_cell) == VariantAnnotation::ref(vcf_donor) &
+              VariantAnnotation::alt(vcf_cell) == VariantAnnotation::alt(vcf_donor)
             )
             if (sum(match_alleles) < 1L) {
-                  stop("No variants with matching alleles in sample and donor VCFs")
+                  stop("No variants with matching alleles in sample and ",
+                       "donor VCFs")
               }
             vcf_cell <- vcf_cell[match_alleles]
             vcf_donor <- vcf_donor[match_alleles]
@@ -235,7 +245,8 @@ get_snp_matrices <- function(vcf_cell, vcf_donor = NULL, verbose = TRUE,
 #' @export
 #'
 #' @examples
-#' vcf_file <- system.file("extdata", "cellSNP.cells.vcf.gz", package = "cardelino")
+#' vcf_file <- system.file("extdata", "cellSNP.cells.vcf.gz",
+#'                         package = "cardelino")
 #' input_data <- load_cellSNP_vcf(vcf_file)
 load_cellSNP_vcf <- function(vcf_file, min_count = 0, min_MAF = 0,
     max_other_allele = NULL, rowname_format = "full",
@@ -284,7 +295,8 @@ load_cellSNP_vcf <- function(vcf_file, min_count = 0, min_MAF = 0,
 
     GL_list <- list()
     if (keep_GL && sum(strsplit(vcf_temp@gt[1, 1], ":")$FORMAT == "GL") > 0) {
-        GL_full <- vcfR::extract.gt(vcf_temp, element = "GL", as.numeric = FALSE)
+        GL_full <- vcfR::extract.gt(vcf_temp, element = "GL",
+                                    as.numeric = FALSE)
         for (ii in seq_len(length(strsplit(GL_full[1, 1], ",")[[1]]))) {
             GL_tmp <- vcfR::masplit(GL_full, delim = ",", record = ii, sort = 0)
             GL_tmp[is.na(GL_tmp)] <- 0
@@ -316,7 +328,8 @@ load_cellSNP_vcf <- function(vcf_file, min_count = 0, min_MAF = 0,
 #' @export
 #'
 #' @examples
-#' vcf_file <- system.file("extdata", "cellSNP.cells.vcf.gz", package = "cardelino")
+#' vcf_file <- system.file("extdata", "cellSNP.cells.vcf.gz",
+#'                         package = "cardelino")
 #' GT_dat <- load_GT_vcf(vcf_file, na.rm = FALSE)
 load_GT_vcf <- function(vcf_file, rowname_format = "full", na.rm = TRUE,
     keep_GP = TRUE) {
@@ -368,7 +381,8 @@ load_GT_vcf <- function(vcf_file, rowname_format = "full", na.rm = TRUE,
         colnames(GP_val) <- c("GT=0", "GT=1", "GT=2")
         GP <- vcfR::extract.gt(GT_vcf, element = "GP", as.numeric = FALSE)
         for (ii in seq_len(3)) {
-            GP_val[, ii] <- vcfR::masplit(GP, delim = ",", record = ii, sort = 0)[idx]
+            GP_val[, ii] <- vcfR::masplit(GP, delim = ",", record = ii,
+                                          sort = 0)[idx]
         }
     } else {
         GP_val <- NULL
