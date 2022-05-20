@@ -128,6 +128,3 @@ NULL
 #' @source A fibroblast sample from HipSci project
 #' @author Yuanhua Huang, Davis McCarthy, 2018-06-25
 NULL
-
-
-
