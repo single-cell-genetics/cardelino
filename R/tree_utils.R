@@ -69,7 +69,7 @@ get_tree <- function(Config, P = NULL, strictness = "lax") {
   if (node_num > 0.5) {
     node_def_list <- list()
     edge_list <- list()
-    for (i in 1:(k - 1)) {
+    for (i in seq_len(k - 1)) {
       clone_combos <- utils::combn(2:k, (k - i), simplify = FALSE)
       for (j in seq_len(length(clone_combos))) {
         test_sum <- sum(tip_vals[clone_combos[[j]]])
@@ -97,7 +97,7 @@ get_tree <- function(Config, P = NULL, strictness = "lax") {
         sna[var_bin_vals == sum(2^node_def_list[[i]]), 3] <- k + 1 + i
       } else {
         clones_in_this_node <- node_def_list[[i]]
-        clones_in_prev_nodes <- unique(unlist(node_def_list[1:(i - 1)]))
+        clones_in_prev_nodes <- unique(unlist(node_def_list[seq_len(i - 1)]))
         if (!any(clones_in_this_node %in% clones_in_prev_nodes)) {
           el_counter <- el_counter + 1
           edge_list[[el_counter]] <- matrix(c(k + 1, k + 1 + i), nrow = 1)
@@ -111,7 +111,7 @@ get_tree <- function(Config, P = NULL, strictness = "lax") {
       ## check the size of previous nodes, and select the node that has minimum
       ## number of clones that is more than the number in this node
       if (i > 1.5) {
-        prev_nodes <- 1:(i - 1)
+        prev_nodes <- seq_len(i - 1)
         prev_node_sizes <- vapply(node_def_list[prev_nodes], length, numeric(1))
         prev_nodes <- prev_nodes[prev_node_sizes > length(node_def_list[[i]])]
         min_prev_node_size <- min(prev_node_sizes[prev_nodes])

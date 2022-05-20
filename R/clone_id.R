@@ -13,12 +13,12 @@
 #' only if Config is NULL
 #' @param relax_Config logical(1), If TRUE, relaxing the Clone Configuration by
 #' changing it from fixed value to act as a prior Config with a relax rate.
-#' @param relax_rate_fixed numeric(1), If the value is between 0 to 1, 
+#' @param relax_rate_fixed numeric(1), If the value is between 0 to 1,
 #' the relax rate will be set as a fix value during updating clone Config. If
 #' NULL, the relax rate will be learned automatically with relax_rate_prior.
-#' @param n_chain integer(1), the number of chains to run, which will be 
+#' @param n_chain integer(1), the number of chains to run, which will be
 #' averaged as an output result
-#' @param n_proc integer(1), the numebr of processors to use. This parallel 
+#' @param n_proc integer(1), the numebr of processors to use. This parallel
 #' computing can largely reduce time when using multiple chains
 #' @param inference character(1), the method to use for inference, either
 #' "sampling" to use Gibbs sampling (default) or "EM" to use
@@ -64,16 +64,16 @@
 #'
 #' @examples
 #' data(example_donor)
-#' assignments <- clone_id(A_clone, D_clone, Config = tree$Z, 
+#' assignments <- clone_id(A_clone, D_clone, Config = tree$Z,
 #' min_iter = 800, max_iter = 1200)
 #' prob_heatmap(assignments$prob)
 #'
 #' assignments_EM <- clone_id(A_clone, D_clone, Config = tree$Z, inference = "EM")
 #' prob_heatmap(assignments_EM$prob)
 #'
-clone_id <- function(A, D, Config = NULL, n_clone = NULL, Psi = NULL, 
+clone_id <- function(A, D, Config = NULL, n_clone = NULL, Psi = NULL,
                      relax_Config = TRUE, relax_rate_fixed = NULL,
-                     inference = "sampling", n_chain = 1, n_proc = 1, 
+                     inference = "sampling", n_chain = 1, n_proc = 1,
                      verbose = TRUE, ...) {
     inference <- match.arg(inference, c("sampling", "EM"))
     ## check input data
@@ -83,7 +83,7 @@ clone_id <- function(A, D, Config = NULL, n_clone = NULL, Psi = NULL,
         stop("Colnames for A and D are not identical.")
     if (is.null(Config) && is.null(n_clone))
         stop("Config and n_clone can't be NULL together.")
-    
+
     ## Cardelino-free mode if Config is NULL
     if (is.null(Config)) {
       cat("Config is NULL: de-novo mode is in use.\n")
@@ -93,7 +93,7 @@ clone_id <- function(A, D, Config = NULL, n_clone = NULL, Psi = NULL,
       relax_Config <-  TRUE
       relax_rate_fixed <- 0.5
     }
-    
+
     ## Match exome-seq and scRNA-seq data
     if (!any(rownames(D) %in% rownames(Config)))
         stop("No matches in variant names between Config and D arguments.")
@@ -104,32 +104,32 @@ clone_id <- function(A, D, Config = NULL, n_clone = NULL, Psi = NULL,
     Config <- Config[common_vars,, drop = FALSE]
     if (verbose)
         message(length(common_vars), " variants used for cell assignment.")
-    
+
     ## change sparse matrix to dense matrix
     A <- as.matrix(A)
     D <- as.matrix(D)
-    
+
     ## pass data to specific functions
     if (inference == "sampling") {
       if (n_proc > 1) {
         doMC::registerDoMC(n_proc)
         `%dopar%` <- foreach::`%dopar%`
-        
-        ids_list <- foreach::foreach(ii = 1:n_chain) %dopar% {
-          clone_id_Gibbs(A, D, Config, Psi = Psi, 
-                         relax_Config = relax_Config, 
+
+        ids_list <- foreach::foreach(ii = seq_len(n_chain)) %dopar% {
+          clone_id_Gibbs(A, D, Config, Psi = Psi,
+                         relax_Config = relax_Config,
                          relax_rate_fixed = relax_rate_fixed,
                          verbose = verbose, ...)
         }
       }else{
         ids_list <- list(
-          clone_id_Gibbs(A, D, Config, Psi = Psi, 
-                         relax_Config = relax_Config, 
+          clone_id_Gibbs(A, D, Config, Psi = Psi,
+                         relax_Config = relax_Config,
                          relax_rate_fixed = relax_rate_fixed,
                          verbose = verbose, ...)
         )
       }
-      
+
       ids_out <- ids_list[[1]]
       ids_out$n_chain <- 1
       if (n_chain > 1) {
@@ -138,7 +138,7 @@ clone_id <- function(A, D, Config = NULL, n_clone = NULL, Psi = NULL,
           idx <- colMatch(ids_out$prob, ids_list[[ii]]$prob, force = TRUE)
           ids_out$prob <- ids_out$prob + ids_list[[ii]]$prob[, idx]
           ids_out$relax_rate <- ids_out$relax_rate + ids_list[[ii]]$relax_rate
-          ids_out$Config_prob <- (ids_out$Config_prob + 
+          ids_out$Config_prob <- (ids_out$Config_prob +
                                     ids_list[[ii]]$Config_prob[, idx])
         }
         ids_out$prob <- ids_out$prob / n_chain
@@ -288,15 +288,15 @@ clone_id_EM <- function(A, D, Config, Psi=NULL, min_iter=10, max_iter=1000,
 #' distribution on the inferred false positive rate.
 #' @param prior1 numeric(2), alpha and beta parameters for the Beta prior
 #' distribution on the inferred (1 - false negative) rate.
-#' @param relax_rate_prior numeric(2), the two parameters of beta prior 
-#' distribution of the relax rate for relaxing the clone Configuration. This 
+#' @param relax_rate_prior numeric(2), the two parameters of beta prior
+#' distribution of the relax rate for relaxing the clone Configuration. This
 #' mode is used when relax_relax is NULL.
 #' @param keep_base_clone bool(1), if TRUE, keep the base clone of Config to its
 #' input values when relax mode is used.
 #' @param buin_frac numeric(1), the fraction of chain as burn-in period
 #' @param wise A string, the wise of parameters for theta1: global, variant,
 #' element.
-#' @param relabel bool(1), if TRUE, relabel the samples of both Config and prob 
+#' @param relabel bool(1), if TRUE, relabel the samples of both Config and prob
 #' during the Gibbs sampleing.
 #'
 #' @author Yuanhua Huang
@@ -305,7 +305,7 @@ clone_id_EM <- function(A, D, Config, Psi=NULL, min_iter=10, max_iter=1000,
 #' @export
 #'
 clone_id_Gibbs <- function(A, D, Config, Psi=NULL,
-                           relax_Config=TRUE, relax_rate_fixed=NULL, 
+                           relax_Config=TRUE, relax_rate_fixed=NULL,
                            relax_rate_prior=c(1, 9), keep_base_clone=TRUE,
                            prior0=c(0.2, 99.8), prior1=c(0.45, 0.55),
                            min_iter=5000, max_iter=20000, buin_frac=0.5,
@@ -390,7 +390,7 @@ clone_id_Gibbs <- function(A, D, Config, Psi=NULL,
           relax_rate <- relax_rate_fixed ## fixed relax_rate
           relax_rate_all[,] <- relax_rate
         } else if (!is.null(relax_rate_prior)) {
-          relax_rate <- relax_rate_prior[1] / (relax_rate_prior[1] + 
+          relax_rate <- relax_rate_prior[1] / (relax_rate_prior[1] +
                                                relax_rate_prior[2])
         } else {
           stop("Error: require value for either relax_Config or relax_prior.")
@@ -505,17 +505,17 @@ clone_id_Gibbs <- function(A, D, Config, Psi=NULL,
         theta1_all[it,  ] <- stats::rbeta(rep(1, n_element),
                                           prior1[,1] + S3_wgt[idx_vec],
                                           prior1[,2] + S4_wgt[idx_vec])
-        
+
         # Calculate logLikelihood
-        logLik_all[it] <- get_logLik(A1, B1, Config_new, assign_all[it, ], 
+        logLik_all[it] <- get_logLik(A1, B1, Config_new, assign_all[it, ],
                                      theta0, theta1)
 
         #Check convergence. TODO: consider relabel
         if ((it >= min_iter) && (it %% 100 == 0)) {
-            Converged_all <- abs(Geweke_Z(prob_all[1:it, ])) <= 2
+            Converged_all <- abs(Geweke_Z(prob_all[seq_len(it), ])) <= 2
             # Converged_all <- abs(Geweke_Z(Config_all[1:it, ])) <= 2
             if (verbose) {
-                cat(paste0(round(mean(Converged_all, na.rm = TRUE), 3) * 100, 
+                cat(paste0(round(mean(Converged_all, na.rm = TRUE), 3) * 100,
                            "% converged.\n"))
             }
             if (mean(Converged_all, na.rm = TRUE) > 0.995) {break}
@@ -566,24 +566,24 @@ clone_id_Gibbs <- function(A, D, Config, Psi=NULL,
 
     theta0 <- mean(theta0_all[n_buin:it, ])
     theta1[idx_mat] <- colMeans(as.matrix(theta1_all[n_buin:it, ]))
-    
-    
+
+
     logLik_post <- get_logLik(A1, B1, Config_prob, prob_mat, theta0, theta1)
     DIC <- devianceIC(logLik_all[n_buin:it], logLik_post)
-        
+
 #     DIC <- devianceIC(logLik_all[n_buin:it],
 #                       A1, B1, Config_prob, theta0, theta1, Psi, W_log)
 
     return_list <- list("theta0" = theta0, "theta1" = theta1,
-                        "theta0_all" = as.matrix(theta0_all[1:it, ]),
-                        "theta1_all" = as.matrix(theta1_all[1:it, ]),
-                        "element" = idx_mat, "logLik" = logLik_all[1:it],
-                        "prob_all" = prob_all[1:it,],
+                        "theta0_all" = as.matrix(theta0_all[seq_len(it), ]),
+                        "theta1_all" = as.matrix(theta1_all[seq_len(it), ]),
+                        "element" = idx_mat, "logLik" = logLik_all[seq_len(it)],
+                        "prob_all" = prob_all[seq_len(it),],
                         "prob" = prob_mat, "prob_variant" = prob_variant,
                         "relax_rate" = mean(relax_rate_all[n_buin:it]),
                         "Config_prob" = Config_prob,
-                        "Config_all" = Config_all[1:it, ],
-                        "relax_rate_all" = relax_rate_all[1:it], "DIC"=DIC)
+                        "Config_all" = Config_all[seq_len(it), ],
+                        "relax_rate_all" = relax_rate_all[seq_len(it)], "DIC"=DIC)
     return_list
 }
 
@@ -599,8 +599,8 @@ clone_id_Gibbs <- function(A, D, Config, Psi=NULL,
 #' When |Z| <= 2, the sampling could be taken as converged.
 #'
 Geweke_Z <- function(X, first=0.1, last=0.5) {
-    # The original Geweke’s diagnostics uses pectral densities to estimate 
-    # the sample variances (Geweke,1992), for adjusting the samples 
+    # The original Geweke’s diagnostics uses pectral densities to estimate
+    # the sample variances (Geweke,1992), for adjusting the samples
     # as the two ‘samples’ are not independent
     # so as the implementation in coda::geweke.diag()
 
@@ -612,14 +612,14 @@ Geweke_Z <- function(X, first=0.1, last=0.5) {
     if (is.null(dim(X)))
         X <- as.matrix(X, ncol = 1)
     N <- nrow(X)
-    A <- X[1:floor(first*N), , drop = FALSE]
+    A <- X[seq_len(floor(first*N)), , drop = FALSE]
     B <- X[ceiling(last*N):N, , drop = FALSE]
 
     A_col_mean <- colMeans(A)
     B_col_mean <- colMeans(B)
     A_col_var <- rowSums((t(A) - A_col_mean)^2) / (nrow(A) - 1)#^2
     B_col_var <- rowSums((t(B) - B_col_mean)^2) / (nrow(A) - 1)#^2
-        
+
     min_var <- 10^(-50)
     Z <- (A_col_mean - B_col_mean) / sqrt(A_col_var + B_col_var + min_var)
 
@@ -628,10 +628,10 @@ Geweke_Z <- function(X, first=0.1, last=0.5) {
 
 #' Log likelihood of clone_id model
 #' It returns P(A, D | C, I, theta0, theta1)
-#' 
+#'
 #' @param A1 variant x cell matrix of integers; number of alternative allele
 #' reads in variant i cell j
-#' @param B1 variant x cell matrix of integers; number of reference allele 
+#' @param B1 variant x cell matrix of integers; number of reference allele
 #' reads in variant i cell j
 #' @param Config variant x clone matrix of float values. The clone-variant
 #' configuration probability, averaged by posterior samples
@@ -652,13 +652,13 @@ get_logLik <- function(A1, B1, Config, Assign, theta0, theta1) {
     } else {
         Assign_prob <- Assign
     }
-    
+
     prob_mat <- Config %*% t(Assign_prob)
- 
-    Lik_mat <- (exp(log(theta1) * A1 + log(1 - theta1) * B1) * prob_mat + 
+
+    Lik_mat <- (exp(log(theta1) * A1 + log(1 - theta1) * B1) * prob_mat +
                 exp(log(theta0) * A1 + log(1 - theta0) * B1) * (1 - prob_mat))
-        
-    logLik <- (sum(log(Lik_mat), na.rm = TRUE) + 
+
+    logLik <- (sum(log(Lik_mat), na.rm = TRUE) +
                sum(lchoose(A1 + B1, A1), na.rm = TRUE))
     logLik
 }
@@ -666,9 +666,9 @@ get_logLik <- function(A1, B1, Config, Assign, theta0, theta1) {
 
 #' Deviance Information Criterion for cardelino model
 #'
-#' @param logLik_all A vector of numeric; the log likelihood of posterior 
+#' @param logLik_all A vector of numeric; the log likelihood of posterior
 #' sample, i.e., posterior samples of deviance
-#' @param logLik_post numeric(1); the log likelihood of mean posterior 
+#' @param logLik_post numeric(1); the log likelihood of mean posterior
 #' parameters, i.e., deviance of posterior means
 #'
 #' @author Yuanhua Huang
@@ -679,27 +679,27 @@ devianceIC <- function(logLik_all, logLik_post) {
     # Spiegelhalter et al. The deviance information criterion: 12 years on, 2014
     # Spiegelhalter et al. Bayesian measures of model complexity and fit, 2002
     # Gelman et al. Bayesian Data Analysis. 3rd Edition, 2013 (Charpter 7.2, p173)
-    
+
     logLik_mean = mean(logLik_all)
     logLik_var = var(logLik_all)
-    
+
     p_D_Spiegelhalter = -2 * logLik_mean -  (-2 * logLik_post)
     DIC_Spiegelhalter = -2 * logLik_post + 2 * p_D_Spiegelhalter
-    
+
     p_D_Gelman = 2 * logLik_var
     DIC_Gelman = -2 * logLik_post + 2 * p_D_Gelman
-    
+
     DIC = DIC_Gelman
-    
-    cat(paste("DIC:", round(DIC, 2), 
-              "D_mean:", round(-2 * logLik_mean, 2), 
-              "D_post:", round(-2 * logLik_post, 2), 
+
+    cat(paste("DIC:", round(DIC, 2),
+              "D_mean:", round(-2 * logLik_mean, 2),
+              "D_post:", round(-2 * logLik_post, 2),
               "logLik_var:", round(logLik_var, 2), "\n"))
-        
-    list("DIC" = DIC, 
-         "logLik_var" = logLik_var, 
-         "D_mean" = -2 * logLik_mean, 
-         "D_post" = -2 * logLik_post, 
-         "DIC_Gelman" = DIC_Gelman, 
+
+    list("DIC" = DIC,
+         "logLik_var" = logLik_var,
+         "D_mean" = -2 * logLik_mean,
+         "D_post" = -2 * logLik_post,
+         "DIC_Gelman" = DIC_Gelman,
          "DIC_Spiegelhalter" = DIC_Spiegelhalter)
 }
