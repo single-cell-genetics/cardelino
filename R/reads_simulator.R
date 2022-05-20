@@ -48,16 +48,15 @@
 #'
 #' @examples
 #' data(simulation_input)
-#' D2 <- sample_seq_depth(D_input, n_cells=500, n_sites=nrow(tree_4clone$Z))
-#' simu <- sim_read_count(tree_4clone$Z, D2, Psi=NULL, cell_num=500)
-#'
-sim_read_count <- function(Config, D, Psi=NULL,
-                           means=c(0.002, 0.45), vars=c(100, 1),
-                           wise0="element", wise1="variant", cell_num=300,
-                           permute_D=FALSE, sample_cell=TRUE, doublet=0.0){
-    M <- cell_num      #number of cells
-    K <- ncol(Config)  #number of clones
-    N <- nrow(Config)  #number of variants
+#' D2 <- sample_seq_depth(D_input, n_cells = 500, n_sites = nrow(tree_4clone$Z))
+#' simu <- sim_read_count(tree_4clone$Z, D2, Psi = NULL, cell_num = 500)
+sim_read_count <- function(Config, D, Psi = NULL,
+    means = c(0.002, 0.45), vars = c(100, 1),
+    wise0 = "element", wise1 = "variant", cell_num = 300,
+    permute_D = FALSE, sample_cell = TRUE, doublet = 0.0) {
+    M <- cell_num # number of cells
+    K <- ncol(Config) # number of clones
+    N <- nrow(Config) # number of variants
 
     shape1s <- means * vars
     shape2s <- (1.0 - means) * vars
@@ -74,49 +73,53 @@ sim_read_count <- function(Config, D, Psi=NULL,
 
     # genotype for cells H_sim, and clone labels I_sim
     if (is.null(Psi)) {
-        Psi <- rep(1/K, K)
+        Psi <- rep(1 / K, K)
     }
     is_doublet <- rep(FALSE, M)
-    is_doublet[sample(M, round(doublet*M))] <- TRUE
-    I_sim <- rmultinom(M, 1, prob = Psi)      # Clonal label for each cell
+    is_doublet[sample(M, round(doublet * M))] <- TRUE
+    I_sim <- rmultinom(M, 1, prob = Psi) # Clonal label for each cell
     I_sim[, is_doublet] <- rmultinom(sum(is_doublet), 2, prob = Psi)
     I_sim[which(I_sim > 1)] <- 1
-    H_sim <- Config %*% I_sim               # Genotype for each cell
+    H_sim <- Config %*% I_sim # Genotype for each cell
 
     # generate p, D and A
-    p_sim <- matrix(0, 2)      # p1 and p2 for False positive and True positive
-    A_sim <- matrix(NA, N, M)  # Alteration counts matrix
-    A_germ_sim <- matrix(NA, N, M)  # Alteration counts matrix for germline var
+    p_sim <- matrix(0, 2) # p1 and p2 for False positive and True positive
+    A_sim <- matrix(NA, N, M) # Alteration counts matrix
+    A_germ_sim <- matrix(NA, N, M) # Alteration counts matrix for germline var
     D_germ_sim <- matrix(NA, N, M)
-    theta0_Bern_sim <- matrix(NA, N, M)   # theta0 matrix
-    theta1_Bern_sim <- matrix(NA, N, M)   # theta1 matrix
-    theta0_binom_sim <- matrix(NA, N, M)  # theta0 matrix
-    theta1_binom_sim <- matrix(NA, N, M)  # theta1 matrix
+    theta0_Bern_sim <- matrix(NA, N, M) # theta0 matrix
+    theta1_Bern_sim <- matrix(NA, N, M) # theta1 matrix
+    theta0_binom_sim <- matrix(NA, N, M) # theta0 matrix
+    theta1_binom_sim <- matrix(NA, N, M) # theta1 matrix
 
     p_sim[1] <- stats::rbeta(1, shape1s[1], shape2s[1])
     p_sim[2] <- stats::rbeta(1, shape1s[2], shape2s[2])
     for (i in seq_len(N)) {
         if (wise0 == "variant") {
-            p_sim[1] <- stats::rbeta(1, shape1s[1], shape2s[1])}
+            p_sim[1] <- stats::rbeta(1, shape1s[1], shape2s[1])
+        }
         if (wise1 == "variant") {
-            p_sim[2] <- stats::rbeta(1, shape1s[2], shape2s[2])}
+            p_sim[2] <- stats::rbeta(1, shape1s[2], shape2s[2])
+        }
         for (j in seq_len(M)) {
             if (wise0 == "element") {
-                p_sim[1] <- stats::rbeta(1, shape1s[1], shape2s[1])}
+                p_sim[1] <- stats::rbeta(1, shape1s[1], shape2s[1])
+            }
             if (wise1 == "element") {
-                p_sim[2] <- stats::rbeta(1, shape1s[2], shape2s[2])}
-            if (!is.na(D_sim[i,j])) {
-                D_germ_sim[i,j] <- D_sim[i,j]
-                A_germ_sim[i,j] <- rbinom(1, D_germ_sim[i,j], p_sim[2])
+                p_sim[2] <- stats::rbeta(1, shape1s[2], shape2s[2])
+            }
+            if (!is.na(D_sim[i, j])) {
+                D_germ_sim[i, j] <- D_sim[i, j]
+                A_germ_sim[i, j] <- rbinom(1, D_germ_sim[i, j], p_sim[2])
 
-                theta0_binom_sim[i,j] = p_sim[1]
-                theta1_binom_sim[i,j] = p_sim[2]
-                theta0_Bern_sim[i,j] = 1 - dbinom(0, size = D_sim[i,j], prob = p_sim[1])
-                theta1_Bern_sim[i,j] = 1 - dbinom(0, size = D_sim[i,j], prob = p_sim[2])
-                if (H_sim[i,j] == 0) {
-                    A_sim[i,j] = rbinom(1, D_sim[i,j], p_sim[1])
-                }else{
-                    A_sim[i,j] = rbinom(1, D_sim[i,j], p_sim[2])
+                theta0_binom_sim[i, j] <- p_sim[1]
+                theta1_binom_sim[i, j] <- p_sim[2]
+                theta0_Bern_sim[i, j] <- 1 - dbinom(0, size = D_sim[i, j], prob = p_sim[1])
+                theta1_Bern_sim[i, j] <- 1 - dbinom(0, size = D_sim[i, j], prob = p_sim[2])
+                if (H_sim[i, j] == 0) {
+                    A_sim[i, j] <- rbinom(1, D_sim[i, j], p_sim[1])
+                } else {
+                    A_sim[i, j] <- rbinom(1, D_sim[i, j], p_sim[2])
                 }
             }
         }
@@ -130,13 +133,15 @@ sim_read_count <- function(Config, D, Psi=NULL,
     row.names(I_sim) <- colnames(A_sim) <- colnames(D_sim) <- cell_names
     colnames(A_germ_sim) <- colnames(D_germ_sim) <- cell_names
 
-    return_list <- list("H_sim" = H_sim, "I_sim" = I_sim,
-                        "A_sim" = A_sim, "D_sim" = D_sim,
-                        "A_germ_sim" = A_germ_sim, "D_germ_sim" = D_germ_sim,
-                        "theta0" = theta0_Bern_sim, "theta1" = theta1_Bern_sim,
-                        "theta0_binom" = theta0_binom_sim,
-                        "theta1_binom" = theta1_binom_sim,
-                        "is_doublet" = is_doublet)
+    return_list <- list(
+        "H_sim" = H_sim, "I_sim" = I_sim,
+        "A_sim" = A_sim, "D_sim" = D_sim,
+        "A_germ_sim" = A_germ_sim, "D_germ_sim" = D_germ_sim,
+        "theta0" = theta0_Bern_sim, "theta1" = theta1_Bern_sim,
+        "theta0_binom" = theta0_binom_sim,
+        "theta1_binom" = theta1_binom_sim,
+        "is_doublet" = is_doublet
+    )
     return_list
 }
 
@@ -156,9 +161,8 @@ sim_read_count <- function(Config, D, Psi=NULL,
 #' @export
 #' @examples
 #' data(simulation_input)
-#' D1 <- sample_seq_depth(D_input, n_cells=500, n_sites=50, missing_rate=0.85)
-#'
-sample_seq_depth <- function(D, n_cells=NULL, n_sites=NULL, missing_rate=NULL){
+#' D1 <- sample_seq_depth(D_input, n_cells = 500, n_sites = 50, missing_rate = 0.85)
+sample_seq_depth <- function(D, n_cells = NULL, n_sites = NULL, missing_rate = NULL) {
     D[which(D == 0)] <- NA
     if (is.null(n_cells)) {
         n_cells <- ncol(D)
@@ -173,8 +177,10 @@ sample_seq_depth <- function(D, n_cells=NULL, n_sites=NULL, missing_rate=NULL){
         }
         m_upbound <- 1 - 1.0 / n_cells
         m_mean <- mean(missing_vector)
-        amplify <- min(missing_rate / m_mean,
-                       (m_upbound - missing_rate) / (max(missing_vector) - m_mean))
+        amplify <- min(
+            missing_rate / m_mean,
+            (m_upbound - missing_rate) / (max(missing_vector) - m_mean)
+        )
         missing_vector <- amplify * (missing_vector - m_mean) + missing_rate
     }
 
@@ -184,10 +190,11 @@ sample_seq_depth <- function(D, n_cells=NULL, n_sites=NULL, missing_rate=NULL){
 
     D_output <- matrix(NA, nrow = n_sites, ncol = n_cells)
     for (i in seq_len(nrow(D_input))) {
-        D_no_na <- D_input[i, which(!is.na(D_input[i,]) & D_input[i,] > 0)]
+        D_no_na <- D_input[i, which(!is.na(D_input[i, ]) & D_input[i, ] > 0)]
         D_output[i, ] <- sample(D_no_na, n_cells, replace = TRUE)
         missing_idx <- sample(n_cells, round(missing_vector[i] * n_cells),
-                              replace = FALSE)
+            replace = FALSE
+        )
         D_output[i, missing_idx] <- NA
     }
 
@@ -204,9 +211,8 @@ sample_seq_depth <- function(D, n_cells=NULL, n_sites=NULL, missing_rate=NULL){
 #' @export
 #' @examples
 #' data(simulation_input)
-#' tree_lite <- sample_tree_SNV(tree_4clone, n_SNV=10)
-#'
-sample_tree_SNV <- function(tree, n_SNV=NULL){
+#' tree_lite <- sample_tree_SNV(tree_4clone, n_SNV = 10)
+sample_tree_SNV <- function(tree, n_SNV = NULL) {
     total_SNV <- nrow(tree$Z)
     if (is.null(n_SNV)) {
         n_SNV <- total_SNV
@@ -217,10 +223,10 @@ sample_tree_SNV <- function(tree, n_SNV=NULL){
     idx <- sample(total_SNV, size = n_SNV)
 
     out.tree <- tree
-    out.tree$Z <- out.tree$Z[idx,]
-    out.tree$CCF <- out.tree$CCF[idx,,drop = FALSE]
-    out.tree$VAF <- out.tree$VAF[idx,,drop = FALSE]
-    out.tree$sna <- out.tree$sna[idx,,drop = FALSE]
+    out.tree$Z <- out.tree$Z[idx, ]
+    out.tree$CCF <- out.tree$CCF[idx, , drop = FALSE]
+    out.tree$VAF <- out.tree$VAF[idx, , drop = FALSE]
+    out.tree$sna <- out.tree$sna[idx, , drop = FALSE]
 
     out.tree
 }
@@ -241,17 +247,17 @@ sample_tree_SNV <- function(tree, n_SNV=NULL){
 #' @param rand_seed A integer for random number generation
 #' @export
 #'
-donor_read_simulator <- function(GT, D_seed, sample_variants=FALSE,
-                                 donor_size=NULL, beta_shapes=NULL,
-                                 n_cell=5000, doublet_rate=NULL,
-                                 rand_seed=NULL){
-    K <- ncol(GT)  # number of clones
-    N <- nrow(GT)  # number of variants
+donor_read_simulator <- function(GT, D_seed, sample_variants = FALSE,
+    donor_size = NULL, beta_shapes = NULL,
+    n_cell = 5000, doublet_rate = NULL,
+    rand_seed = NULL) {
+    K <- ncol(GT) # number of clones
+    N <- nrow(GT) # number of variants
     if (!is.null(rand_seed)) {
         set.seed(rand_seed)
     }
     if (is.null(beta_shapes)) {
-        #beta_shapes <- matrix(c(0.3, 3, 29.7, 29.7, 3, 0.3), nrow = 3)
+        # beta_shapes <- matrix(c(0.3, 3, 29.7, 29.7, 3, 0.3), nrow = 3)
         beta_shapes <- matrix(c(0.2, 0.1, 99.8, 99.8, 0.1, 0.2), nrow = 3)
     }
     if (is.null(doublet_rate)) {
@@ -283,8 +289,10 @@ donor_read_simulator <- function(GT, D_seed, sample_variants=FALSE,
         val1 <- beta_shapes[ii, 1] / val2
 
         idx <- which(as.matrix(D_sim) > 0 & H_sim == (ii - 1))
-        A_sim[idx] <- VGAM::rbetabinom(length(idx), size=D_sim[idx],
-                                       prob=val1, rho=1/(1+val2))
+        A_sim[idx] <- VGAM::rbetabinom(length(idx),
+            size = D_sim[idx],
+            prob = val1, rho = 1 / (1 + val2)
+        )
     }
 
     ## pooling doublet
@@ -303,7 +311,9 @@ donor_read_simulator <- function(GT, D_seed, sample_variants=FALSE,
     cell_names <- paste0("cell", seq_len(ncol(A_sim)))
     row.names(I_sim) <- colnames(A_sim) <- colnames(D_sim) <- cell_names
 
-    return_list <- list("A" = A_sim, "D" = D_sim,
-                        "I_sim" = I_sim, "GT" = GT)
+    return_list <- list(
+        "A" = A_sim, "D" = D_sim,
+        "I_sim" = I_sim, "GT" = GT
+    )
     return_list
 }
