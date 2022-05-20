@@ -20,10 +20,10 @@ load_cellSNP_vcf(
 
 \item{min_MAF}{minimum minor allele fraction, e.g., 0.1}
 
-\item{max_other_allele}{maximum ratio of other alleles comparing to REF and 
+\item{max_other_allele}{maximum ratio of other alleles comparing to REF and
 ALT alleles; for cellSNP vcf, we recommend 0.05}
 
-\item{rowname_format}{the format of rowname: NULL is the default from vcfR, 
+\item{rowname_format}{the format of rowname: NULL is the default from vcfR,
 short is CHROM_POS, and full is CHROM_POS_REF_ALT}
 
 \item{keep_GL}{logical(1), if TRUE, check if GL (genotype probability) exists
@@ -33,7 +33,8 @@ it will be returned}
 Load sparse matrices A and D from cellSNP VCF file with filtering SNPs
 }
 \examples{
-vcf_file <- system.file("extdata", "cellSNP.cells.vcf.gz", package = "cardelino")
+vcf_file <- system.file("extdata", "cellSNP.cells.vcf.gz",
+    package = "cardelino"
+)
 input_data <- load_cellSNP_vcf(vcf_file)
-
 }

@@ -21,13 +21,13 @@ donor_read_simulator(
 \item{D_seed}{Variant-by-cell matrix for read coverage for generating depth,
 which be row sample and column sample both with replacement}
 
-\item{sample_variants}{logical(1), if TRUE, sample variants with replacement 
+\item{sample_variants}{logical(1), if TRUE, sample variants with replacement
 to the same size, otherwise not}
 
-\item{donor_size}{Vector of float for the fractions of each donor; default 
+\item{donor_size}{Vector of float for the fractions of each donor; default
 NULL means uniform}
 
-\item{beta_shapes}{A 3-by-2 matrix of beta parameters for genotypes: 0, 1, 
+\item{beta_shapes}{A 3-by-2 matrix of beta parameters for genotypes: 0, 1,
 and 2; default NULL means matrix(c(0.2, 0.5, 99.8, 99.8, 0.5, 0.2), nrow = 3)}
 
 \item{n_cell}{An integer for number of total cells}

@@ -11,7 +11,7 @@ get_logLik(A1, B1, Config, Assign, theta0, theta1)
 \item{A1}{variant x cell matrix of integers; number of alternative allele
 reads in variant i cell j}
 
-\item{B1}{variant x cell matrix of integers; number of reference allele 
+\item{B1}{variant x cell matrix of integers; number of reference allele
 reads in variant i cell j}
 
 \item{Config}{variant x clone matrix of float values. The clone-variant

@@ -25,9 +25,9 @@ a list containing
 \code{A}, a matrix of integers. Number of alteration reads in SNP i cell j.
 \code{D}, a matrix of integers. Number of reads depth in SNP i cell j.
 \code{R}, a matrix of integers. Number of reference reads in SNP i cell j.
-\code{GT_cells}, a matrix of integers for genotypes. The cell-SNP 
+\code{GT_cells}, a matrix of integers for genotypes. The cell-SNP
 configuration.
-\code{GT_donors}, a matrix of integers for genotypes. The donor-SNP 
+\code{GT_donors}, a matrix of integers for genotypes. The donor-SNP
 configuration.
 }
 \description{

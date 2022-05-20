@@ -36,8 +36,11 @@ Output tree may be nonsensical if the input \code{Config} matrix does not
 define a coherent tree structure.
 }
 \examples{
-Configk3 <- matrix(c(rep(0, 15), rep(1, 8), rep(0, 7), rep(1, 5), rep(0, 3), rep(1, 7)), ncol = 3)
-tree_k3 <- get_tree(Config = Configk3, P = matrix(rep(1/3, 3), ncol = 1))
+Configk3 <- matrix(c(
+    rep(0, 15), rep(1, 8), rep(0, 7), rep(1, 5), rep(0, 3),
+    rep(1, 7)
+), ncol = 3)
+tree_k3 <- get_tree(Config = Configk3, P = matrix(rep(1 / 3, 3), ncol = 1))
 plot_tree(tree_k3)
 }
 \author{
