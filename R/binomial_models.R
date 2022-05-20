@@ -102,8 +102,10 @@ mixBinom <- function(k, n, n_components = 2, p_init = NULL, learn_p = TRUE,
 #' RV_pred <- predMixBinom(3, 10, RV$p, RV$psi)
 predMixBinom <- function(k, n, p, psi) {
     if (length(p) != length(psi)) {
-        stop("p and psi must be of the same length ",
-             "(number of mixture components)\n")
+        stop(
+            "p and psi must be of the same length ",
+            "(number of mixture components)\n"
+        )
     }
     if (length(k) != length(n)) {
         stop("n and k must be of the same length (number of observations)\n")
@@ -112,8 +114,10 @@ predMixBinom <- function(k, n, p, psi) {
     ## assignment probability
     logLik_mat <- matrix(nrow = length(n), ncol = length(p))
     for (j in seq_len(length(p))) {
-        logLik_mat[, j] <- log(psi[j]) + dbinom(k, size = n, prob = p[j],
-                                                log = TRUE)
+        logLik_mat[, j] <- log(psi[j]) + dbinom(k,
+            size = n, prob = p[j],
+            log = TRUE
+        )
     }
     logLik_mat_amplify <- logLik_mat - matrixStats::rowMaxs(logLik_mat)
     prob_mat <- exp(logLik_mat_amplify) / rowSums(exp(logLik_mat_amplify))

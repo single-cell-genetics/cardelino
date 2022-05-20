@@ -29,30 +29,38 @@
 #' @export
 #'
 #' @examples
-#' Configk3 <- matrix(c(rep(0, 15), rep(1, 8), rep(0, 7), rep(1, 5), rep(0, 3),
-#'                    rep(1, 7)), ncol = 3)
+#' Configk3 <- matrix(c(
+#'     rep(0, 15), rep(1, 8), rep(0, 7), rep(1, 5), rep(0, 3),
+#'     rep(1, 7)
+#' ), ncol = 3)
 #' tree_k3 <- get_tree(Config = Configk3, P = matrix(rep(1 / 3, 3), ncol = 1))
 #' plot_tree(tree_k3)
 get_tree <- function(Config, P = NULL, strictness = "lax") {
     if (!is.null(P)) {
         if (ncol(P) != 1) {
-              stop("P must be a matrix with one column encoding clone ",
-                   "prevalence values")
-          }
+            stop(
+                "P must be a matrix with one column encoding clone ",
+                "prevalence values"
+            )
+        }
     }
     all_zero_rows <- rowSums(Config) == 0
     strictness <- match.arg(strictness, c("lax", "warn", "error"))
     if (any(all_zero_rows)) {
         if (strictness == "error") {
-              stop("Config matrix contains all-zero rows.")
-          } else {
+            stop("Config matrix contains all-zero rows.")
+        } else {
             if (strictness == "warn") {
-                  warning("Dropped ", sum(all_zero_rows),
-                          " all-zero rows from Config matrix.")
-              } else {
-                  message("Dropped ", sum(all_zero_rows),
-                          " all-zero rows from Config matrix.")
-              }
+                warning(
+                    "Dropped ", sum(all_zero_rows),
+                    " all-zero rows from Config matrix."
+                )
+            } else {
+                message(
+                    "Dropped ", sum(all_zero_rows),
+                    " all-zero rows from Config matrix."
+                )
+            }
             Config <- Config[!all_zero_rows, ]
         }
     }
@@ -80,15 +88,15 @@ get_tree <- function(Config, P = NULL, strictness = "lax") {
             for (j in seq_len(length(clone_combos))) {
                 test_sum <- sum(tip_vals[clone_combos[[j]]])
                 if (test_sum %in% node_vals) {
-                      node_def_list[[
-                      paste0("node", paste0(clone_combos[[j]]), collapse = "_")]] <-
-                          clone_combos[[j]]
-                  }
+                    node_def_list[[
+                    paste0("node", paste0(clone_combos[[j]]), collapse = "_")]] <-
+                        clone_combos[[j]]
+                }
             }
         }
         if (node_num != length(node_def_list)) {
-              stop("Conflict in computed number of internal nodes.")
-          }
+            stop("Conflict in computed number of internal nodes.")
+        }
         ## Sort out edges for the root node
         tip_nodes <- seq_len(k)
         root_to_tip <- tip_nodes[!(tip_nodes %in% unique(unlist(node_def_list)))]
@@ -107,15 +115,16 @@ get_tree <- function(Config, P = NULL, strictness = "lax") {
             } else {
                 clones_in_this_node <- node_def_list[[i]]
                 clones_in_prev_nodes <- unique(
-                  unlist(node_def_list[seq_len(i - 1)])
+                    unlist(node_def_list[seq_len(i - 1)])
                 )
                 if (!any(clones_in_this_node %in% clones_in_prev_nodes)) {
                     el_counter <- el_counter + 1
                     edge_list[[el_counter]] <- matrix(c(k + 1, k + 1 + i),
-                                                      nrow = 1)
+                        nrow = 1
+                    )
                     sna[var_bin_vals == sum(2^node_def_list[[i]]), 2] <- k + 1
                     sna[var_bin_vals == sum(2^node_def_list[[i]]), 3] <-
-                      k + 1 + i
+                        k + 1 + i
                 }
             }
             ## add edge from internal node to internal node
@@ -126,10 +135,12 @@ get_tree <- function(Config, P = NULL, strictness = "lax") {
             ## in this node
             if (i > 1.5) {
                 prev_nodes <- seq_len(i - 1)
-                prev_node_sizes <- vapply(node_def_list[prev_nodes], length,
-                                          numeric(1))
+                prev_node_sizes <- vapply(
+                    node_def_list[prev_nodes], length,
+                    numeric(1)
+                )
                 prev_nodes <- prev_nodes[prev_node_sizes >
-                                           length(node_def_list[[i]])]
+                    length(node_def_list[[i]])]
                 min_prev_node_size <- min(prev_node_sizes[prev_nodes])
                 prev_nodes <- prev_nodes[prev_node_sizes[prev_nodes] ==
                     min_prev_node_size]
@@ -141,9 +152,9 @@ get_tree <- function(Config, P = NULL, strictness = "lax") {
                             nrow = 1
                         )
                         sna[var_bin_vals == sum(2^node_def_list[[i]]), 2] <-
-                          k + 1 + j
+                            k + 1 + j
                         sna[var_bin_vals == sum(2^node_def_list[[i]]), 3] <-
-                          k + 1 + i
+                            k + 1 + i
                     }
                 }
             }
@@ -197,8 +208,10 @@ get_tree <- function(Config, P = NULL, strictness = "lax") {
     }
     # node_def_list
     edge_mat <- do.call(rbind, edge_list)
-    tree_out <- list(edge = edge_mat, Nnode = node_num + 1,
-                     tip.label = tip_label)
+    tree_out <- list(
+        edge = edge_mat, Nnode = node_num + 1,
+        tip.label = tip_label
+    )
     class(tree_out) <- "phylo"
     tree_out$Z <- Config
     if (!is.null(P)) {

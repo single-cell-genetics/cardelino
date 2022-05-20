@@ -114,10 +114,14 @@ sim_read_count <- function(Config, D, Psi = NULL,
 
                 theta0_binom_sim[i, j] <- p_sim[1]
                 theta1_binom_sim[i, j] <- p_sim[2]
-                theta0_Bern_sim[i, j] <- 1 - dbinom(0, size = D_sim[i, j],
-                                                    prob = p_sim[1])
-                theta1_Bern_sim[i, j] <- 1 - dbinom(0, size = D_sim[i, j],
-                                                    prob = p_sim[2])
+                theta0_Bern_sim[i, j] <- 1 - dbinom(0,
+                    size = D_sim[i, j],
+                    prob = p_sim[1]
+                )
+                theta1_Bern_sim[i, j] <- 1 - dbinom(0,
+                    size = D_sim[i, j],
+                    prob = p_sim[2]
+                )
                 if (H_sim[i, j] == 0) {
                     A_sim[i, j] <- rbinom(1, D_sim[i, j], p_sim[1])
                 } else {
@@ -163,10 +167,12 @@ sim_read_count <- function(Config, D, Psi = NULL,
 #' @export
 #' @examples
 #' data(simulation_input)
-#' D1 <- sample_seq_depth(D_input, n_cells = 500, n_sites = 50,
-#'                        missing_rate = 0.85)
+#' D1 <- sample_seq_depth(D_input,
+#'     n_cells = 500, n_sites = 50,
+#'     missing_rate = 0.85
+#' )
 sample_seq_depth <- function(D, n_cells = NULL, n_sites = NULL,
-                             missing_rate = NULL) {
+    missing_rate = NULL) {
     D[which(D == 0)] <- NA
     if (is.null(n_cells)) {
         n_cells <- ncol(D)

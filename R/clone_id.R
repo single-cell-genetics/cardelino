@@ -70,8 +70,10 @@
 #' )
 #' prob_heatmap(assignments$prob)
 #'
-#' assignments_EM <- clone_id(A_clone, D_clone, Config = tree$Z,
-#'                            inference = "EM")
+#' assignments_EM <- clone_id(A_clone, D_clone,
+#'     Config = tree$Z,
+#'     inference = "EM"
+#' )
 #' prob_heatmap(assignments_EM$prob)
 clone_id <- function(A, D, Config = NULL, n_clone = NULL, Psi = NULL,
     relax_Config = TRUE, relax_rate_fixed = NULL,
@@ -80,14 +82,14 @@ clone_id <- function(A, D, Config = NULL, n_clone = NULL, Psi = NULL,
     inference <- match.arg(inference, c("sampling", "EM"))
     ## check input data
     if (!(all(rownames(A) == rownames(D)))) {
-          stop("Rownames for A and D are not identical.")
-      }
+        stop("Rownames for A and D are not identical.")
+    }
     if (!(all(colnames(A) == colnames(D)))) {
-          stop("Colnames for A and D are not identical.")
-      }
+        stop("Colnames for A and D are not identical.")
+    }
     if (is.null(Config) && is.null(n_clone)) {
-          stop("Config and n_clone can't be NULL together.")
-      }
+        stop("Config and n_clone can't be NULL together.")
+    }
 
     ## Cardelino-free mode if Config is NULL
     if (is.null(Config)) {
@@ -101,16 +103,16 @@ clone_id <- function(A, D, Config = NULL, n_clone = NULL, Psi = NULL,
 
     ## Match exome-seq and scRNA-seq data
     if (!any(rownames(D) %in% rownames(Config))) {
-          stop("No matches in variant names between Config and D arguments.")
-      }
+        stop("No matches in variant names between Config and D arguments.")
+    }
     ## match variants
     common_vars <- intersect(rownames(Config), rownames(D))
     A <- A[common_vars, , drop = FALSE]
     D <- D[common_vars, , drop = FALSE]
     Config <- Config[common_vars, , drop = FALSE]
     if (verbose) {
-          message(length(common_vars), " variants used for cell assignment.")
-      }
+        message(length(common_vars), " variants used for cell assignment.")
+    }
 
     ## change sparse matrix to dense matrix
     A <- as.matrix(A)
@@ -149,7 +151,7 @@ clone_id <- function(A, D, Config = NULL, n_clone = NULL, Psi = NULL,
                 idx <- colMatch(ids_out$prob, ids_list[[ii]]$prob, force = TRUE)
                 ids_out$prob <- ids_out$prob + ids_list[[ii]]$prob[, idx]
                 ids_out$relax_rate <- ids_out$relax_rate +
-                  ids_list[[ii]]$relax_rate
+                    ids_list[[ii]]$relax_rate
                 ids_out$Config_prob <- (ids_out$Config_prob +
                     ids_list[[ii]]$Config_prob[, idx])
             }
@@ -217,11 +219,11 @@ assign_cells_to_clones <- function(prob_mat, threshold = 0.5) {
 #' @export
 #'
 clone_id_EM <- function(A, D, Config, Psi = NULL, min_iter = 10,
-                        max_iter = 1000, logLik_threshold = 1e-5,
-                        verbose = TRUE) {
+    max_iter = 1000, logLik_threshold = 1e-5,
+    verbose = TRUE) {
     if (is.null(Psi)) {
-          Psi <- rep(1 / ncol(Config), ncol(Config))
-      }
+        Psi <- rep(1 / ncol(Config), ncol(Config))
+    }
     if (dim(A)[1] != dim(D)[1] || dim(A)[2] != dim(D)[2] ||
         dim(A)[1] != dim(Config)[1] || dim(Config)[2] != length(Psi)) {
         stop(
@@ -262,8 +264,8 @@ clone_id_EM <- function(A, D, Config, Psi = NULL, min_iter = 10,
     for (it in seq_len(max_iter)) {
         # Check convergence
         if ((it > min_iter) && ((logLik_new - logLik) < logLik_threshold)) {
-              break
-          }
+            break
+        }
         logLik <- logLik_new
 
         # E-step
@@ -274,7 +276,8 @@ clone_id_EM <- function(A, D, Config, Psi = NULL, min_iter = 10,
         logLik_vec <- rep(NA, nrow(logLik_mat))
         for (i in seq_len(nrow(logLik_mat))) {
             logLik_vec[i] <- matrixStats::logSumExp(logLik_mat[i, ],
-                                                    na.rm = TRUE)
+                na.rm = TRUE
+            )
         }
         logLik_new <- sum(logLik_vec, na.rm = TRUE) + W_log
         logLik_mat_amplify <- logLik_mat - matrixStats::rowMaxs(logLik_mat)
@@ -283,20 +286,20 @@ clone_id_EM <- function(A, D, Config, Psi = NULL, min_iter = 10,
         # M-step
         if (is.na(sum(prob_mat * (S1 + S2))) ||
             sum(prob_mat * (S1 + S2)) == 0) {
-              theta[1] <- 0.02
-          } else {
-              theta[1] <- sum(prob_mat * S1) / sum(prob_mat * (S1 + S2))
-          }
+            theta[1] <- 0.02
+        } else {
+            theta[1] <- sum(prob_mat * S1) / sum(prob_mat * (S1 + S2))
+        }
         if (is.na(sum(prob_mat * (S3 + S4))) ||
             sum(prob_mat * (S3 + S4)) == 0) {
-              theta[2] <- 0.75
-          } else {
-              theta[2] <- sum(prob_mat * S3) / sum(prob_mat * (S3 + S4))
-          }
+            theta[2] <- 0.75
+        } else {
+            theta[2] <- sum(prob_mat * S3) / sum(prob_mat * (S3 + S4))
+        }
     }
     if (verbose) {
-          print(paste("Total iterations:", it))
-      }
+        print(paste("Total iterations:", it))
+    }
 
     ## return values
     return_list <- list("theta" = theta, "prob" = prob_mat, "logLik" = logLik)
@@ -447,7 +450,8 @@ clone_id_Gibbs <- function(A, D, Config, Psi = NULL,
         theta1[idx_mat] <- theta1_all[it - 1, ]
         for (k in seq_len(K)) {
             logLik_mat[, k] <- (colSums(S1_list[[k]] * log(theta0),
-                                        na.rm = TRUE) +
+                na.rm = TRUE
+            ) +
                 colSums(S2_list[[k]] * log(1 - theta0), na.rm = TRUE) +
                 colSums(S3_list[[k]] * log(theta1), na.rm = TRUE) +
                 colSums(S4_list[[k]] * log(1 - theta1), na.rm = TRUE))
@@ -608,7 +612,8 @@ clone_id_Gibbs <- function(A, D, Config, Psi = NULL,
             col_idx_use <- col_idx_use[idx]
             prob_all[ii, ] <- matrix(prob_all[ii, ], nrow = M)[, col_idx_use]
             Config_all[ii, ] <- matrix(Config_all[ii, ],
-                                       nrow = N)[, col_idx_use]
+                nrow = N
+            )[, col_idx_use]
         }
     }
     prob_mat <- matrix(colMeans(prob_all[n_buin:it, ]), nrow = M)
