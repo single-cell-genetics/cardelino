@@ -44,9 +44,9 @@ get_tree <- function(Config, P = NULL, strictness = "lax") {
       stop("Config matrix contains all-zero rows.")
     else {
       if (strictness == "warn")
-        warning(paste("Dropped", sum(all_zero_rows), "all-zero rows from Config matrix."))
+        warning("Dropped ", sum(all_zero_rows), " all-zero rows from Config matrix.")
       else
-        message(paste("Dropped", sum(all_zero_rows), "all-zero rows from Config matrix."))
+        message("Dropped ", sum(all_zero_rows), " all-zero rows from Config matrix.")
       Config <- Config[!all_zero_rows,]
     }
   }
