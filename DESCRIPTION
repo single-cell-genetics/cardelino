@@ -1,25 +1,49 @@
-Package: cardelino
 Type: Package
+Package: cardelino
 Title: Clone Identification from Single Cell Data
 Version: 0.6.5
 Date: 2021-07-01
-Authors@R: c(person("Yuanhua", "Huang", role=c("aut"), 
-        email="yuanhua@hku.hk"), person("Davis", "McCarthy", 
-        role=c("aut", "cre"), email="dmccarthy@svi.edu.au"))
-Description: Methods to infer clonal structure for a population of cells using 
-    single-cell RNA-seq data (and possibly other data modalities). Methods to 
-    assign cells to inferred clones and explore differences in gene expression
-    between clones.
+Authors@R: 
+    c(person(given = "Yuanhua",
+             family = "Huang",
+             role = "aut",
+             email = "yuanhua@hku.hk"),
+      person(given = "Davis",
+             family = "McCarthy",
+             role = c("aut", "cre"),
+             email = "dmccarthy@svi.edu.au"))
+Description: Methods to infer clonal structure for a population of cells
+    using single-cell RNA-seq data (and possibly other data modalities).
+    Methods to assign cells to inferred clones and explore differences in
+    gene expression between clones.
 License: GPL (>= 3)
-Depends: R (>= 4.1), stats
-Imports: ggplot2, ggtree, pheatmap, matrixStats, Matrix, vcfR, utils
-Suggests: BiocStyle, rmarkdown, knitr, pcaMethods, testthat, combinat, VGAM, 
-    doMC, foreach
-VignetteBuilder: knitr
-biocViews: SingleCell, RNASeq, Visualization, Transcriptomics, GeneExpression, 
-    Sequencing, Software
-RoxygenNote: 7.1.1
-NeedsCompilation: yes
 URL: https://github.com/single-cell-genetics/cardelino
 BugReports: https://github.com/single-cell-genetics/cardelino/issues
+Depends: 
+    R (>= 4.1),
+    stats
+Imports: 
+    ggplot2,
+    ggtree,
+    Matrix,
+    matrixStats,
+    pheatmap,
+    utils,
+    vcfR
+Suggests: 
+    BiocStyle,
+    combinat,
+    doMC,
+    foreach,
+    knitr,
+    pcaMethods,
+    rmarkdown,
+    testthat,
+    VGAM
+VignetteBuilder: 
+    knitr
+biocViews: SingleCell, RNASeq, Visualization, Transcriptomics,
+    GeneExpression, Sequencing, Software
 Encoding: UTF-8
+NeedsCompilation: yes
+RoxygenNote: 7.1.1
