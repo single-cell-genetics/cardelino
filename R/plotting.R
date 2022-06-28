@@ -60,6 +60,17 @@ prob_heatmap <- function(prob_mat, threshold = 0.5, mode = "best",
 #' @param digits Integer value for the number of digits to show
 #' @param show_value Logical value for showing the value for each element or not
 #' @return A ggplot heatmap visualization of the passed matrix.
+#' 
+#' @examples 
+#' mat <- matrix(rnorm(9), ncol = 3, nrow = 3) + diag(rnorm(3, 2, 0.1))
+#' rownames(mat) <- paste0("sample_", letters[1:3])
+#' colnames(mat) <- paste0("var_", 1:3)
+#' heat_matrix(mat)
+#' 
+#' # Additional arguments. 
+#' heat_matrix(mat, base_size = 6)
+#' heat_matrix(mat, show_value = TRUE)
+#' heat_matrix(mat, show_value = TRUE, digits = 4)
 #' @export
 heat_matrix <- function(mat, base_size = 12, digits = 2, show_value = FALSE) {
     df <- mtx_to_df(mat)

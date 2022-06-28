@@ -122,13 +122,23 @@ colMatch <- function(A, B, force = FALSE) {
 #' Precision-recall curve for binary label prediction
 #' @param scores Prediction score for each sample
 #' @param labels True labels for each sample, e.g., from simulation
-#' @param cutoff A list of cutoff; if NULL use all unique scores
+#' @param cutoff A vector of cutoffs; if NULL use all unique scores
 #' @param cut_direction A string to compare with cutoff: >=, >, <=, <
 #' @param add_cut1 Logical value; if True, manually add a cutoff of 1
 #' @param empty_precision Float value for default precision if no any recall
 #' @return A data.frame containing recall and precision values at various 
 #'   cutoffs.
 #' @export
+#' 
+#' @examples
+#' scores <- 1:10
+#' labels <- c(0, 0, 0, 1, 0, 1, 0, 1, 1, 1)
+#' binaryPRC(scores, labels)
+#' 
+#' # Extra arguments. 
+#' binaryPRC(scores, labels, cutoff = seq(1, 10, by = 2))
+#' binaryPRC(scores, labels, cut_direction = ">")
+#' binaryPRC(scores, labels, add_cut1 = TRUE)
 #'
 binaryPRC <- function(scores, labels, cutoff = NULL, cut_direction = ">=",
     add_cut1 = FALSE, empty_precision = 1) {
@@ -180,12 +190,23 @@ binaryPRC <- function(scores, labels, cutoff = NULL, cut_direction = ">=",
 #' ROC curve for binary label prediction
 #' @param scores Prediction score for each sample
 #' @param labels True labels for each sample, e.g., from simulation
-#' @param cutoff A list of cutoff; if NULL use all unique scores
+#' @param cutoff A vector of cutoffs; if NULL use all unique scores
 #' @param cut_direction A string to compare with cutoff: >=, >, <=, <
 #' @param add_cut1 Logical value; if True, manually add a cutoff of 1
 #' @param cutoff_point Numeric value; additional cutoff value
 #' @return A data.frame containing AUC and AUPRC at various cutoffs.
 #' @export
+#' 
+#' 
+#' @examples
+#' scores <- 1:10
+#' labels <- c(0, 0, 0, 1, 0, 1, 0, 1, 1, 1)
+#' binaryROC(scores, labels)
+#' 
+#' # Extra arguments. 
+#' binaryROC(scores, labels, cutoff = seq(1, 10, by = 2))
+#' binaryROC(scores, labels, cut_direction = ">")
+#' binaryROC(scores, labels, add_cut1 = TRUE)
 #'
 binaryROC <- function(scores, labels, cutoff = NULL, cut_direction = ">=",
     add_cut1 = TRUE, cutoff_point = 0.9) {
