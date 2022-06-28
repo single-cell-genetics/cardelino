@@ -18,7 +18,7 @@ binaryROC(
 
 \item{labels}{True labels for each sample, e.g., from simulation}
 
-\item{cutoff}{A list of cutoff; if NULL use all unique scores}
+\item{cutoff}{A vector of cutoffs; if NULL use all unique scores}
 
 \item{cut_direction}{A string to compare with cutoff: >=, >, <=, <}
 
@@ -31,4 +31,15 @@ A data.frame containing AUC and AUPRC at various cutoffs.
 }
 \description{
 ROC curve for binary label prediction
+}
+\examples{
+scores <- 1:10
+labels <- c(0, 0, 0, 1, 0, 1, 0, 1, 1, 1)
+binaryROC(scores, labels)
+
+# Extra arguments. 
+binaryROC(scores, labels, cutoff = seq(1, 10, by = 2))
+binaryROC(scores, labels, cut_direction = ">")
+binaryROC(scores, labels, add_cut1 = TRUE)
+
 }
