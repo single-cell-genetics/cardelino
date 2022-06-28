@@ -16,10 +16,14 @@ Authors@R:
              family = "McCarthy",
              role = "aut",
              email = "dmccarthy@svi.edu.au"))
-Description: Methods to infer clonal structure for a population of cells
-    using single-cell RNA-seq data (and possibly other data modalities).
-    Methods to assign cells to inferred clones and explore differences in
-    gene expression between clones.
+Description: Methods to infer clonal tree configuration for a population of
+    cells using single-cell RNA-seq data (scRNA-seq), and possibly other data
+    modalities. Methods are also provided to assign cells to inferred clones
+    and explore differences in gene expression between clones. These methods
+    can flexibly integrate information from imperfect clonal trees inferred
+    based on bulk exome-seq data, and sparse variant alleles expressed in
+    scRNA-seq data. A flexible beta-binomial error model that accounts for
+    stochastic dropout events as well as systematic allelic imbalance is used.
 License: GPL (>= 3)
 URL: https://github.com/single-cell-genetics/cardelino
 BugReports: https://github.com/single-cell-genetics/cardelino/issues
@@ -47,7 +51,7 @@ Suggests:
 VignetteBuilder: 
     knitr
 biocViews: SingleCell, RNASeq, Visualization, Transcriptomics,
-    GeneExpression, Sequencing, Software
+    GeneExpression, Sequencing, Software, ExomeSeq
 Encoding: UTF-8
 NeedsCompilation: yes
 RoxygenNote: 7.2.0
