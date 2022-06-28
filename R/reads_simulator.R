@@ -254,6 +254,8 @@ sample_tree_SNV <- function(tree, n_SNV = NULL) {
 #' @param n_cell An integer for number of total cells
 #' @param doublet_rate A float from 0 to 1 for doublet rate; default NULL means
 #' rate n_cell / 100000
+#' 
+#' @return A list of various components of the simulated dataset.
 #' @export
 #'
 donor_read_simulator <- function(GT, D_seed, sample_variants = FALSE,

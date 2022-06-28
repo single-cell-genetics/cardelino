@@ -11,7 +11,15 @@ assign_scores(prob, I_sim, cutoff = seq(0, 1, 0.001))
 
 \item{I_sim}{The true identity of assignment from simulation}
 
-\item{cutoff}{A list of cutoff from 0 to 1}
+\item{cutoff}{A list of cutoffs from 0 to 1}
+}
+\value{
+A list with components: df_sg, the recall/precision data.frame 
+  calculated by \code{multiPRC()}, AUC_sg, the AUC calculated by 
+  \code{multiPRC()}, df_db, the recall/precision data.frame calculated by
+  \code{binaryPRC()} and AUC_db the AUC calculated by \code{binaryPRC()}. 
+  Note that \code{multiPRC()} is run on a multiclass version of the problem
+  and \code{binaryPRC} is run on a binarised version of the problem.
 }
 \description{
 Scoring the simulation in assignment of singlets and doublets

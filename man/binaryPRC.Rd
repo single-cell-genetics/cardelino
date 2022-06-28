@@ -26,6 +26,10 @@ binaryPRC(
 
 \item{empty_precision}{Float value for default precision if no any recall}
 }
+\value{
+A data.frame containing recall and precision values at various 
+  cutoffs.
+}
 \description{
 Precision-recall curve for binary label prediction
 }
