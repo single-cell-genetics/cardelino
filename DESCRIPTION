@@ -4,13 +4,17 @@ Title: Clone Identification from Single Cell Data
 Version: 0.6.5
 Date: 2021-07-01
 Authors@R: 
-    c(person(given = "Yuanhua",
+    c(person(given = "Jeffrey", 
+             family = "Pullin",
+             role = c("aut", "cre"),
+             email = "jpullin@svi.edu.au"),
+      person(given = "Yuanhua",
              family = "Huang",
              role = "aut",
              email = "yuanhua@hku.hk"),
       person(given = "Davis",
              family = "McCarthy",
-             role = c("aut", "cre"),
+             role = "aut",
              email = "dmccarthy@svi.edu.au"))
 Description: Methods to infer clonal structure for a population of cells
     using single-cell RNA-seq data (and possibly other data modalities).
