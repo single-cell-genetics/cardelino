@@ -68,8 +68,8 @@ read_vcf <- function(vcf_file, genome = "GRCh37",
     seq_levels_style = "Ensembl", verbose = TRUE) {
     ## Read in VCF from this sample
     if (verbose) {
-          message("Reading VCF.")
-      }
+        message("Reading VCF.")
+    }
     vcf_sample <- VariantAnnotation::readVcf(vcf_file, genome)
     vcf_sample <- vcf_sample[VariantAnnotation::isSNV(vcf_sample)]
     if (length(vcf_sample) > 0) {
@@ -86,14 +86,14 @@ read_vcf <- function(vcf_file, genome = "GRCh37",
         )
         names(vcf_sample) <- new_snp_names
     } else {
-          stop("No SNVs present in VCF file.")
-      }
+        stop("No SNVs present in VCF file.")
+    }
     if (verbose) {
-          message(
-              "Read ", dim(vcf_sample)[1], " variants for ",
-              dim(vcf_sample)[2], " samples."
-          )
-      }
+        message(
+            "Read ", dim(vcf_sample)[1], " variants for ",
+            dim(vcf_sample)[2], " samples."
+        )
+    }
     vcf_sample
 }
 

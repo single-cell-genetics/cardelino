@@ -30,7 +30,7 @@ multiple labels}
 }
 \value{
 A list with two components: df, a data.frame containing precision 
-  and recall values at various cutoffs and AUC, the overall AUC.
+and recall values at various cutoffs and AUC, the overall AUC.
 }
 \description{
 Precision-recall curve for multi-class prediction

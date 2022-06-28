@@ -671,8 +671,8 @@ Geweke_Z <- function(X, first = 0.1, last = 0.5) {
     # }
 
     if (is.null(dim(X))) {
-          X <- as.matrix(X, ncol = 1)
-      }
+        X <- as.matrix(X, ncol = 1)
+    }
     N <- nrow(X)
     A <- X[seq_len(floor(first * N)), , drop = FALSE]
     B <- X[ceiling(last * N):N, , drop = FALSE]
