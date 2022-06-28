@@ -18,10 +18,10 @@ short is CHROM_POS, and full is CHROM_POS_REF_ALT}
 it will be returned}
 }
 \value{
-A list representing the loaded genotype information with two components: 
-  GT, the usual numeric representation of genotype and GP the genotype 
-  probabilities. Note that if \code{keep_GP} is false the GP component will 
-  be NULL.
+A list representing the loaded genotype information with two
+  components: GT, the usual numeric representation of genotype and GP the
+  genotype probabilities. Note that if \code{keep_GP} is false the GP
+  component will be NULL.
 }
 \description{
 Note, the genotype VCF can be very big for whole genome. It would be more

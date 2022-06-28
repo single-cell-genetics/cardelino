@@ -69,7 +69,7 @@ rowArgmax <- get_prob_label <- function(X) {
     max_idx
 }
 
-#' Column match between two matrices by the minimum mean abosolute difference
+#' Column match between two matrices by minimum mean absolute difference
 #' @param A The first matrix which will be matched
 #' @param B The second matrix, the return index will be used on
 #' @param force bool(1), If TRUE, force traversing all permutations of B to
