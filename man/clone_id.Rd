@@ -173,6 +173,4 @@ prob_heatmap(assignments_EM$prob)
 Yuanhua Huang and Davis McCarthy
 
 Yuanhua Huang
-
-Yuanhua Huang
 }
