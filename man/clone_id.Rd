@@ -71,7 +71,7 @@ only if Config is NULL}
 \item{relax_Config}{logical(1), If TRUE, relaxing the Clone Configuration by
 changing it from fixed value to act as a prior Config with a relax rate.}
 
-\item{relax_rate_fixed}{numeric(1), If the value is between 0 to 1, 
+\item{relax_rate_fixed}{numeric(1), If the value is between 0 to 1,
 the relax rate will be set as a fix value during updating clone Config. If
 NULL, the relax rate will be learned automatically with relax_rate_prior.}
 
@@ -79,10 +79,10 @@ NULL, the relax rate will be learned automatically with relax_rate_prior.}
 "sampling" to use Gibbs sampling (default) or "EM" to use
 expectation-maximisation (faster)}
 
-\item{n_chain}{integer(1), the number of chains to run, which will be 
+\item{n_chain}{integer(1), the number of chains to run, which will be
 averaged as an output result}
 
-\item{n_proc}{integer(1), the numebr of processors to use. This parallel 
+\item{n_proc}{integer(1), the numebr of processors to use. This parallel
 computing can largely reduce time when using multiple chains}
 
 \item{verbose}{logical(1), should the function output verbose information as
@@ -100,8 +100,8 @@ sampling, even haven't passed the convergence diagnosis}
 \item{logLik_threshold}{A float. The threshold of logLikelihood increase for
 detecting convergence.}
 
-\item{relax_rate_prior}{numeric(2), the two parameters of beta prior 
-distribution of the relax rate for relaxing the clone Configuration. This 
+\item{relax_rate_prior}{numeric(2), the two parameters of beta prior
+distribution of the relax rate for relaxing the clone Configuration. This
 mode is used when relax_relax is NULL.}
 
 \item{keep_base_clone}{bool(1), if TRUE, keep the base clone of Config to its
@@ -118,7 +118,7 @@ distribution on the inferred (1 - false negative) rate.}
 \item{wise}{A string, the wise of parameters for theta1: global, variant,
 element.}
 
-\item{relabel}{bool(1), if TRUE, relabel the samples of both Config and prob 
+\item{relabel}{bool(1), if TRUE, relabel the samples of both Config and prob
 during the Gibbs sampleing.}
 }
 \value{
@@ -157,18 +157,20 @@ with and without the mutation present.
 }
 \examples{
 data(example_donor)
-assignments <- clone_id(A_clone, D_clone, Config = tree$Z, 
-min_iter = 800, max_iter = 1200)
+assignments <- clone_id(A_clone, D_clone,
+    Config = tree$Z,
+    min_iter = 800, max_iter = 1200
+)
 prob_heatmap(assignments$prob)
 
-assignments_EM <- clone_id(A_clone, D_clone, Config = tree$Z, inference = "EM")
+assignments_EM <- clone_id(A_clone, D_clone,
+    Config = tree$Z,
+    inference = "EM"
+)
 prob_heatmap(assignments_EM$prob)
-
 }
 \author{
 Yuanhua Huang and Davis McCarthy
-
-Yuanhua Huang
 
 Yuanhua Huang
 }

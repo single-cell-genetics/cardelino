@@ -10,8 +10,8 @@ rowMax(X, mode = "best")
 \item{X}{A matrix of floats.}
 
 \item{mode}{A string, the mothod for defining scores for filtering cells:
-best, second and delta. \code{best}: highest value for each row, similarly 
-for the \code{second}. \code{delta} is the difference between the best and 
+best, second and delta. \code{best}: highest value for each row, similarly
+for the \code{second}. \code{delta} is the difference between the best and
 the second.}
 }
 \value{
@@ -22,7 +22,6 @@ on the mode used.
 Maximum value for each row in a matrix
 }
 \examples{
-matA = matrix(sample(seq(12)), nrow=3)
+matA <- matrix(sample(seq(12)), nrow = 3)
 rowMax(matA)
-
 }

@@ -22,7 +22,8 @@ mixBinom(
 
 \item{n_components}{A number. number of components}
 
-\item{p_init}{A vector of floats with length n_components, the initial value of p}
+\item{p_init}{A vector of floats with length n_components, the initial value
+of p}
 
 \item{learn_p}{bool(1) or a vector of bool, wheter learn each p}
 
@@ -34,10 +35,11 @@ mixBinom(
 detecting convergence}
 }
 \value{
-a list containing \code{p}, a vector of floats between 0 and 1 giving
-the estimated success probability for each component, \code{psi}, estimated
-fraction of each component in the mixture, and \code{prob}, the matrix of 
-fitted probabilities of each observation belonging to each component.
+a list containing \code{p}, a vector of floats between 0 and 1
+giving the estimated success probability for each component, \code{psi},
+estimated fraction of each component in the mixture, and \code{prob}, the
+matrix of fitted probabilities of each observation belonging to each
+component.
 }
 \description{
 EM algorithm for estimating binomial mixture model

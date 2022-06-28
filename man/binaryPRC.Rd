@@ -18,7 +18,7 @@ binaryPRC(
 
 \item{labels}{True labels for each sample, e.g., from simulation}
 
-\item{cutoff}{A list of cutoff; if NULL use all unique scores}
+\item{cutoff}{A vector of cutoffs; if NULL use all unique scores}
 
 \item{cut_direction}{A string to compare with cutoff: >=, >, <=, <}
 
@@ -26,6 +26,21 @@ binaryPRC(
 
 \item{empty_precision}{Float value for default precision if no any recall}
 }
+\value{
+A data.frame containing recall and precision values at various 
+cutoffs.
+}
 \description{
 Precision-recall curve for binary label prediction
+}
+\examples{
+scores <- 1:10
+labels <- c(0, 0, 0, 1, 0, 1, 0, 1, 1, 1)
+binaryPRC(scores, labels)
+
+# Extra arguments. 
+binaryPRC(scores, labels, cutoff = seq(1, 10, by = 2))
+binaryPRC(scores, labels, cut_direction = ">")
+binaryPRC(scores, labels, add_cut1 = TRUE)
+
 }

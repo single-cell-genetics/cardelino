@@ -48,11 +48,11 @@ uncertainty in model parameters and cell assignments.
 
 We assume that clones are tagged by somatic mutations, and that these mutations
 are known (e.g. from exome sequencing or equivalent). Given a set of known 
-mutations, these sites can be interrogated in scRNA-seq reads to obtain evidence 
-for the presence or absence of each mutation in each cell. As input, the model 
-requires the count of reads supporting the alternative (mutant) allele at each 
-mutation site, the total number of reads overlapping the mutation site 
-("coverage"). 
+mutations, these sites can be interrogated in scRNA-seq reads to obtain 
+evidence for the presence or absence of each mutation in each cell. As input, 
+the model requires the count of reads supporting the alternative (mutant) 
+allele at each mutation site, the total number of reads overlapping the 
+mutation site ("coverage"). 
 
 Typically, coverage of somatic mutations in scRNA-seq data is very
 sparse (most mutation sites in a given cell have no read coverage), but the 
@@ -75,8 +75,8 @@ supporting the alternative allele for each variant in each cell;
 * D: a variant x cell matrix of integer counts, providing the total number of 
 reads overlapping each variant in each cell;
 * Config: a variant x clone "configuration" matrix of binary values providing 
-the clone-variant configuration by indicating which mutations are expected to be 
-present in which clones.
+the clone-variant configuration by indicating which mutations are expected to 
+be present in which clones.
 
 The configuration matrix, Config, can be provided by other tools used to infer 
 the clonal structure of the cell population. For example, the package 
@@ -103,7 +103,8 @@ VCF file, here we show just one approach using convenience functions in
 `cardelino`:
 
 ```{r read-vcf-data}
-vcf_file <- system.file("extdata", "cellSNP.cells.vcf.gz", package = "cardelino")
+vcf_file <- system.file("extdata", "cellSNP.cells.vcf.gz", 
+                        package = "cardelino")
 input_data <- load_cellSNP_vcf(vcf_file)
 ```
 
@@ -231,7 +232,8 @@ variant names.
 ```{r read in mtx files}
 AD_file <- system.file("extdata", "passed_ad.mtx", package = "cardelino")
 DP_file <- system.file("extdata", "passed_dp.mtx", package = "cardelino")
-id_file <- system.file("extdata", "passed_variant_names.txt", package = "cardelino")
+id_file <- system.file("extdata", "passed_variant_names.txt", 
+                       package = "cardelino")
 
 AD <- Matrix::readMM(AD_file)
 DP <- Matrix::readMM(DP_file)
@@ -256,7 +258,8 @@ initializations) and pick the one with highest DIC.
 
 ```{r denovo-mtDNA}
 set.seed(7)
-assign_mtClones <- clone_id(AD, DP, Config=NULL, n_clone = 3, keep_base_clone=FALSE)
+assign_mtClones <- clone_id(AD, DP, Config=NULL, n_clone = 3, 
+                            keep_base_clone=FALSE)
 ```
 
 Then visualise allele frequency along with the clustering of cells and variants:

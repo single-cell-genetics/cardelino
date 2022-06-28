@@ -15,6 +15,11 @@ predMixBinom(k, n, p, psi)
 
 \item{psi}{A float between 0 and 1. fraction of each component}
 }
+\value{
+A list with two components: prob, a matrix representing the 
+  probability of each of the passed values coming from each component of the
+  mixture and logLik, the total log-likelihood of the new samples.
+}
 \description{
 Predicted probability from learned binomial mixture model
 }

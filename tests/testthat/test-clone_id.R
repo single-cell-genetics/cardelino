@@ -8,11 +8,11 @@ data("example_donor")
 #     doMC::registerDoMC(4)
 #     `%dopar%` <- foreach::`%dopar%`
 #     res_all <- foreach::foreach(ii = 2:5) %dopar% {
-#         clone_id(A_clone, D_clone, n_clone = ii, 
-#                  min_iter = 10000, max_iter = 10000, 
+#         clone_id(A_clone, D_clone, n_clone = ii,
+#                  min_iter = 10000, max_iter = 10000,
 #                  prior1=c(45, 55), relabel = TRUE)
 #     }
-# 
+#
 #     n_clones <- seq(2,5)
 #     DIC <- rep(0, 4)
 #     for (i in seq_len(4)) {
@@ -23,15 +23,19 @@ data("example_donor")
 
 
 test_that("binomial EM inference works as expected", {
-    assignments_EM <- clone_id(A_clone, D_clone, Config = tree$Z, 
-                               inference = "EM")
+    assignments_EM <- clone_id(A_clone, D_clone,
+        Config = tree$Z,
+        inference = "EM"
+    )
     expect_is(assignments_EM, "list")
 })
 
 
-assignments <- clone_id(A_clone, D_clone, Config = tree$Z,
-                        min_iter = 200, max_iter = 500,
-                        relax_Config = TRUE, relabel=TRUE)
+assignments <- clone_id(A_clone, D_clone,
+    Config = tree$Z,
+    min_iter = 200, max_iter = 500,
+    relax_Config = TRUE, relabel = TRUE
+)
 
 test_that("default inference works as expected", {
     expect_is(assignments, "list")
@@ -59,7 +63,7 @@ test_that("assign_scores, multiPRC, binaryPRC work as expected", {
 
 test_that("binaryROC work as expected", {
     I_sim <- (assignments$prob == rowMax(assignments$prob))
-    res <- binaryROC(assignments$prob[,1], I_sim[, 1])
+    res <- binaryROC(assignments$prob[, 1], I_sim[, 1])
     expect_is(res, "list")
 })
 
@@ -68,10 +72,9 @@ test_that("binaryROC work as expected", {
 #                                  model = "Bernoulli")
 #     expect_is(assignments_bern, "list")
 # })
-# 
+#
 # test_that("Bernoulli EM inference works as expected", {
 #     assignments_bern_EM <- clone_id(A_clone, D_clone, Config = tree$Z,
 #                                     model = "Bernoulli", inference = "EM")
 #     expect_is(assignments_bern_EM, "list")
 # })
-

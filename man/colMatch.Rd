@@ -2,7 +2,7 @@
 % Please edit documentation in R/assessment.R
 \name{colMatch}
 \alias{colMatch}
-\title{Column match between two matrices by the minimum mean abosolute difference}
+\title{Column match between two matrices by minimum mean absolute difference}
 \usage{
 colMatch(A, B, force = FALSE)
 }
@@ -11,7 +11,7 @@ colMatch(A, B, force = FALSE)
 
 \item{B}{The second matrix, the return index will be used on}
 
-\item{force}{bool(1), If TRUE, force traversing all permutations of B to 
+\item{force}{bool(1), If TRUE, force traversing all permutations of B to
 find the optimised match to A with computing cost of O(n!). Otherwise, use
 greedy search with computing cost of O(n^2).}
 }
@@ -19,12 +19,11 @@ greedy search with computing cost of O(n^2).}
 \code{idx}, the column index of B to be matched to A
 }
 \description{
-Column match between two matrices by the minimum mean abosolute difference
+Column match between two matrices by minimum mean absolute difference
 }
 \examples{
-matA = matrix(sample(seq(12)), nrow=3)
-col_idx = sample(4)
-matB = matA[, col_idx]
+matA <- matrix(sample(seq(12)), nrow = 3)
+col_idx <- sample(4)
+matB <- matA[, col_idx]
 colMatch(matB, matA)
-
 }
