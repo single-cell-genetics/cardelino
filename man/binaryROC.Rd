@@ -26,6 +26,9 @@ binaryROC(
 
 \item{cutoff_point}{Numeric value; additional cutoff value}
 }
+\value{
+A data.frame containing AUC and AUPRC at various cutoffs.
+}
 \description{
 ROC curve for binary label prediction
 }

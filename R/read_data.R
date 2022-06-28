@@ -251,6 +251,10 @@ get_snp_matrices <- function(vcf_cell, vcf_donor = NULL, verbose = TRUE,
 #' short is CHROM_POS, and full is CHROM_POS_REF_ALT
 #' @param keep_GL logical(1), if TRUE, check if GL (genotype probability) exists
 #' it will be returned
+#' 
+#' @return A list with elements the matrices A and D and GL, the genotype 
+#'   probability. If keep_GL is false the GL element will be an empty list.
+#' 
 #' @export
 #'
 #' @examples
@@ -337,6 +341,12 @@ load_cellSNP_vcf <- function(vcf_file, min_count = 0, min_MAF = 0,
 #' @param na.rm logical(1), if TRUE, remove the variants with NA values
 #' @param keep_GP logical(1), if TRUE, check if GP (genotype probability) exists
 #' it will be returned
+#' 
+#' @return A list representing the loaded genotype information with two components: 
+#'   GT, the usual numeric representation of genotype and GP the genotype 
+#'   probabilities. Note that if \code{keep_GP} is false the GP component will 
+#'   be NULL.
+#' 
 #' @export
 #'
 #' @examples

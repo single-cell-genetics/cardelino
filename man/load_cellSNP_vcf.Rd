@@ -29,6 +29,10 @@ short is CHROM_POS, and full is CHROM_POS_REF_ALT}
 \item{keep_GL}{logical(1), if TRUE, check if GL (genotype probability) exists
 it will be returned}
 }
+\value{
+A list with elements the matrices A and D and GL, the genotype 
+  probability. If keep_GL is false the GL element will be an empty list.
+}
 \description{
 Load sparse matrices A and D from cellSNP VCF file with filtering SNPs
 }

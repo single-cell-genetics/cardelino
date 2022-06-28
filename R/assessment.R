@@ -2,6 +2,7 @@
 
 #' Convert a matrix to data frame
 #' @param X A matrix of values
+#' @return A data.frame version of the passed matrix.
 #' @export
 #' @examples
 #' mtx_to_df(matrix(seq(12), nrow = 3))
@@ -125,6 +126,8 @@ colMatch <- function(A, B, force = FALSE) {
 #' @param cut_direction A string to compare with cutoff: >=, >, <=, <
 #' @param add_cut1 Logical value; if True, manually add a cutoff of 1
 #' @param empty_precision Float value for default precision if no any recall
+#' @return A data.frame containing recall and precision values at various 
+#'   cutoffs.
 #' @export
 #'
 binaryPRC <- function(scores, labels, cutoff = NULL, cut_direction = ">=",
@@ -181,6 +184,7 @@ binaryPRC <- function(scores, labels, cutoff = NULL, cut_direction = ">=",
 #' @param cut_direction A string to compare with cutoff: >=, >, <=, <
 #' @param add_cut1 Logical value; if True, manually add a cutoff of 1
 #' @param cutoff_point Numeric value; additional cutoff value
+#' @return A data.frame containing AUC and AUPRC at various cutoffs.
 #' @export
 #'
 binaryROC <- function(scores, labels, cutoff = NULL, cut_direction = ">=",
@@ -244,6 +248,10 @@ binaryROC <- function(scores, labels, cutoff = NULL, cut_direction = ">=",
 #' @param add_cut1 Logical value; if True, manually add a cutoff of 1
 #' @param multiLabel.rm Logical value; if True, remove the samples with
 #' multiple labels
+#' 
+#' @return A list with two components: df, a data.frame containing precision 
+#'   and recall values at various cutoffs and AUC, the overall AUC.
+#' 
 #' @export
 #'
 multiPRC <- function(prob_mat, simu_mat, marginal_mode = "best",
@@ -306,9 +314,18 @@ multiPRC <- function(prob_mat, simu_mat, marginal_mode = "best",
 }
 
 #' Scoring the simulation in assignment of singlets and doublets
+#' 
 #' @param prob Probability matrix for each cell to each component
 #' @param I_sim The true identity of assignment from simulation
-#' @param cutoff A list of cutoff from 0 to 1
+#' @param cutoff A list of cutoffs from 0 to 1
+#' 
+#' @return A list with components: df_sg, the recall/precision data.frame 
+#'   calculated by \code{multiPRC()}, AUC_sg, the AUC calculated by 
+#'   \code{multiPRC()}, df_db, the recall/precision data.frame calculated by
+#'   \code{binaryPRC()} and AUC_db the AUC calculated by \code{binaryPRC()}. 
+#'   Note that \code{multiPRC()} is run on a multiclass version of the problem
+#'   and \code{binaryPRC} is run on a binarised version of the problem.
+#' 
 #' @export
 #'
 assign_scores <- function(prob, I_sim, cutoff = seq(0, 1, 0.001)) {
