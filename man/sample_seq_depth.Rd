@@ -26,6 +26,8 @@ is variant specific.
 }
 \examples{
 data(simulation_input)
-D1 <- sample_seq_depth(D_input, n_cells=500, n_sites=50, missing_rate=0.85)
-
+D1 <- sample_seq_depth(D_input,
+    n_cells = 500, n_sites = 50,
+    missing_rate = 0.85
+)
 }

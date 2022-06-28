@@ -21,9 +21,10 @@ in ggplot2.
 }
 \examples{
 library(ggplot2)
-x = sample(10)
-y = x + runif(10) - 0.5
+x <- sample(10)
+y <- x + runif(10) - 0.5
 df <- data.frame(x = x, y = y)
-fig <- ggplot(df, aes(x=x, y=y)) + geom_point() + pub.theme()
-
+fig <- ggplot(df, aes(x = x, y = y)) +
+    geom_point() +
+    pub.theme()
 }

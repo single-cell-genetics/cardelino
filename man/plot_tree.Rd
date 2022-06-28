@@ -25,7 +25,6 @@ This function plots a phylogenetic tree from an object of class
 \examples{
 data(example_donor)
 plot_tree(tree, orient = "v")
-
 }
 \references{
 This function makes use of the \code{\link{ggtree}} package:
