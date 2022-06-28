@@ -127,7 +127,7 @@ colMatch <- function(A, B, force = FALSE) {
 #' @param add_cut1 Logical value; if True, manually add a cutoff of 1
 #' @param empty_precision Float value for default precision if no any recall
 #' @return A data.frame containing recall and precision values at various 
-#'   cutoffs.
+#' cutoffs.
 #' @export
 #' 
 #' @examples
@@ -271,7 +271,7 @@ binaryROC <- function(scores, labels, cutoff = NULL, cut_direction = ">=",
 #' multiple labels
 #' 
 #' @return A list with two components: df, a data.frame containing precision 
-#'   and recall values at various cutoffs and AUC, the overall AUC.
+#' and recall values at various cutoffs and AUC, the overall AUC.
 #' 
 #' @export
 #'
@@ -341,11 +341,11 @@ multiPRC <- function(prob_mat, simu_mat, marginal_mode = "best",
 #' @param cutoff A list of cutoffs from 0 to 1
 #' 
 #' @return A list with components: df_sg, the recall/precision data.frame 
-#'   calculated by \code{multiPRC()}, AUC_sg, the AUC calculated by 
-#'   \code{multiPRC()}, df_db, the recall/precision data.frame calculated by
-#'   \code{binaryPRC()} and AUC_db the AUC calculated by \code{binaryPRC()}. 
-#'   Note that \code{multiPRC()} is run on a multiclass version of the problem
-#'   and \code{binaryPRC} is run on a binarised version of the problem.
+#' calculated by \code{multiPRC()}, AUC_sg, the AUC calculated by 
+#' \code{multiPRC()}, df_db, the recall/precision data.frame calculated by
+#' \code{binaryPRC()} and AUC_db the AUC calculated by \code{binaryPRC()}. 
+#' Note that \code{multiPRC()} is run on a multiclass version of the problem
+#' and \code{binaryPRC} is run on a binarised version of the problem.
 #' 
 #' @export
 #'

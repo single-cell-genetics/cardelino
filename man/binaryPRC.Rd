@@ -28,7 +28,7 @@ binaryPRC(
 }
 \value{
 A data.frame containing recall and precision values at various 
-  cutoffs.
+cutoffs.
 }
 \description{
 Precision-recall curve for binary label prediction

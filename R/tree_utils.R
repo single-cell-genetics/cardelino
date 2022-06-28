@@ -101,7 +101,7 @@ get_tree <- function(Config, P = NULL, strictness = "lax") {
         ## Sort out edges for the root node
         tip_nodes <- seq_len(k)
         root_to_tip <- tip_nodes[
-          !(tip_nodes %in% unique(unlist(node_def_list)))
+            !(tip_nodes %in% unique(unlist(node_def_list)))
         ]
         edge_list[["root_node_tips"]] <- matrix(
             c(rep(k + 1, length(root_to_tip)), root_to_tip),
