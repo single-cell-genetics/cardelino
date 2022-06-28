@@ -176,8 +176,10 @@ get_snp_matrices <- function(vcf_cell, vcf_donor = NULL, verbose = TRUE,
             }
             vcf_donor <- vcf_donor[S4Vectors::subjectHits(ovlap)]
             match_alleles <- unlist(
-                VariantAnnotation::ref(vcf_cell) == VariantAnnotation::ref(vcf_donor) &
-                    VariantAnnotation::alt(vcf_cell) == VariantAnnotation::alt(vcf_donor)
+                VariantAnnotation::ref(vcf_cell) == 
+                VariantAnnotation::ref(vcf_donor) &
+                VariantAnnotation::alt(vcf_cell) == 
+                VariantAnnotation::alt(vcf_donor)
             )
             if (sum(match_alleles) < 1L) {
                 stop(
@@ -221,8 +223,12 @@ get_snp_matrices <- function(vcf_cell, vcf_donor = NULL, verbose = TRUE,
     sm_sample_DEP[sm_sample_DEP == 0] <- NA
     sm_sample_REF[is.na(sm_sample_DEP)] <- NA
     sm_sample_ALT[is.na(sm_sample_DEP)] <- NA
-    rownames(sm_sample_REF) <- rownames(sm_sample_ALT) <- rownames(sm_sample_DEP) <- rownames(vcf_cell)
-    colnames(sm_sample_REF) <- colnames(sm_sample_ALT) <- colnames(sm_sample_DEP) <- colnames(vcf_cell)
+    rownames(sm_sample_REF) <- rownames(vcf_cell)
+    rownames(sm_sample_ALT) <- rownames(vcf_cell)
+    rownames(sm_sample_DEP) <- rownames(vcf_cell)
+    colnames(sm_sample_REF) <- colnames(vcf_cell)
+    colnames(sm_sample_ALT) <- colnames(vcf_cell)
+    colnames(sm_sample_DEP) <- colnames(vcf_cell)
     na_sample <- is.na(sm_sample_DEP)
     if (sum(!na_sample) < 1L) {
         stop("No variants with non-missing genotypes cells VCF and Donor VCF\n")
@@ -342,10 +348,10 @@ load_cellSNP_vcf <- function(vcf_file, min_count = 0, min_MAF = 0,
 #' @param keep_GP logical(1), if TRUE, check if GP (genotype probability) exists
 #' it will be returned
 #' 
-#' @return A list representing the loaded genotype information with two components: 
-#'   GT, the usual numeric representation of genotype and GP the genotype 
-#'   probabilities. Note that if \code{keep_GP} is false the GP component will 
-#'   be NULL.
+#' @return A list representing the loaded genotype information with two
+#'   components: GT, the usual numeric representation of genotype and GP the
+#'   genotype probabilities. Note that if \code{keep_GP} is false the GP
+#'   component will be NULL.
 #' 
 #' @export
 #'

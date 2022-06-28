@@ -89,7 +89,8 @@ get_tree <- function(Config, P = NULL, strictness = "lax") {
                 test_sum <- sum(tip_vals[clone_combos[[j]]])
                 if (test_sum %in% node_vals) {
                     node_def_list[[
-                    paste0("node", paste0(clone_combos[[j]]), collapse = "_")]] <-
+                    paste0("node", paste0(clone_combos[[j]]), collapse = "_")
+                    ]] <-
                         clone_combos[[j]]
                 }
             }
@@ -99,7 +100,9 @@ get_tree <- function(Config, P = NULL, strictness = "lax") {
         }
         ## Sort out edges for the root node
         tip_nodes <- seq_len(k)
-        root_to_tip <- tip_nodes[!(tip_nodes %in% unique(unlist(node_def_list)))]
+        root_to_tip <- tip_nodes[
+          !(tip_nodes %in% unique(unlist(node_def_list)))
+        ]
         edge_list[["root_node_tips"]] <- matrix(
             c(rep(k + 1, length(root_to_tip)), root_to_tip),
             nrow = length(root_to_tip)
@@ -179,7 +182,8 @@ get_tree <- function(Config, P = NULL, strictness = "lax") {
                 node_to_tip <- node_def_list[[i]]
                 if (i < node_num) {
                     node_to_tip <- node_to_tip[
-                        !(node_to_tip %in% unique(unlist(node_def_list[(i + 1):node_num])))
+                        !(node_to_tip %in% 
+                            unique(unlist(node_def_list[(i + 1):node_num])))
                     ]
                 }
                 ## else this is the last node; just connect edges from node to
@@ -236,7 +240,8 @@ get_tree <- function(Config, P = NULL, strictness = "lax") {
 #                      ncol = 4)
 # Configk4_2_bad <- matrix(c(rep(0, 15), rep(1, 8), rep(0, 2), rep(1, 2),
 #                            rep(0, 3), rep(1, 5), rep(0, 3),
-#                            rep(1, 4), rep(0, 3), rep(1, 5), rep(0, 3), rep(1, 2),
+#                            rep(1, 4), rep(0, 3), rep(1, 5), rep(0, 3), 
+# ep(1, 2),
 #                            rep(0, 2), rep(1, 3)),
 #                          ncol = 4)
 #
@@ -277,7 +282,8 @@ get_tree <- function(Config, P = NULL, strictness = "lax") {
 # plot_tree(tree_k5)
 #
 # ## joxm - works
-# card_joxm <- readRDS("../fibroblast-clonality/data/cell_assignment/cardelino_results_carderelax.joxm.filt_lenient.cell_coverage_sites.rds")
+# card_joxm <- readRDS("../fibroblast-clonality/data/cell_assignment/
+# cardelino_results_carderelax.joxm.filt_lenient.cell_coverage_sites.rds")
 # names(card_joxm)
 # card_joxm_Config_prob <- card_joxm$tree$Z
 # card_joxm_Config_prob[,] <- colMeans(card_joxm$Config_all)
@@ -295,7 +301,8 @@ get_tree <- function(Config, P = NULL, strictness = "lax") {
 # cowplot::plot_grid(p2, p1, ncol = 1)
 #
 # ## zoxy - fails
-# card_zoxy <- readRDS("../fibroblast-clonality/data/cell_assignment/cardelino_results_carderelax.zoxy.filt_lenient.cell_coverage_sites.rds")
+# card_zoxy <- readRDS("../fibroblast-clonality/data/cell_assignment/
+# cardelino_results_carderelax.zoxy.filt_lenient.cell_coverage_sites.rds")
 # names(card_zoxy)
 # card_zoxy_Config_prob <- card_zoxy$tree$Z
 # card_zoxy_Config_prob[,] <- colMeans(card_zoxy$Config_all)
@@ -325,7 +332,8 @@ get_tree <- function(Config, P = NULL, strictness = "lax") {
 # cowplot::plot_grid(p2, p1, ncol = 1)
 #
 # ## lexy - some all-zero rows
-# card_lexy <- readRDS("../fibroblast-clonality/data/cell_assignment/cardelino_results_carderelax.lexy.filt_lenient.cell_coverage_sites.rds")
+# card_lexy <- readRDS("../fibroblast-clonality/data/cell_assignment/
+# cardelino_results_carderelax.lexy.filt_lenient.cell_coverage_sites.rds")
 # names(card_lexy)
 # card_lexy_Config_prob <- card_lexy$tree$Z
 # card_lexy_Config_prob[,] <- colMeans(card_lexy$Config_all)
@@ -345,7 +353,8 @@ get_tree <- function(Config, P = NULL, strictness = "lax") {
 # cowplot::plot_grid(p2, p1, ncol = 1)
 #
 # ## vils - works
-# card_vils <- readRDS("../fibroblast-clonality/data/cell_assignment/cardelino_results_carderelax.vils.filt_lenient.cell_coverage_sites.rds")
+# card_vils <- readRDS("../fibroblast-clonality/data/cell_assignment/
+# cardelino_results_carderelax.vils.filt_lenient.cell_coverage_sites.rds")
 # names(card_vils)
 # card_vils_Config_prob <- card_vils$tree$Z
 # card_vils_Config_prob[,] <- colMeans(card_vils$Config_all)
@@ -367,7 +376,8 @@ get_tree <- function(Config, P = NULL, strictness = "lax") {
 # cowplot::plot_grid(p2, p1, ncol = 1)
 #
 # ## sehl - fails
-# card_sehl <- readRDS("../fibroblast-clonality/data/cell_assignment/cardelino_results_carderelax.sehl.filt_lenient.cell_coverage_sites.rds")
+# card_sehl <- readRDS("../fibroblast-clonality/data/cell_assignment/
+# cardelino_results_carderelax.sehl.filt_lenient.cell_coverage_sites.rds")
 # names(card_sehl)
 # card_sehl_Config_prob <- card_sehl$tree$Z
 # card_sehl_Config_prob[,] <- colMeans(card_sehl$Config_all)
