@@ -34,6 +34,9 @@ and 2; default NULL means matrix(c(0.2, 0.5, 99.8, 99.8, 0.5, 0.2), nrow = 3)}
 \item{doublet_rate}{A float from 0 to 1 for doublet rate; default NULL means
 rate n_cell / 100000}
 }
+\value{
+A list of various components of the simulated dataset.
+}
 \description{
 Reads simulator for donor identification
 }

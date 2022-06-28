@@ -15,6 +15,9 @@ heat_matrix(mat, base_size = 12, digits = 2, show_value = FALSE)
 
 \item{show_value}{Logical value for showing the value for each element or not}
 }
+\value{
+A ggplot heatmap visualization of the passed matrix.
+}
 \description{
 Plot heatmap from a matrix
 }

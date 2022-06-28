@@ -59,6 +59,7 @@ prob_heatmap <- function(prob_mat, threshold = 0.5, mode = "best",
 #' @param base_size Numeric value for the base size in theme_bw
 #' @param digits Integer value for the number of digits to show
 #' @param show_value Logical value for showing the value for each element or not
+#' @return A ggplot heatmap visualization of the passed matrix.
 #' @export
 heat_matrix <- function(mat, base_size = 12, digits = 2, show_value = FALSE) {
     df <- mtx_to_df(mat)

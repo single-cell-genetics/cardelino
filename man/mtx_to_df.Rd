@@ -9,6 +9,9 @@ mtx_to_df(X)
 \arguments{
 \item{X}{A matrix of values}
 }
+\value{
+A data.frame version of the passed matrix.
+}
 \description{
 Convert a matrix to data frame
 }

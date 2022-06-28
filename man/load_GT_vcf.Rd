@@ -17,6 +17,12 @@ short is CHROM_POS, and full is CHROM_POS_REF_ALT}
 \item{keep_GP}{logical(1), if TRUE, check if GP (genotype probability) exists
 it will be returned}
 }
+\value{
+A list representing the loaded genotype information with two components: 
+  GT, the usual numeric representation of genotype and GP the genotype 
+  probabilities. Note that if \code{keep_GP} is false the GP component will 
+  be NULL.
+}
 \description{
 Note, the genotype VCF can be very big for whole genome. It would be more
 efficient to only keep the wanted variants and samples. bcftools does such

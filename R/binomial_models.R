@@ -91,6 +91,10 @@ mixBinom <- function(k, n, n_components = 2, p_init = NULL, learn_p = TRUE,
 #' @param p a vector of binomial success probabilities
 #' @param psi A float between 0 and 1. fraction of each component
 #'
+#' @return A list with two components: prob, a matrix representing the 
+#'   probability of each of the passed values coming from each component of the
+#'   mixture and logLik, the total log-likelihood of the new samples.
+#'
 #' @export
 #'
 #' @examples
