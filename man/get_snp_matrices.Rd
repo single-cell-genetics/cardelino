@@ -33,3 +33,11 @@ configuration.
 \description{
 Get SNP data matrices from VCF object(s)
 }
+\examples{
+vcf_cell <- read_vcf(system.file("extdata", "cells.donorid.vcf.gz",
+                     package = "cardelino"))
+vcf_donor <-  read_vcf(system.file("extdata", "donors.donorid.vcf.gz",
+                       package = "cardelino"))
+snp_data <- get_snp_matrices(vcf_cell, vcf_donor)
+
+}

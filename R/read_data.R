@@ -39,16 +39,6 @@
 #     list(A = ad, D = dp, R = rf)
 # }
 
-
-## Turn off the examples and imports for `read_vcf`
-# #' @examples
-# #' vcf <- read_vcf(system.file("extdata", "cells.donorid.vcf.gz",
-# #'                 package = "cardelino"))
-# #' @importFrom VariantAnnotation readVcf isSNV geno ref alt
-# #'   genotypeToSnpMatrix
-# #' @importFrom GenomeInfoDb seqlevelsStyle seqlengths
-# #' @importFrom methods as is
-
 #' Read a VCF file into R session
 #'
 #' @param vcf_file character(1), path to VCF file to read into R session as a
@@ -61,7 +51,15 @@
 #' @param verbose logical(1), should messages be printed as function runs?
 #'
 #' @return a vcf object
-#'
+#' @examples
+#' vcf <- read_vcf(system.file("extdata", "cells.donorid.vcf.gz",
+#'                package = "cardelino"))
+#' 
+#' @importFrom VariantAnnotation readVcf isSNV geno ref alt
+#'  genotypeToSnpMatrix
+#' @importFrom GenomeInfoDb seqlevelsStyle seqlengths
+#' @importFrom methods as is
+#' 
 #' @export
 #'
 read_vcf <- function(vcf_file, genome = "GRCh37",
@@ -97,17 +95,6 @@ read_vcf <- function(vcf_file, genome = "GRCh37",
     vcf_sample
 }
 
-
-## Turn off the examples and imports for `get_snp_matrices`
-# #' @examples
-# #' vcf_cell <- read_vcf(system.file("extdata", "cells.donorid.vcf.gz",
-# #'                      package = "cardelino"))
-# #' vcf_donor <-  read_vcf(system.file("extdata", "donors.donorid.vcf.gz",
-# #'                        package = "cardelino"))
-# #' snp_data <- get_snp_matrices(vcf_cell, vcf_donor)
-# #' @importFrom GenomicRanges findOverlaps
-# #' @importFrom S4Vectors queryHits subjectHits
-
 #' Get SNP data matrices from VCF object(s)
 #'
 #' @param vcf_cell a \code{\link[VariantAnnotation]{CollapsedVCF}} object
@@ -128,7 +115,17 @@ read_vcf <- function(vcf_file, genome = "GRCh37",
 #' configuration.
 #' \code{GT_donors}, a matrix of integers for genotypes. The donor-SNP
 #' configuration.
-#'
+#' 
+#' @examples
+#' vcf_cell <- read_vcf(system.file("extdata", "cells.donorid.vcf.gz",
+#'                      package = "cardelino"))
+#' vcf_donor <-  read_vcf(system.file("extdata", "donors.donorid.vcf.gz",
+#'                        package = "cardelino"))
+#' snp_data <- get_snp_matrices(vcf_cell, vcf_donor)
+#' 
+#' @importFrom GenomicRanges findOverlaps
+#' @importFrom S4Vectors queryHits subjectHits
+#' 
 #' @export
 #'
 get_snp_matrices <- function(vcf_cell, vcf_donor = NULL, verbose = TRUE,
