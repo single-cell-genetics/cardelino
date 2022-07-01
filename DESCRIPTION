@@ -31,12 +31,17 @@ Depends:
     R (>= 4.1),
     stats
 Imports: 
+    GenomeInfoDb,
+    GenomicRanges,
     ggplot2,
     ggtree,
     Matrix,
     matrixStats,
+    methods,
     pheatmap,
+    S4Vectors,
     utils,
+    VariantAnnotation,
     vcfR
 Suggests: 
     BiocStyle,

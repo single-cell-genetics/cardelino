@@ -30,3 +30,8 @@ a vcf object
 \description{
 Read a VCF file into R session
 }
+\examples{
+vcf <- read_vcf(system.file("extdata", "cells.donorid.vcf.gz",
+               package = "cardelino"))
+
+}
