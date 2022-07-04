@@ -44,11 +44,6 @@ test_that("load_cellSNP_vcf works as expected", {
     expect_identical(dim(cell_data$D), dim(cell_data$A))
 })
 
-
-# donor_vcf <- system.file("extdata", "donors.donorid.vcf.gz", package = "cardelino")
-# donor_GT <- load_GT_vcf(donor_vcf)
-# rownames(donor_GT$GT) <- paste0("chr", rownames(donor_GT$GT)) #not always necessary
-
 donor_GT <- load_GT_vcf(cell_vcf, na.rm = FALSE)
 
 test_that("load_GT_vcf works as expected", {
