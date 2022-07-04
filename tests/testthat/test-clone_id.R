@@ -4,24 +4,6 @@
 context("test clone ID")
 data("example_donor")
 
-# test_that("Model selection as expected", {
-#     doMC::registerDoMC(4)
-#     `%dopar%` <- foreach::`%dopar%`
-#     res_all <- foreach::foreach(ii = 2:5) %dopar% {
-#         clone_id(A_clone, D_clone, n_clone = ii,
-#                  min_iter = 10000, max_iter = 10000,
-#                  prior1=c(45, 55), relabel = TRUE)
-#     }
-#
-#     n_clones <- seq(2,5)
-#     DIC <- rep(0, 4)
-#     for (i in seq_len(4)) {
-#         DIC[i] <- res_all[[i]]$DIC$DIC
-#     }
-#     plot(n_clones, DIC, type = "b")
-# })
-
-
 test_that("binomial EM inference works as expected", {
     assignments_EM <- clone_id(A_clone, D_clone,
         Config = tree$Z,
@@ -66,15 +48,3 @@ test_that("binaryROC work as expected", {
     res <- binaryROC(assignments$prob[, 1], I_sim[, 1])
     expect_is(res, "list")
 })
-
-# test_that("Bernoulli Gibbs inference works as expected", {
-#     assignments_bern <- clone_id(A_clone, D_clone, Config = tree$Z,
-#                                  model = "Bernoulli")
-#     expect_is(assignments_bern, "list")
-# })
-#
-# test_that("Bernoulli EM inference works as expected", {
-#     assignments_bern_EM <- clone_id(A_clone, D_clone, Config = tree$Z,
-#                                     model = "Bernoulli", inference = "EM")
-#     expect_is(assignments_bern_EM, "list")
-# })

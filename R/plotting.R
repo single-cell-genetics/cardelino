@@ -380,15 +380,3 @@ plot_config_diffs <- function(Config1, Config2, show_variant_names = FALSE) {
     }
     p_out
 }
-
-# ## joxm - works
-# card_joxm <- readRDS(paste0("../fibroblast-clonality/data/cell_assignment/",
-#   "cardelino_results_carderelax.joxm.filt_lenient.cell_coverage_sites.rds"))
-# names(card_joxm)
-# card_joxm_Config_prob <- card_joxm$tree$Z
-# card_joxm_Config_prob[,] <- colMeans(card_joxm$Config_all)
-# card_joxm_Config_best <- round(card_joxm_Config_prob)
-#
-# plot_config_diffs(card_joxm_Config_prob, card_joxm$tree$Z) + ggtitle("joxm")
-# plot_config_diffs(card_lexy_Config_prob, card_lexy$tree$Z)
-# plot_config_diffs(card_zoxy_Config_prob, card_zoxy$tree$Z)
