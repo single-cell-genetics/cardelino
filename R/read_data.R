@@ -82,6 +82,7 @@ read_vcf <- function(vcf_file, genome = "GRCh37",
 #'                        package = "cardelino"))
 #' snp_data <- get_snp_matrices(vcf_cell, vcf_donor)
 #' 
+#' @import snpStats
 #' @importFrom GenomicRanges findOverlaps
 #' @importFrom S4Vectors queryHits subjectHits
 #' 
