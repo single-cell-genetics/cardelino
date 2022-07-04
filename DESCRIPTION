@@ -47,13 +47,14 @@ Imports:
 Suggests: 
     BiocStyle,
     combinat,
-    doMC,
     foreach,
     knitr,
     pcaMethods,
     rmarkdown,
     testthat,
     VGAM
+Enhances:
+    doMC
 VignetteBuilder: 
     knitr
 biocViews: SingleCell, RNASeq, Visualization, Transcriptomics,

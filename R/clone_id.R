@@ -120,17 +120,34 @@ clone_id <- function(A, D, Config = NULL, n_clone = NULL, Psi = NULL,
 
     ## pass data to specific functions
     if (inference == "sampling") {
+        # Try to run sampling in parallel. 
         if (n_proc > 1) {
-            doMC::registerDoMC(n_proc)
-            `%dopar%` <- foreach::`%dopar%`
-
-            ids_list <- foreach::foreach(ii = seq_len(n_chain)) %dopar% {
-                clone_id_Gibbs(A, D, Config,
-                    Psi = Psi,
-                    relax_Config = relax_Config,
-                    relax_rate_fixed = relax_rate_fixed,
-                    verbose = verbose, ...
-                )
+            
+            # doMC is not available on Windows so there we fall back to 
+            # running the chains using only one processor. 
+            if (!requireNamespace("doMC", quietly = TRUE)) {
+                message("Parallel sampling is not supported on Windows.")
+                message("Falling back to sampling using one processor.")
+                ids_list <- list(
+                    clone_id_Gibbs(A, D, Config,
+                                   Psi = Psi,
+                                   relax_Config = relax_Config,
+                                   relax_rate_fixed = relax_rate_fixed,
+                                   verbose = verbose, ...
+                    )
+                )     
+            } else {
+                doMC::registerDoMC(n_proc)
+                `%dopar%` <- foreach::`%dopar%`
+                
+                ids_list <- foreach::foreach(ii = seq_len(n_chain)) %dopar% {
+                    clone_id_Gibbs(A, D, Config,
+                                   Psi = Psi,
+                                   relax_Config = relax_Config,
+                                   relax_rate_fixed = relax_rate_fixed,
+                                   verbose = verbose, ...
+                    )
+                }
             }
         } else {
             ids_list <- list(
