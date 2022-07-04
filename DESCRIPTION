@@ -39,6 +39,7 @@ Imports:
     matrixStats,
     methods,
     pheatmap,
+    snpStats,
     S4Vectors,
     utils,
     VariantAnnotation,
