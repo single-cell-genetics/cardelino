@@ -27,7 +27,7 @@ License: GPL (>= 3)
 URL: https://github.com/single-cell-genetics/cardelino
 BugReports: https://github.com/single-cell-genetics/cardelino/issues
 Depends: 
-    R (>= 4.1),
+    R (>= 4.2),
     stats
 Imports: 
     GenomeInfoDb,
