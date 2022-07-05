@@ -23,7 +23,7 @@ jobs:
         config:
         - { os: windows-latest, r: '4.1'}
         - { os: macOS-latest, r: '4.1'}
-        - { os: ubuntu-16.04, r: '4.1', cran: "https://packagemanager.rstudio.com/all/__linux__/xenial/latest"}
+        - { os: ubuntu-20.04, r: '4.1', cran: "https://packagemanager.rstudio.com/all/__linux__/focal/latest"}
         # - { os: ubuntu-20.04, r: 'devel', cran: "https://packagemanager.rstudio.com/all/__linux__/focal/latest"}
 
     env:
@@ -36,6 +36,7 @@ jobs:
       - name: Install system libraries
         if: ${{ runner.os == 'Linux'  }}
         run: |
+          sudo apt-get update
           sudo apt-get install libcurl4-openssl-dev libglpk-dev
       - uses: actions/checkout@v2
 
@@ -61,7 +62,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          install.packages(c('BiocManager', 'rcmdcheck', 'covr'))
+          install.packages(c('BiocManager', 'rcmdcheck', 'covr'), type = 'source')
           BiocManager::install(ask = FALSE, update = TRUE)
           toInstall <- remotes::dev_package_deps(dependencies = TRUE)[,'package']
           toInstall <- setdiff(toInstall, installed.packages()[,'Package'])
