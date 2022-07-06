@@ -1,5 +1,9 @@
 # News for Package `cardelino`
 
+## Changes in v0.6.6
+* Changes to prepare package for submission to Bioconductor. (No functional
+  changes)
+
 ## Changes in v0.6.4 (21/08/2019)
 * Fix bug in devarianceIC() = D_post + 2 * p_D; and add both the orignal p_D, 
   i.g., D_mean - D_post and the Gelman's alternative p_D = 2 * var(D). By 
