@@ -62,7 +62,7 @@ jobs:
 
       - name: Install dependencies
         run: |
-          install.packages(c('BiocManager', 'rcmdcheck', 'covr'), type = 'source')
+          install.packages(c('BiocManager', 'rcmdcheck', 'covr'))
           BiocManager::install(ask = FALSE, update = TRUE)
           toInstall <- remotes::dev_package_deps(dependencies = TRUE)[,'package']
           toInstall <- setdiff(toInstall, installed.packages()[,'Package'])
