@@ -54,6 +54,11 @@ separate branch in this repository: [with_vireo branch](https://github.com/singl
 or use the [donor_id.R](https://github.com/single-cell-genetics/cardelino/blob/with_vireo/R/donor_id.R) 
 file directly. However, using the Python implementation of Vireo is **strongly** recommended. 
 
+# Code of Conduct
+
+Please note that the cardelino project is released with a [Contributor Code of Conduct](http://bioconductor.org/about/code-of-conduct/).
+By contributing to this project, you agree to abide by its terms.
+
 ## About the name
 
 `cardelino` is almost an anagram of "clone ID R" and is almost the same as the 
