@@ -1,6 +1,6 @@
 # News for Package `cardelino`
 
-## Changes in v0.6.6
+## Changes in v0.99.1
 * Changes to prepare package for submission to Bioconductor. (No functional
   changes)
 
