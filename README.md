@@ -54,10 +54,18 @@ separate branch in this repository: [with_vireo branch](https://github.com/singl
 or use the [donor_id.R](https://github.com/single-cell-genetics/cardelino/blob/with_vireo/R/donor_id.R) 
 file directly. However, using the Python implementation of Vireo is **strongly** recommended. 
 
-# Code of Conduct
+## Code of Conduct
 
 Please note that the cardelino project is released with a [Contributor Code of Conduct](http://bioconductor.org/about/code-of-conduct/).
 By contributing to this project, you agree to abide by its terms.
+
+## Citation
+
+If you find cardelino helpful please consider citing: 
+
+> McCarthy, D.J., Rostom, R., Huang, Y. et al. (2020)
+> Cardelino: computational integration of somatic clonal substructure and single-cell transcriptomes.
+> Nature Methods
 
 ## About the name
 
