@@ -1,0 +1,30 @@
+citHeader("To cite cardelino in publications use:")
+
+citEntry(
+  entry    = "Article",
+  title    = "Cardelino: computational integration of somatic clonal substructure and single-cell transcriptomes",
+  author   = c(person(c("Davis", "J."), "McCarthy"),
+               person("Raghd", "Rostom"),
+               person("Yuanhua", "Huang"),
+               person(c("Daniel", "J."), "Kunz"),
+               person("Petr", "Danecek"),
+               person(c("Marc", "Jan"), "Bonder"),
+               person("Tzachi", "Hagai"),
+               person("Ruquian", "Lyu"),
+               person("Hipsci Consortium"),
+               person("Wenyi", "Wang"),
+               person(c("Daniel", "J."), "Gaffney"),
+               person(c("Benjamin", "D."), "Simons"),
+               person("Oliver", "Stegle"),
+               person(c("Sarah", "A."), "Teichmann")
+              ),
+  journal  = "Nature Methods",
+  year     = 2020,
+  url      = "https://www.nature.com/articles/s41592-020-0766-3",
+  doi      = "https://doi.org/10.1038/s41592-020-0766-3",
+  textVersion = paste(
+    "McCarthy, D.J., Rostom, R., Huang, Y. et al. (2020);",
+    "Cardelino: computational integration of somatic clonal substructure and single-cell transcriptomes.",
+    "Nature Methods"
+  )
+)
