@@ -167,14 +167,19 @@ get_snp_matrices <- function(vcf_cell, vcf_donor = NULL, verbose = TRUE,
         ref = VariantAnnotation::ref(vcf_cell),
         alt = VariantAnnotation::alt(vcf_cell)
     )
-    sm_sample_REF <- matrix(sapply(
+    
+    sm_sample_REF <- matrix(vapply(
         VariantAnnotation::geno(vcf_cell, "AD"),
-        function(x) x[[1]]
+        function(x) x[[1]],
+        numeric(1)
     ), ncol = ncol(vcf_cell))
-    sm_sample_ALT <- matrix(sapply(
+    
+    sm_sample_ALT <- matrix(vapply(
         VariantAnnotation::geno(vcf_cell, "AD"),
-        function(x) x[[2]]
+        function(x) x[[2]], 
+        numeric(1)    
     ), ncol = ncol(vcf_cell))
+    
     sm_sample_ALT[is.na(sm_sample_ALT) & !is.na(sm_sample_REF)] <- 0
     sm_sample_DEP <- sm_sample_REF + sm_sample_ALT
     sm_sample_DEP[sm_sample_DEP == 0] <- NA
