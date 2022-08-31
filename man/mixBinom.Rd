@@ -25,7 +25,7 @@ mixBinom(
 \item{p_init}{A vector of floats with length n_components, the initial value
 of p}
 
-\item{learn_p}{bool(1) or a vector of bool, wheter learn each p}
+\item{learn_p}{bool(1) or a vector of bool, whether learn each p}
 
 \item{min_iter}{integer(1). number of minimum iterations}
 

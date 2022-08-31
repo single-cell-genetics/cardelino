@@ -6,12 +6,12 @@
 #'
 #' @param prob_mat A matrix (M x K), the probability of cell j to clone k
 #' @param threshold A float value, the threshold for assignable cells
-#' @param mode A string, the mothod for defining scores for filtering cells:
+#' @param mode A string, the method for defining scores for filtering cells:
 #' best and delta. best: highest probability of a cell to K clones, delta: the
 #' difference between the best and second.
 #'
 #' @param cell_idx A vector the indices of the input cells. If NULL, order by
-#' the probabilty of each clone
+#' the probability of each clone
 #' @return a ggplot object
 #'
 #' @export

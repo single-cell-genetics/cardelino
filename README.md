@@ -21,7 +21,7 @@ if (!requireNamespace("BiocManager", quietly = TRUE))
 BiocManager::install("cardelino")
 ```
 
-### Developmenet version
+### Development version
 
 The development version of `cardelino` can be installed using the 
 [`remotes`](https://remotes.r-lib.org/) package thus:
@@ -43,7 +43,7 @@ browseVignettes("cardelino")
 
 ## Notes on donor deconvolution
 
-The donor demultiplex function, named Vireo, was previosly supported in this 
+The donor demultiplex function, named Vireo, was previously supported in this 
 R package, but now has been re-implemented in Python, which is more memory 
 efficient and easier to run via a command line. We, therefore, highly recommend 
 you switch to the Python version: https://vireoSNP.readthedocs.io. 

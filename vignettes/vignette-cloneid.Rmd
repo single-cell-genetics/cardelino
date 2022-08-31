@@ -18,7 +18,6 @@ vignette: >
   %VignetteEncoding{UTF-8}
 ---
 
-
 ```{r knitr-options, echo=FALSE, message=FALSE, warning=FALSE}
 ## To render an HTML version that works nicely with github and web pages, do:
 ## rmarkdown::render("vignettes/vignette-cloneid.Rmd", "all")
@@ -32,75 +31,38 @@ theme_set(theme_bw(12))
 
 # Introduction
 
-This document gives an introduction to and overview of inferring the **clone**
-identity of cells using the `r Biocpkg("cardelino")` package using a given 
-clonal structure.
+This document gives an introduction to and overview of inferring the **clone** identity of cells using the `r Biocpkg("cardelino")` package using a given clonal structure.
 
-`r Biocpkg("cardelino")` can use variant information extracted from single-cell 
-RNA-seq reads to probabilistically assign single-cell transcriptomes to 
-individual clones.
+`r Biocpkg("cardelino")` can use variant information extracted from single-cell RNA-seq reads to probabilistically assign single-cell transcriptomes to individual clones.
 
-Briefly, `r Biocpkg("cardelino")` is based on a Bayesian mixture model with a 
-beta-binomial error model to account for sequencing errors as well as a 
-gene-specific model for allelic imbalance between haplotypes and associated bias
-in variant detection. Bayesian inference allows the model to account for 
-uncertainty in model parameters and cell assignments.
+Briefly, `r Biocpkg("cardelino")` is based on a Bayesian mixture model with a beta-binomial error model to account for sequencing errors as well as a gene-specific model for allelic imbalance between haplotypes and associated bias in variant detection. Bayesian inference allows the model to account for uncertainty in model parameters and cell assignments.
 
-We assume that clones are tagged by somatic mutations, and that these mutations
-are known (e.g. from exome sequencing or equivalent). Given a set of known 
-mutations, these sites can be interrogated in scRNA-seq reads to obtain 
-evidence for the presence or absence of each mutation in each cell. As input, 
-the model requires the count of reads supporting the alternative (mutant) 
-allele at each mutation site, the total number of reads overlapping the 
-mutation site ("coverage"). 
+We assume that clones are tagged by somatic mutations, and that these mutations are known (e.g. from exome sequencing or equivalent). Given a set of known mutations, these sites can be interrogated in scRNA-seq reads to obtain evidence for the presence or absence of each mutation in each cell. As input, the model requires the count of reads supporting the alternative (mutant) allele at each mutation site, the total number of reads overlapping the mutation site ("coverage").
 
-Typically, coverage of somatic mutations in scRNA-seq data is very
-sparse (most mutation sites in a given cell have no read coverage), but the 
-`r Biocpkg("cardelino")` model accounts for this sparsity and aggregates 
-information across all available mutation sites to infer clonal identity.
-
+Typically, coverage of somatic mutations in scRNA-seq data is very sparse (most mutation sites in a given cell have no read coverage), but the `r Biocpkg("cardelino")` model accounts for this sparsity and aggregates information across all available mutation sites to infer clonal identity.
 
 # Clone ID with a clonal tree provided
 
-In many clone ID scenarios, a clonal tree is known. That is, we have been able 
-to infer the clones present in the sampled cell population, for example using 
-bulk or single-cell DNA-seq data, and we know which mutations are expected to be
-present in which clones.
+In many clone ID scenarios, a clonal tree is known. That is, we have been able to infer the clones present in the sampled cell population, for example using bulk or single-cell DNA-seq data, and we know which mutations are expected to be present in which clones.
 
-To infer the clonal identity of cells when a clonal tree is provided, 
-`r Biocpkg("cardelino")` requires the following input data:
+To infer the clonal identity of cells when a clonal tree is provided, `r Biocpkg("cardelino")` requires the following input data:
 
-* A: a variant x cell matrix of integer counts, providing the number of reads
-supporting the alternative allele for each variant in each cell;
-* D: a variant x cell matrix of integer counts, providing the total number of 
-reads overlapping each variant in each cell;
-* Config: a variant x clone "configuration" matrix of binary values providing 
-the clone-variant configuration by indicating which mutations are expected to 
-be present in which clones.
+-   A: a variant x cell matrix of integer counts, providing the number of reads supporting the alternative allele for each variant in each cell;
+-   D: a variant x cell matrix of integer counts, providing the total number of reads overlapping each variant in each cell;
+-   Config: a variant x clone "configuration" matrix of binary values providing the clone-variant configuration by indicating which mutations are expected to be present in which clones.
 
-The configuration matrix, Config, can be provided by other tools used to infer 
-the clonal structure of the cell population. For example, the package 
-`r CRANpkg("Canopy")` can be used to infer a clonal tree from DNA-seq data and 
-the "Z" element of its output is the configuration matrix.
+The configuration matrix, Config, can be provided by other tools used to infer the clonal structure of the cell population. For example, the package `r CRANpkg("Canopy")` can be used to infer a clonal tree from DNA-seq data and the "Z" element of its output is the configuration matrix.
 
-Here, we demonstrate the use of `r Biocpkg("cardelino")` to assign 77 cells to 
-clones identified with `r CRANpkg("Canopy")` using 112 somatic mutations. 
+Here, we demonstrate the use of `r Biocpkg("cardelino")` to assign 77 cells to clones identified with `r CRANpkg("Canopy")` using 112 somatic mutations.
 
-We load the package and the example clone ID dataset distributed with the 
-package in VCF ([variant call format](https://github.com/samtools/hts-specs)) 
-format, which is mostly used for storing genotype data. Here, the 
-`cellSNP.cells.vcf.gz` is computed by using
-[cellsnp-lite](https://cellsnp-lite.readthedocs.io) on a list pre-identified 
-somatic variants from bulk WES.
+We load the package and the example clone ID dataset distributed with the package in VCF ([variant call format](https://github.com/samtools/hts-specs)) format, which is mostly used for storing genotype data. Here, the `cellSNP.cells.vcf.gz` is computed by using [cellsnp-lite](https://cellsnp-lite.readthedocs.io) on a list pre-identified somatic variants from bulk WES.
 
 ```{r load-pkg}
 library(ggplot2)
 library(cardelino)
 ```
 
-There are many possible ways to extract the data required by `cardelino` from a 
-VCF file, here we show just one approach using convenience functions in 
-`cardelino`:
+There are many possible ways to extract the data required by `cardelino` from a VCF file, here we show just one approach using convenience functions in `cardelino`:
 
 ```{r read-vcf-data}
 vcf_file <- system.file("extdata", "cellSNP.cells.vcf.gz", 
@@ -108,15 +70,9 @@ vcf_file <- system.file("extdata", "cellSNP.cells.vcf.gz",
 input_data <- load_cellSNP_vcf(vcf_file)
 ```
 
-Alternatively you can load the `A` and `D` matrices yourself and combine them
-into a list, for example `input_data = list('A' = A, 'D' = D)`. 
+Alternatively you can load the `A` and `D` matrices yourself and combine them into a list, for example `input_data = list('A' = A, 'D' = D)`.
 
-We can visualize the allele frequency of the mutation allele. As expected, the
-majority of entries are missing (in grey) due to the high sparsity in scRNA-seq 
-data. For the same reason, even for the non-missing entries, the estimate of 
-allele frequency is of high uncertainty. For this reason, it is crucial to 
-probabilistic clustering with accounting the uncertainty, ideally with guide 
-clonal tree structure from external data. 
+We can visualize the allele frequency of the mutation allele. As expected, the majority of entries are missing (in grey) due to the high sparsity in scRNA-seq data. For the same reason, even for the non-missing entries, the estimate of allele frequency is of high uncertainty. For this reason, it is crucial to probabilistic clustering with accounting the uncertainty, ideally with guide clonal tree structure from external data.
 
 ```{r allele-frequency, , fig.height = 3, fig.width = 5}
 AF <- as.matrix(input_data$A / input_data$D)
@@ -127,12 +83,7 @@ p = pheatmap::pheatmap(AF, cluster_rows=FALSE, cluster_cols=FALSE,
                    angle_col=0, angle_row=0)
 ```
 
-
-Next, we will load the Canopy tree results for the same individual.
-The clonal tree inferred by Canopy for this donor consists of three clones, 
-including a "base" clone ("clone1") that has no sublconal somatic mutations 
-present.
-
+Next, we will load the Canopy tree results for the same individual. The clonal tree inferred by Canopy for this donor consists of three clones, including a "base" clone ("clone1") that has no subclonal somatic mutations present.
 
 ```{r read-canopy-data}
 canopy_res <- readRDS(system.file("extdata", "canopy_results.coveraged.rds", 
@@ -152,11 +103,7 @@ We can visualize the clonal tree structure obtained from `Canopy`:
 plot_tree(canopy_res$tree, orient = "v")
 ```
 
-The included dataset contains the A and D matrices, so combined with the Canopy 
-tree object provided, we have the necessary input to probabilistically assign 
-cells to clones. Note, `min_iter = 800, max_iter = 1200` is used only for 
-quick illustration. Please remove them for the default values or set higher 
-number of iterations to ensure convergence of the Gibbs sampling.
+The included dataset contains the A and D matrices, so combined with the Canopy tree object provided, we have the necessary input to probabilistically assign cells to clones. Note, `min_iter = 800, max_iter = 1200` is used only for quick illustration. Please remove them for the default values or set higher number of iterations to ensure convergence of the Gibbs sampling.
 
 ```{r cell-assign}
 set.seed(7)
@@ -171,11 +118,7 @@ We can visualise the cell-clone assignment probabilities as a heatmap.
 prob_heatmap(assignments$prob)
 ```
 
-We recommend assigning a cell to the highest-probability clone if the highest 
-posterior probability is greater than 0.5 and leaving cells "unassigned" if they
-do not reach this threshold. The `assign_cells_to_clones` function conveniently
-assigns cells to clones based on a threshold and returns a data.frame with the
-cell-clone assignments.
+We recommend assigning a cell to the highest-probability clone if the highest posterior probability is greater than 0.5 and leaving cells "unassigned" if they do not reach this threshold. The `assign_cells_to_clones` function conveniently assigns cells to clones based on a threshold and returns a data.frame with the cell-clone assignments.
 
 ```{r assign-cell-clone-easy}
 df <- assign_cells_to_clones(assignments$prob)
@@ -183,12 +126,8 @@ head(df)
 table(df$clone)
 ```
 
+Also, Cardelino will update the guide clonal tree Config matrix (as a prior) and return a posterior estimate. In the figure below, negative value means the probability of a certain variant presents in a certain clone is reduced in posterior compared to prior (i.e., the input Config). Vice verse for the positive values.
 
-Also, Cardelino will update the guide clonal tree Config matrix (as a prior)
-and return a posterior estimate. In the figure below, negative value means the
-probability of a certain variant presents in a certain clone is reduced in 
-posterior compared to prior (i.e., the input Config). Vice verse for the 
-positive values.
 ```{r Config update}
 heat_matrix(t(assignments$Config_prob - Config)) + 
   scale_fill_gradient2() +
@@ -197,37 +136,26 @@ heat_matrix(t(assignments$Config_prob - Config)) +
   theme(axis.text.y = element_blank(), legend.position = "right")
 ```
 
-
-Finally, we can visualize the results cell assignment and updated mutations 
-clonal configuration at the raw allele frequency matrix:
+Finally, we can visualize the results cell assignment and updated mutations clonal configuration at the raw allele frequency matrix:
 
 ```{r results-plot, fig.height = 4.5, fig.width = 7.5}
 AF <- as.matrix(input_data$A / input_data$D)
 cardelino::vc_heatmap(AF, assignments$prob, Config, show_legend=TRUE)
 ```
 
-
 # Clone ID without input clonal tree
-As shown above, the Config can be updated by the observations from scRNA-seq 
-data. A step further is to not including the Config entirely. This can be 
-possible, as there could be no clonal tree available. In this case, you can use 
-cardelino in its de-novo by set `Config=NULL` and set a number for `n_clones`. 
-Note, by default we will keep the first clone as base clone, i.e., no mutations.
-You can turn it off by set `keep_base_clone=FALSE`.
 
-```{denovo-cell-assign}
+As shown above, the Config can be updated by the observations from scRNA-seq data. A step further is to not including the Config entirely. This can be possible, as there could be no clonal tree available. In this case, you can use cardelino in its de-novo by set `Config=NULL` and set a number for `n_clones`. Note, by default we will keep the first clone as base clone, i.e., no mutations. You can turn it off by set `keep_base_clone=FALSE`.
+
+``` {denovo-cell-assign}
 assignments <- clone_id(input_data$A, input_data$D, Config=NULL, n_clone = 3)
 ```
 
 ## Clone ID on mitochondrial variations
-As an further illustration, we will show how cardelino can be used to infer the
-clonal structure from mitochondrial vairations, that called from 
-[MQuad](https://github.com/single-cell-genetics/MQuad). Again, we have included
-the MQuad output in `.mtx` format in the cardelino package. Note, this 
-mitochondrial data is from the same SMART-seq data set above.
 
-First, let's import these two AD and DP matrices and together with their 
-variant names.
+As an further illustration, we will show how cardelino can be used to infer the clonal structure from mitochondrial variations, that called from [MQuad](https://github.com/single-cell-genetics/MQuad). Again, we have included the MQuad output in `.mtx` format in the cardelino package. Note, this mitochondrial data is from the same SMART-seq data set above.
+
+First, let's import these two AD and DP matrices and together with their variant names.
 
 ```{r read in mtx files}
 AD_file <- system.file("extdata", "passed_ad.mtx", package = "cardelino")
@@ -242,19 +170,14 @@ rownames(AD) <- rownames(DP) <- var_ids[, 1]
 colnames(AD) <- colnames(DP) <- paste0('Cell', seq(ncol(DP)))
 ```
 
-Same as above, AD and DP are matrices with variants as rows and cells as column.
-In this case we have 25 variants (rows) and 77 cells (columns). As expected, 
-the coverage of mtDNA is a lot higher than the nuclear genome above (much fewer
-missing values).
+Same as above, AD and DP are matrices with variants as rows and cells as column. In this case we have 25 variants (rows) and 77 cells (columns). As expected, the coverage of mtDNA is a lot higher than the nuclear genome above (much fewer missing values).
 
 ```{r pheatmap, fig.height = 4.5, fig.width = 8.5}
 AF_mt <- as.matrix(AD / DP)
 pheatmap::pheatmap(AF_mt)
 ```
-Now, we can run cardelino on the mitochondrial variations. Note, as there is 
-no prior clonal tree, the model is easier to return a local optima. Generally,
-we recommend running it multiple time (with different random seed or 
-initializations) and pick the one with highest DIC.
+
+Now, we can run cardelino on the mitochondrial variations. Note, as there is no prior clonal tree, the model is easier to return a local optima. Generally, we recommend running it multiple time (with different random seed or initializations) and pick the one with highest DIC.
 
 ```{r denovo-mtDNA}
 set.seed(7)
@@ -263,13 +186,13 @@ assign_mtClones <- clone_id(AD, DP, Config=NULL, n_clone = 3,
 ```
 
 Then visualise allele frequency along with the clustering of cells and variants:
+
 ```{r vc_heatmap-mtDNA, fig.height = 4.2, fig.width = 7}
 Config_mt <- assign_mtClones$Config_prob
 Config_mt[Config_mt >= 0.5] = 1
 Config_mt[Config_mt <  0.5] = 0
 cardelino::vc_heatmap(AF_mt, assign_mtClones$prob, Config_mt, show_legend=TRUE)
 ```
-
 
 # Session information {.unnumbered}
 

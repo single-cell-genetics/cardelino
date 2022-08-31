@@ -14,7 +14,7 @@ A fibroblast sample from HipSci project
 example_donor
 }
 \value{
-NULL, but makes aavailable a tree object
+NULL, but makes available a tree object
 }
 \description{
 This tree object contains clonal tree information, inferred

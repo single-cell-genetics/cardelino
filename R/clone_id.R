@@ -18,24 +18,24 @@
 #' NULL, the relax rate will be learned automatically with relax_rate_prior.
 #' @param n_chain integer(1), the number of chains to run, which will be
 #' averaged as an output result
-#' @param n_proc integer(1), the numebr of processors to use. This parallel
+#' @param n_proc integer(1), the number of processors to use. This parallel
 #' computing can largely reduce time when using multiple chains
 #' @param inference character(1), the method to use for inference, either
 #' "sampling" to use Gibbs sampling (default) or "EM" to use
-#' expectation-maximisation (faster)
+#' expectation-maximization (faster)
 #' @param verbose logical(1), should the function output verbose information as
 #' it runs?
 #' @param ... arguments passed to \code{\link{clone_id_Gibbs}} or
 #' \code{\link{clone_id_EM}} (as appropriate)
 #' @param Psi A vector of float. The fractions of each clone, output P of Canopy
 #' @param min_iter A integer. The minimum number of iterations in the Gibbs
-#' sampling. The real iteration may be longer utile the convergence.
+#' sampling. The real iteration may be longer until the convergence.
 #' @param max_iter A integer. The maximum number of iterations in the Gibbs
 #' sampling, even haven't passed the convergence diagnosis
 #'
 #' @return
 #' If inference method is "EM", a list containing \code{theta}, a vector of
-#' two floats denoting the parameters of the two componets of the base model,
+#' two floats denoting the parameters of the two components of the base model,
 #' i.e., mean of Bernoulli or binomial model given variant exists or not,
 #' \code{prob}, the matrix of posterior probabilities of each cell belonging to
 #' each clone with fitted parameters, and \code{logLik}, the log likelihood of
@@ -339,7 +339,7 @@ clone_id_EM <- function(A, D, Config, Psi = NULL, min_iter = 10,
 #' @param wise A string, the wise of parameters for theta1: global, variant,
 #' element.
 #' @param relabel bool(1), if TRUE, relabel the samples of both Config and prob
-#' during the Gibbs sampleing.
+#' during the Gibbs sampling.
 #'
 #' @author Yuanhua Huang
 #' @import matrixStats

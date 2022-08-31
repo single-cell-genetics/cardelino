@@ -9,7 +9,7 @@ rowMax(X, mode = "best")
 \arguments{
 \item{X}{A matrix of floats.}
 
-\item{mode}{A string, the mothod for defining scores for filtering cells:
+\item{mode}{A string, the method for defining scores for filtering cells:
 best, second and delta. \code{best}: highest value for each row, similarly
 for the \code{second}. \code{delta} is the difference between the best and
 the second.}

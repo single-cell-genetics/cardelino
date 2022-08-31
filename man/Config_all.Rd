@@ -14,7 +14,7 @@ PASTRI Python package
 config_all
 }
 \value{
-NULL, but makes aavailable a list
+NULL, but makes available a list
 }
 \description{
 This list of tree configuration between 3 clones to 10 clones,

@@ -5,20 +5,20 @@
   changes)
 
 ## Changes in v0.6.4 (21/08/2019)
-* Fix bug in devarianceIC() = D_post + 2 * p_D; and add both the orignal p_D, 
+* Fix bug in devianceIC() = D_post + 2 * p_D; and add both the original p_D, 
   i.g., D_mean - D_post and the Gelman's alternative p_D = 2 * var(D). By 
   default, DIC uses Gelman's method.
-* Suggest nerrowing theta1 for cardelino-free, e.g., prior1=c(45, 55)
+* Suggest narrowing theta1 for cardelino-free, e.g., prior1=c(45, 55)
 * Add get_logLik() function to get log likelihood for clone_id_Gibbs(), namely
   P(A, D | C, I, theta0, theta1)
 
 ## Changes in v0.6.3 (19/08/2019)
-* Add devarianceIC() for Devariance information criterion (DIC) for 
+* Add devianceIC() for Deviance information criterion (DIC) for 
   clone_id_Gibbs()
 * Change the default of relax_Config=TRUE for clone_id() and clone_id_Gibbs()
 
 ## Changes in version 0.6.2
-* Fix the bug in `Geweke_Z` function for convegence diagnostic
+* Fix the bug in `Geweke_Z` function for convergence diagnostic
 * Change the default number of iterations in `clone_id` to 5000
 * Add more tests
 
@@ -28,15 +28,15 @@
 * Rename the cell_assign_EM to clone_id_EM
 * Move get_tree from clone_id.R to tree_utils.R
 * Remove "Bernoulli" model in both clone_id_EM and clone_id_Gibbs. The 
-  user can transfer the binomial to Bernoulli by setting a threhold 
+  user can transfer the binomial to Bernoulli by setting a threshold 
   beforehand
 * Remove the A_germ and D_germ parameters, leave it to future 
   development to jointly modelling the germline variants
-* Remove fucntion load_vcf_h5 and dependency hdf5r
+* Remove function load_vcf_h5 and dependency hdf5r
 
 
 ## Changes in version 0.6.0
-* Remove donor id relevant informatio and backup donor_id into `v0.4.2` 
+* Remove donor id relevant information and backup donor_id into `v0.4.2` 
   and a new branch `with_vireo`
 * Remove donor_id.R, bin/run_vireo.R
 * Remove tests/testthat/test-donorid.R, vignette/vignette-vireo.Rmd
@@ -72,8 +72,8 @@
 
 
 ## Changes in version 0.3.8
-* Change the covergency diagnosis in cell_assign_Gibbs to all cells
-* Change the donor_read_simulator to betabinomial for each variant in 
+* Change the convergence diagnosis in cell_assign_Gibbs to all cells
+* Change the donor_read_simulator to beta-binomial for each variant in 
   each cell
 
 
@@ -108,15 +108,15 @@
 * cell_assign_Gibbs supports updating clone Configuration now. Set 
   relax_Config between 0 and 1.
 * change the default parameters for beta prior to better represent 
-  allelic dropout and imblance in scRNA-seq data. It involves fucntions:
+  allelic dropout and imbalance in scRNA-seq data. It involves functions:
   sim_read_count, donor_read_simulator, and cell_assign_Gibbs
 * minor change of pub.theme: title will be plain rather than bold.
 
 
 ## Changes in version 0.2.7
-* vireo supports match SNP from donor_data to cel_data; change default
+* vireo supports match SNP from donor_data to cell_data; change default
   number of processors to n_proc=1
-* change load_cellSNP_vcf default paramters to support more general case
+* change load_cellSNP_vcf default parameters to support more general case
 * add more dependency to pass tests
 * correct test-donor_id.R
 * remove vignette-donorid.Rmd vignette and correct vignette-vireo.Rmd
