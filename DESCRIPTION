@@ -60,4 +60,4 @@ biocViews: SingleCell, RNASeq, Visualization, Transcriptomics,
     GeneExpression, Sequencing, Software, ExomeSeq
 Encoding: UTF-8
 NeedsCompilation: yes
-RoxygenNote: 7.2.0
+RoxygenNote: 7.2.1

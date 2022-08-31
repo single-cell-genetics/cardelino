@@ -23,7 +23,7 @@ mtx_to_df <- function(X) {
 #' Maximum value for each row in a matrix
 #'
 #' @param X A matrix of floats.
-#' @param mode A string, the mothod for defining scores for filtering cells:
+#' @param mode A string, the method for defining scores for filtering cells:
 #' best, second and delta. \code{best}: highest value for each row, similarly
 #' for the \code{second}. \code{delta} is the difference between the best and
 #' the second.

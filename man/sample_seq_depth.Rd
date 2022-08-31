@@ -2,12 +2,12 @@
 % Please edit documentation in R/reads_simulator.R
 \name{sample_seq_depth}
 \alias{sample_seq_depth}
-\title{Update matrix D with manully selected missing rate}
+\title{Update matrix D with manually selected missing rate}
 \usage{
 sample_seq_depth(D, n_cells = NULL, n_sites = NULL, missing_rate = NULL)
 }
 \arguments{
-\item{D}{A matrix (N variants x M cells), the orignal sequencing coverage,
+\item{D}{A matrix (N variants x M cells), the original sequencing coverage,
 NA means missing}
 
 \item{n_cells}{A integer, the number of the cells to generate}

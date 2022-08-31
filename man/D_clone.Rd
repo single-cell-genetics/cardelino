@@ -14,10 +14,10 @@ A fibroblast sample from HipSci project
 example_donor
 }
 \value{
-NULL, but makes aavailable a matrix
+NULL, but makes available a matrix
 }
 \description{
-This matrix contains sequncing depths for 34 somatic variants
+This matrix contains sequencing depths for 34 somatic variants
 across 428 cells, from one example scRNA-seq sample
 }
 \author{

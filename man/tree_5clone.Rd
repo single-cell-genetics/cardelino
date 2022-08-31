@@ -14,7 +14,7 @@ A fibroblast sample from HipSci project
 simulation_input
 }
 \value{
-NULL, but makes aavailable a tree object
+NULL, but makes available a tree object
 }
 \description{
 This tree object with 5 clones contains clonal tree information,

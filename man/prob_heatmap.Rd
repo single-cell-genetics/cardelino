@@ -11,12 +11,12 @@ prob_heatmap(prob_mat, threshold = 0.5, mode = "best", cell_idx = NULL)
 
 \item{threshold}{A float value, the threshold for assignable cells}
 
-\item{mode}{A string, the mothod for defining scores for filtering cells:
+\item{mode}{A string, the method for defining scores for filtering cells:
 best and delta. best: highest probability of a cell to K clones, delta: the
 difference between the best and second.}
 
 \item{cell_idx}{A vector the indices of the input cells. If NULL, order by
-the probabilty of each clone}
+the probability of each clone}
 }
 \value{
 a ggplot object

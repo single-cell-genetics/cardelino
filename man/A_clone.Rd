@@ -14,7 +14,7 @@ A fibroblast sample from HipSci project
 example_donor
 }
 \value{
-NULL, but makes aavailable a matrix
+NULL, but makes available a matrix
 }
 \description{
 This matrix contains read numbers of alternative alleles for

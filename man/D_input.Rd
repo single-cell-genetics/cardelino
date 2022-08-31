@@ -3,7 +3,7 @@
 \docType{data}
 \name{D_input}
 \alias{D_input}
-\title{A matrix of sequncing depths}
+\title{A matrix of sequencing depths}
 \format{
 a matrix of float
 }
@@ -14,12 +14,12 @@ A fibroblast sample from HipSci project
 simulation_input
 }
 \value{
-NULL, but makes aavailable a matrix
+NULL, but makes available a matrix
 }
 \description{
-This matrix contains sequncing depths for 439 somatic variants
+This matrix contains sequencing depths for 439 somatic variants
 across 151 cells, from one particular scRNA-seq sample, can be used to
-generate sequncing depths
+generate sequencing depths
 }
 \author{
 Yuanhua Huang, Davis McCarthy, 2018-06-25

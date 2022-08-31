@@ -8,7 +8,7 @@
 #' @param n_components A number. number of components
 #' @param p_init A vector of floats with length n_components, the initial value
 #'   of p
-#' @param learn_p bool(1) or a vector of bool, wheter learn each p
+#' @param learn_p bool(1) or a vector of bool, whether learn each p
 #' @param max_iter integer(1). number of maximum iterations
 #' @param min_iter integer(1). number of minimum iterations
 #' @param logLik_threshold A float. The threshold of logLikelihood increase for
