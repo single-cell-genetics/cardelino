@@ -589,7 +589,14 @@ clone_id_Gibbs <- function(A, D, Config, Psi = NULL,
             }
         }
     }
-    print(paste("Converged in", it, "iterations."))
+    Converged_all <- abs(Geweke_Z(prob_all[seq_len(it), ])) <= 2
+    percent_converged <- round(mean(Converged_all, na.rm = TRUE), 3) * 100
+    if (percent_converged <= 95) {
+        warning("Only ", percent_converged, "% of parameters converged. ", 
+                "Consider increasing `max_iter`.", call. = FALSE)
+    } else {
+        print(paste("Converged in", it, "iterations.")) 
+    }
 
     ## Return values
     n_buin <- ceiling(it * buin_frac)
