@@ -23,7 +23,7 @@ Description: Methods to infer clonal tree configuration for a population of
     based on bulk exome-seq data, and sparse variant alleles expressed in
     scRNA-seq data. A flexible beta-binomial error model that accounts for
     stochastic dropout events as well as systematic allelic imbalance is used.
-License: GPL (>= 3)
+License: GPL-3
 URL: https://github.com/single-cell-genetics/cardelino
 BugReports: https://github.com/single-cell-genetics/cardelino/issues
 Depends: 
