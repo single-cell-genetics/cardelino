@@ -103,7 +103,7 @@ We can visualize the clonal tree structure obtained from `Canopy`:
 plot_tree(canopy_res$tree, orient = "v")
 ```
 
-The included dataset contains the A and D matrices, so combined with the Canopy tree object provided, we have the necessary input to probabilistically assign cells to clones. Note, `min_iter = 800, max_iter = 1200` is used only for quick illustration. Please remove them for the default values or set higher number of iterations to ensure convergence of the Gibbs sampling.
+The included dataset contains the A and D matrices, so combined with the Canopy tree object provided, we have the necessary input to probabilistically assign cells to clones. Note, `min_iter = 800, max_iter = 1200` is used only for quick illustration. Please remove them for the default values or set higher number of iterations to ensure convergence of the Gibbs sampling. Convergence is checked automatically in `clone_id()`, using the Geweke z-statistic.
 
 ```{r cell-assign}
 set.seed(7)
