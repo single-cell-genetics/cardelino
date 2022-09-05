@@ -8,6 +8,12 @@
 population of cells using single-cell RNA-seq data (and possibly other data 
 modalities). 
 
+In it's main mode **cardelino** requires: 
+
+* An imperfect clonal tree structure inferred using, for example [Canopy](https://cran.r-project.org/web/packages/Canopy/index.html), from bulk or single-cell DNA sequencing data (e.g. bulk whole exome sequencing data).
+
+* Single-cell RNA sequencing data from which cell-specific somatic variants are called using, for example [cellsnp-lite](https://github.com/single-cell-genetics/cellsnp-lite).
+
 ## Installation
 
 ### Release version
