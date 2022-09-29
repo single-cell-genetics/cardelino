@@ -90,7 +90,10 @@ clone_id <- function(A, D, Config = NULL, n_clone = NULL, Psi = NULL,
     if (is.null(Config) && is.null(n_clone)) {
         stop("Config and n_clone can't be NULL together.")
     }
-
+    if (any(A_clone %% 1 != 0, na.rm = TRUE) || 
+        any(D_clone %% 1 != 0, na.rm = TRUE)) {
+        stop("A and/or D contain non-integer values.")
+    }
     ## Cardelino-free mode if Config is NULL
     if (is.null(Config)) {
         cat("Config is NULL: de-novo mode is in use.\n")
