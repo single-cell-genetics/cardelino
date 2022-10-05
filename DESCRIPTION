@@ -30,6 +30,7 @@ Depends:
     R (>= 4.2),
     stats
 Imports: 
+    combinat,
     GenomeInfoDb,
     GenomicRanges,
     ggplot2,
@@ -45,7 +46,6 @@ Imports:
     vcfR
 Suggests: 
     BiocStyle,
-    combinat,
     foreach,
     knitr,
     pcaMethods,
