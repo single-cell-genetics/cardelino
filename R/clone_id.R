@@ -153,7 +153,7 @@ clone_id <- function(A, D, Config = NULL, n_clone = NULL, Psi = NULL,
                 }
             }
         } else {
-            ids_list <- list(
+            ids_list <- lapply(seq_len(n_chain), function(x)
                 clone_id_Gibbs(A, D, Config,
                     Psi = Psi,
                     relax_Config = relax_Config,
@@ -162,7 +162,6 @@ clone_id <- function(A, D, Config = NULL, n_clone = NULL, Psi = NULL,
                 )
             )
         }
-
         ids_out <- ids_list[[1]]
         ids_out$n_chain <- 1
         if (n_chain > 1) {
