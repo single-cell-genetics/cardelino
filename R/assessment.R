@@ -76,6 +76,8 @@ rowArgmax <- get_prob_label <- function(X) {
 #' find the optimised match to A with computing cost of O(n!). Otherwise, use
 #' greedy search with computing cost of O(n^2).
 #' @return \code{idx}, the column index of B to be matched to A
+#' 
+#' @importFrom combinat permn
 #' @export
 #' @examples
 #' matA <- matrix(sample(seq(12)), nrow = 3)
