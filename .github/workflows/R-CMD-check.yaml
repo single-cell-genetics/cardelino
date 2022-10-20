@@ -5,8 +5,6 @@ on:
   pull_request:
     branches:
       - main
-  schedule:
-    - cron: '0 8 * * 5'
 
 name: R-CMD-check
 
@@ -40,11 +38,11 @@ jobs:
           sudo apt-get install libcurl4-openssl-dev libglpk-dev
       - uses: actions/checkout@v2
 
-      - uses: r-lib/actions/setup-r@master
+      - uses: r-lib/actions/setup-r@v1
         with:
           r-version: ${{ matrix.config.r }}
 
-      - uses: r-lib/actions/setup-pandoc@master
+      - uses: r-lib/actions/setup-pandoc@v1
 
       - name: Install remotes
         run: |
@@ -88,7 +86,7 @@ jobs:
 
       - name: Upload check results
         if: failure()
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@main
         with:
           name: ${{ runner.os }}-r${{ matrix.config.r }}-results
           path: check
@@ -100,7 +98,7 @@ jobs:
 
       - name: Upload check results
         if: failure()
-        uses: actions/upload-artifact@master
+        uses: actions/upload-artifact@main
         with:
           name: ${{ runner.os }}-r${{ matrix.config.r }}-bioc-${{ matrix.config.bioc }}-results
           path: check
