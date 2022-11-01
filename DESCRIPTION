@@ -1,7 +1,7 @@
 Type: Package
 Package: cardelino
 Title: Clone Identification from Single Cell Data
-Version: 1.0.0
+Version: 1.1.0
 Authors@R: 
     c(person(given = "Jeffrey", 
              family = "Pullin",
