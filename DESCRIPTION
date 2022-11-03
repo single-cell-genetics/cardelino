@@ -5,7 +5,7 @@ Version: 0.99.3
 Authors@R: 
     c(person(given = "Jeffrey", 
              family = "Pullin",
-             role = c("aut", "cre"),
+             role = "aut",
              email = "jpullin@svi.edu.au"),
       person(given = "Yuanhua",
              family = "Huang",
@@ -13,7 +13,7 @@ Authors@R:
              email = "yuanhua@hku.hk"),
       person(given = "Davis",
              family = "McCarthy",
-             role = "aut",
+             role = c("aut", "cre"),
              email = "dmccarthy@svi.edu.au"))
 Description: Methods to infer clonal tree configuration for a population of
     cells using single-cell RNA-seq data (scRNA-seq), and possibly other data
